@@ -1,0 +1,184 @@
+/*
+* Designed to complement lanyon.css and customize.
+*
+*/
+
+
+/* === Color Changes to Selections === */
+::selection {
+    background: #6a9fb5;
+    color: #fff;
+}
+::moz-selection {
+    background: #6a9fb5;
+    color: #fff;
+}
+
+
+/* === CSS to keep header at top (with semi transparency) === */
+.masthead {
+    z-index: 1;
+    background-color: rgba(255,255,255,0.75);
+}
+
+.sidebar-toggle {
+    z-index: 1;
+}
+
+@media (min-width: 30rem) {
+    .masthead {
+        position: fixed;
+        width: 100%;
+    }
+
+    .container.content {
+        padding-top: 6rem;
+    }
+
+    /*.masthead-bg {
+    background: #fff;
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: -1;
+    }*/
+}
+
+.highlighter-rouge pre {
+    overflow-x: auto;
+}
+
+.highlighter-rouge pre code {
+    white-space: pre;
+}
+
+
+/* Category List */
+/*.related {
+padding-top: 2rem;
+padding-bottom: 2rem;
+border-top: 1px solid #eee;
+}*/
+.category-list {
+    padding-left: 1rem;
+    list-style: none;
+}
+.category-list h3 {
+    font-size: 1rem;
+    margin-top: 0;
+}
+.category-list li small {
+    font-size: 75%;
+    color: #999;
+}
+.category-list li a:hover {
+    color: #6a9fb5;
+    text-decoration: none;
+}
+.category-list li a:hover small {
+    color: inherit;
+}
+
+
+
+
+.category-mark {
+    padding: 0 .5rem 0 .5rem;
+    border-radius: 5px;
+    background: #f0f0f0;
+    color: #999;
+    text-decoration: none;
+    margin-bottom: .75rem;
+}
+
+.category-mark:hover {
+    font-weight: bold;
+}
+
+.tag-mark{
+    font-size: 75%;
+    padding: 0 .5rem 0 .5rem;
+    border-radius: 5px;
+    background: #e7f2f7;
+    color: #6a9fb5;
+}
+
+/* === Text Transform of page-title ===
+.page-title {
+    text-transform: uppercase;
+}
+*/
+
+/* === Font Changes to Default ===
+html {
+    font-family: Avenir, Microsoft Yahei, Hiragino Sans GB, Microsoft Sans Serif, WenQuanYi Micro Hei, sans-serif;
+    font-weight: 200;
+    background:#fff;
+    -webkit-text-size-adjust:100%;
+    -ms-text-size-adjust:100%;
+    text-rendering:optimizelegibility;
+    -moz-osx-font-smoothing: antialiased;
+    -webkit-font-smoothing: antialiased;
+}
+*/
+
+/* === Font Changes to Headings 1-6 ===
+h1, h2, h3, h4, h5, h6 {
+    font-family:'Helvetica Neue', 'Microsoft Yahei', 'Hiragino Sans GB', 'Microsoft Sans Serif', 'WenQuanYi Micro Hei', sans-serif;
+    font-weight:400;
+}
+*/
+
+/* === Font Changes to code,pre ===
+code,
+pre {
+    font-family:Courier, 'Courier New', monospace;
+}
+*/
+
+/* === Font Changes to blockquote ===
+blockquote {
+    font-weight:300;
+    font-family:Avenir, 'Helvetica Neue', 'Microsoft Yahei', 'Hiragino Sans GB', 'Microsoft Sans Serif', 'WenQuanYi Micro Hei', sans-serif;
+}
+*/
+
+
+
+/* === Heading Changes to Posts ===
+
+@media (min-width: 38rem) {
+    .post h2, .post h3, .post h4, .post h5, .post h6 {
+        margin-left: -1rem;
+        margin-bottom: .5rem;
+    }
+}
+
+.post {
+    font-size: 0.8rem;
+}
+
+.post h1 {
+    font-size: 1.6rem;
+}
+.post h2 {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+}
+.post h3 {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+}
+.post h4, .post h5, .post h6 {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+}
+
+.post h2::first-letter {
+    font-size: xx-large;
+    text-transform: uppercase;
+}
+*/
