@@ -7,14 +7,19 @@ title: Home
   {% for post in paginator.posts %}
   <div class="post">
     <h1 class="post-title">
-      <a href="{{ site.baseurl }}{{ post.url }}">
+      <a href="{{ site.baseurl }}{{ post.url }}" title="Post word count: {{ post.content | number_of_words }}">
         {{ post.title }}
       </a>
     </h1>
-
-    <span class="post-date">{{ post.date | date_to_string }}</span>
-
-    {{ post.content }}
+    <span class="post-date">{{ post.date | date_to_string }} | <a href="/blog/category#{{ post.category | slugify }}">{{ post.category }}</a></span>
+    <div class="tags">
+  {% for tag in post.tags %}
+  <a class="tag-mark" href="/blog/tag#{{ tag | slugify }}"><i class="fas fa-tag fa-xs fa-fw"></i> {{ tag }}</a>
+  {% endfor %}
+  </div>
+    {{ post.excerpt }}
+    <a href="{{ site.baseurl }}{{ post.url }}">Read more...</a>
+    <hr class="separator">
   </div>
   {% endfor %}
 </div>

@@ -1,6 +1,7 @@
 ---
 layout: page
 title: About
+icon: "fas fa-user fa-fw"
 ---
 
 I'm a Christian by grace, husband by patience, father by miracle, elder by calling, teacher by gifting, employee by connection, Texan by birth, West-Texan by choice.

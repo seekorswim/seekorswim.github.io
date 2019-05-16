@@ -10,13 +10,19 @@ tagline:             'My Security Blog'
 description:         'A personal blog for documenting my research and learning in various aspects of computer security.'
 url:                 https://seekorswim.github.io/
 baseurl:             ''
-paginate:            5
+paginate:            3
+excerpt_separator: <!--more-->
+#permalink: date   # /:categories/:year/:month/:day/:title.html
+permalink: pretty # /:categories/:year/:month/:day/:title/
 
 # About/contact
 author:
   name:              Larry Brown
   url:               https://twitter.com/seekorswim633
-  email:             seekorswim [@] seekorswim [dot] net
+  email:             seekorswim [at] seekorswim [dot] net
+
+github:
+  repo:              https://github.com/seekorswim/seekorswim.github.io
 
 # Custom vars
 version:             1.0.0

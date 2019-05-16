@@ -14,6 +14,46 @@
     color: #fff;
 }
 
+/* === CSS to add border and shadow to images in posts === */
+.post img {
+    border: 1px solid rgba(0, 0, 0, 0.14902);
+    border-radius: 4px;
+    padding: 8px;
+    max-width: 100%;
+    height: auto;
+}
+
+.post img.retina {
+    width: 50%;
+    height: 50%
+}
+
+.post .tip {
+    border: 1px solid rgba(3, 102, 214, 0.14902);
+    background-color: #f1f8ff;
+    border-radius: 4px;
+    padding: 16px;
+    font-size: 14px;
+}
+
+.post .note {
+    border: 1px solid rgba(255, 219, 136, 0.14902);
+    background-color: #fff9f0;
+    border-radius: 4px;
+    padding: 16px;
+    font-size: 14px;
+}
+
+.post .tags {
+    margin-bottom: 16px;
+}
+
+hr.separator {
+    border: none;
+    border-top: 1px dotted #9a9a9a;
+    height:1px;
+}
+
 
 /* === CSS to keep header at top (with semi transparency) === */
 .masthead {
@@ -47,11 +87,11 @@
     }*/
 }
 
-.highlighter-rouge pre {
+.evernote-code-box, .highlight pre code, .highlighter-rouge pre {
     overflow-x: auto;
 }
 
-.highlighter-rouge pre code {
+.highlight pre code, .highlighter-rouge pre code {
     white-space: pre;
 }
 
@@ -86,24 +126,30 @@ border-top: 1px solid #eee;
 
 
 .category-mark {
-    padding: 0 .5rem 0 .5rem;
+    padding: 5px 12px;
     border-radius: 5px;
     background: #f0f0f0;
     color: #999;
     text-decoration: none;
-    margin-bottom: .75rem;
+    margin-bottom: 8px;
+    margin-right: 5px;
 }
 
 .category-mark:hover {
-    font-weight: bold;
+    /*font-weight: bold;*/
+    background: #e7f2f7;
 }
 
-.tag-mark{
+.tag-mark {
     font-size: 75%;
-    padding: 0 .5rem 0 .5rem;
+    padding: 3px 8px;
     border-radius: 5px;
     background: #e7f2f7;
     color: #6a9fb5;
+}
+
+.smaller-text {
+    font-size: 75%;
 }
 
 /* === Text Transform of page-title ===
