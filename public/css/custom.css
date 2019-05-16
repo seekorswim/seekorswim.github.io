@@ -91,6 +91,10 @@ hr.separator {
     overflow-x: auto;
 }
 
+.evernote-code-box div {
+    white-space: nowrap;
+}
+
 .highlight pre code, .highlighter-rouge pre code {
     white-space: pre;
 }
