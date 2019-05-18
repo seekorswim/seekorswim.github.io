@@ -598,7 +598,7 @@ tags: [vulnhub]
 <div><br /></div>
 <div>Looks like we'll need to specify our platform (-b 0), our local IP address (-c 10.183.0.222) and the victim's IP address (10.183.0.224).</div>
 <div><br /></div>
-<div>***NOTE*** I had to modify a line in 10.c to accommodate my IP addressing scheme. The code is checking to make sure there aren't any zeros in the IP address. Since my IP addresses have a zero in the third octet, I was getting an "Invalid IP" error when trying to execute the script. I had to make the following change.</div>
+<div class="note"><b>NOTE:</b> I had to modify a line in 10.c to accommodate my IP addressing scheme. The code is checking to make sure there aren't any zeros in the IP address. Since my IP addresses have a zero in the third octet, I was getting an "Invalid IP" error when trying to execute the script. I had to make the following change.</div>
 <div><br /></div>
 <div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
     <div>root@kali:~/Walkthroughs/kioptrix1# diff 10.c.old 10.c</div>
