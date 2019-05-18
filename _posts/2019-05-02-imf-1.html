@@ -4,7 +4,7 @@ title: "IMF: 1"
 date: 2019-05-02 20:09:14 +0000
 author: Larry Brown
 category: Walkthroughs
-tags: [vulnhub]
+tags: [vulnhub, base64, sqli, qr code, waf bypass, port knock, ltrace, gdb, gdb-peda]
 ---
 <div>VulnHub URL: <a href="https://www.vulnhub.com/entry/imf-1,162/" target="_blank">https://www.vulnhub.com/entry/imf-1,162/</a></div>
 <div>Hostname: imf</div>
@@ -1559,8 +1559,7 @@ tags: [vulnhub]
     <div>0xfff52b44:     0x41414141      0x41414141      0xfff52ab4      0x41414141</div>
     <div>0xfff52b54:     0x41414141      0x41414141      0x42424242      <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x04030201</font>
     </div>
-    <div>0xfff52b64:     <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x08070605</font>      0x0967<font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">00</font>
-        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">09</font>      0x383489bb      0x35333930
+    <div>0xfff52b64:     <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x08070605</font>      0x0967<font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">00</font><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">09</font>      0x383489bb      0x35333930
     </div>
     <div>0xfff52b74:     0xff003237      0x00000003      0x0a048991      0xf7eeb560</div>
     <div>0xfff52b84:     0xfff52ba0      0x00000000      0xf7ce8b41      0xf7ea8000</div>

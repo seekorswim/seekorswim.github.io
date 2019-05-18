@@ -4,7 +4,7 @@ title: "Lord Of The Root: 1.0.1"
 date: 2019-05-06 19:35:57 +0000
 author: Larry Brown
 category: Walkthroughs
-tags: [vulnhub]
+tags: [vulnhub, port knock, sqli, sqlmap, gdb, pwndbg, buffer overflow]
 ---
 <div>VulnHub URL: <a href="https://www.vulnhub.com/entry/lord-of-the-root-101,129/" target="_blank">https://www.vulnhub.com/entry/lord-of-the-root-101,129/</a></div>
 <div>Hostname: LordOfTheRoot</div>
@@ -465,8 +465,8 @@ tags: [vulnhub]
 <div><br /></div>
 <div>Sending 200 'A's, we are able to get the application to crash. Time to start building a buffer overflow exploit.</div>
 <div><br /></div>
-<div>*** NOTICE *** I tried to start debugging the program on the victim using gdb, but I couldn't get it to crash any more. I suspected the system swapped the vulnerable program to a different "door", so I went back and started ltracing each binary and found that the 'strcpy' one was now behind door3. 🙂 To prevent further swaps while I was debugging, I copied the vulnerable binary to my attacking machine (via netcat). Once I have an exploit, I'll have to find the currently vulnerable binary and run it against it.</div>
-<div>*** NOTICE *** You can verify which binary has the vulnerability by checking the file size. The one with a size of 5150 bytes is the vulnerable one. The others will be 7370 bytes.</div>
+<div class="note"><b>NOTE:</b> I tried to start debugging the program on the victim using gdb, but I couldn't get it to crash any more. I suspected the system swapped the vulnerable program to a different "door", so I went back and started ltracing each binary and found that the 'strcpy' one was now behind door3. 🙂 To prevent further swaps while I was debugging, I copied the vulnerable binary to my attacking machine (via netcat). Once I have an exploit, I'll have to find the currently vulnerable binary and run it against it.</div>
+<div class="note"><b>NOTE:</b> You can verify which binary has the vulnerability by checking the file size. The one with a size of 5150 bytes is the vulnerable one. The others will be 7370 bytes.</div>
 <div><br /></div>
 <div>We are going to debug the program using gdb (with the <a href="https://github.com/pwndbg/pwndbg" target="_blank">pwndbg plugin</a>) on our attacking machine.</div>
 <div><br /></div>
@@ -733,8 +733,7 @@ tags: [vulnhub]
 <div><br /></div>
 <div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
     <div>pwndbg&gt; x/8x 0xffffd141</div>
-    <div>0xffffd141:     0x42424242      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x04030201</font>      0x08070605      0x<font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0d0c0b</font>
-        <font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">00</font>
+    <div>0xffffd141:     0x42424242      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x04030201</font>      0x08070605      0x<font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0d0c0b</font><font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">00</font>
     </div>
     <div>0xffffd151:     0x11100f0e      0x15141312      0x19181716      0x1d1c1b1a</div>
 </div>
@@ -745,8 +744,7 @@ tags: [vulnhub]
     <div>pwndbg&gt; x/8x 0xffffce90</div>
     <div>0xffffce90:     <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x04030201</font>      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x08070605</font>      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x0e0d0c0b</font>      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x1211100f</font>
     </div>
-    <div>0xffffcea0:     <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x16151413</font>      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x1a191817</font>      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x1e1d1c1b</font>      0xffff<font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">00</font>
-        <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">1f</font>
+    <div>0xffffcea0:     <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x16151413</font>      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x1a191817</font>      <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x1e1d1c1b</font>      0xffff<font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">00</font><font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">1f</font>
     </div>
 </div>
 <div><br /></div>
