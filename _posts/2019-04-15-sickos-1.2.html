@@ -4,7 +4,7 @@ title: "SickOs: 1.2"
 date: 2019-04-15 00:34:01 +0000
 author: Larry Brown
 category: Walkthroughs
-tags: [vulnhub]
+tags: [vulnhub, webdav, egress filtering, cron, chkrootkit, suid]
 ---
 <div>VulnHub URL: <a href="https://www.vulnhub.com/entry/sickos-12,144/" target="_blank">https://www.vulnhub.com/entry/sickos-12,144/</a></div>
 <div>Hostname: ubuntu</div>
@@ -704,7 +704,9 @@ tags: [vulnhub]
     <div># Completed on Mon Apr 22 16:08:25 2019</div>
 </div>
 <div><br /></div>
-<div>There are also some interesting "source port" rules. So, you could open a bind shell on any port on the victim, but you'd have to specify a source port of 443 or 8080 to reach it. Or, you could do a reverse shell from the victim, but you'd have to specify a source port of 22 or 80 for having it reach back to the attacker (which would require root, to bind to the low ports). You can use the -p option in netcat (when acting as a client) to specify your source port.</div>
+<div>There are also some interesting "source port" rules. So, you could open a bind shell on any port on the victim, but you'd have to specify a source port of 443 or 8080 to reach it. Or, you could do a reverse shell from the victim, but you'd have to specify a source port of 22 or 80 for having it reach back to the attacker (which would require root, to bind to the low ports).</div>
+<div><br /></div>
+<div class="note"><b>NOTE:</b> You can use the -p option in netcat (when acting as a client) to specify your source port.</div>
 <div><br /></div>
 <div><br /></div>
 <div><span style="font-weight: bold;">/etc/cron.d</span></div>
@@ -715,9 +717,5 @@ tags: [vulnhub]
     <div>root@ubuntu:/etc/cron.d# cat chkrootkit </div>
     <div>* * * * * root /usr/sbin/chkrootkit</div>
 </div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
 <div><br /></div>
 <div><br /></div>
