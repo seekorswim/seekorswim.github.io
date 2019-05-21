@@ -4,7 +4,7 @@ title: "FristiLeaks: 1.3"
 date: 2019-04-15 00:34:01 +0000
 author: Larry Brown
 category: Walkthroughs
-tags: [vulnhub]
+tags: [vulnhub, image upload bypass, cron, python codecs, sudo]
 ---
 <div>VulnHub URL: <a href="https://www.vulnhub.com/entry/fristileaks-13,133/" target="_blank">https://www.vulnhub.com/entry/fristileaks-13,133/</a></div>
 <div>Hostname: localhost</div>
@@ -209,11 +209,11 @@ tags: [vulnhub]
 <div><br /></div>
 <div>Let's try 'eezeepz' as the username and 'keKkeKKeKKeKkEkkEk' as the password.</div>
 <div><br /></div>
-<div>Works! 😄 And we get to upload a file. I'm thinking, shell.</div>
+<div>Works! 😄 And we get to upload a file. I'm thinking, reverse shell.</div>
 <div><br /></div>
 <div><img height="116" src="/assets/images/2019-04-15-fristileaks-1.3/16DB0205-6501-4972-A92B-86EADE97A050.png" width="238" /><br /></div>
 <div><br /></div>
-<div>After clicking the link, we are taken to <a href="http://10.183.0.208/fristi/upload.php">http://10.183.0.208/fristi/upload.php</a> to upload an image. I'm thinking... not shell?!? 😞</div>
+<div>After clicking the link, we are taken to <a href="http://10.183.0.208/fristi/upload.php">http://10.183.0.208/fristi/upload.php</a> to upload an image. I'm thinking... not reverse shell?!? 😞</div>
 <div><br /></div>
 <div><img height="100" src="/assets/images/2019-04-15-fristileaks-1.3/B74FF649-B870-419A-B9E9-8451174FA3FA.png" width="682" /><br /></div>
 <div><br /></div>

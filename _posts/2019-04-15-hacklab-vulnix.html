@@ -4,7 +4,7 @@ title: "HackLAB: Vulnix"
 date: 2019-04-15 00:34:01 +0000
 author: Larry Brown
 category: Walkthroughs
-tags: [vulnhub]
+tags: [vulnhub, nfs, nfspy, finger, sudo]
 ---
 <div>VulnHub URL: <a href="https://www.vulnhub.com/entry/hacklab-vulnix,48/" target="_blank">https://www.vulnhub.com/entry/hacklab-vulnix,48/</a></div>
 <div>Hostname: vulnix</div>
@@ -245,22 +245,11 @@ tags: [vulnhub]
 <div>We are in! 😄</div>
 <div><br /></div>
 <div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
 <div>
     <h2>Maintaining Access</h2>
 </div>
+<div><br /></div>
+<div>Since we have SSH access, I skipped this step.</div>
 <div><br /></div>
 <div><br /></div>
 <div>
@@ -344,12 +333,7 @@ tags: [vulnhub]
 <div><br /></div>
 <div>So much for that.</div>
 <div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
+<div>Since having to reboot the box seems lame to me, I'm going to stop here. If you want to escalate after a reboot, just follow the steps in <a href="/walkthroughs/2019/04/14/hackfest2016-orcus/">hackfest2016 : Orcus</a>.</div>
 <div><br /></div>
 <div><br /></div>
 <div>
@@ -367,11 +351,7 @@ tags: [vulnhub]
     <h2>Additional Info</h2>
 </div>
 <div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
-<div><br /></div>
+<div><b>SMTP VRFY</b></div>
 <div><br /></div>
 <div>The SMTP service supports the VRFY command, so we can try to enumerate valid accounts by running smtp-user-enum.</div>
 <div><br /></div>
